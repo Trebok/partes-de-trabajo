@@ -18,16 +18,16 @@ class ParteAdapter extends TypeAdapter<Parte> {
     };
     return Parte(
       cliente: fields[0] as Cliente,
+      horaInicio: fields[1] as String,
+      fechaInicio: fields[2] as String,
+      horaFinal: fields[3] as String,
+      fechaFinal: fields[4] as String,
+      otrosTrabajadores: fields[5] as String?,
+      observaciones: fields[6] as String?,
       trabajos: (fields[7] as List).cast<Trabajo>(),
-    )
-      ..horaInicio = fields[1] as String?
-      ..fechaInicio = fields[2] as String?
-      ..horaFinal = fields[3] as String?
-      ..fechaFinal = fields[4] as String?
-      ..otrosTrabajadores = fields[5] as String?
-      ..observaciones = fields[6] as String?
-      ..trabajoFinalizado = fields[8] as bool?
-      ..trabajoPendiente = fields[9] as String?;
+      trabajoFinalizado: fields[8] as bool,
+      trabajoPendiente: fields[9] as String?,
+    );
   }
 
   @override

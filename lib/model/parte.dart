@@ -8,22 +8,30 @@ part 'parte.g.dart';
 class Parte {
   Parte({
     required this.cliente,
+    required this.horaInicio,
+    required this.fechaInicio,
+    required this.horaFinal,
+    required this.fechaFinal,
+    this.otrosTrabajadores,
+    this.observaciones,
     required this.trabajos,
+    required this.trabajoFinalizado,
+    this.trabajoPendiente,
   });
   @HiveField(0)
   Cliente cliente;
 
   @HiveField(1)
-  String? horaInicio;
+  String horaInicio;
 
   @HiveField(2)
-  String? fechaInicio;
+  String fechaInicio;
 
   @HiveField(3)
-  String? horaFinal;
+  String horaFinal;
 
   @HiveField(4)
-  String? fechaFinal;
+  String fechaFinal;
 
   @HiveField(5)
   String? otrosTrabajadores;
@@ -35,7 +43,7 @@ class Parte {
   List<Trabajo> trabajos;
 
   @HiveField(8)
-  bool? trabajoFinalizado;
+  bool trabajoFinalizado;
 
   @HiveField(9)
   String? trabajoPendiente;

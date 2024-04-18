@@ -1,25 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import 'widgets/barra_navegacion.dart';
-import 'model/cliente.dart';
-import 'pages/crear_cliente.dart';
 import 'lista_clientes.dart';
 import 'lista_partes.dart';
 import 'model/boxes.dart';
-import 'pages/crear_parte.dart';
+import 'model/cliente.dart';
 import 'model/parte.dart';
+import 'model/trabajo.dart';
+import 'pages/crear_cliente.dart';
+import 'pages/crear_parte.dart';
+import 'widgets/barra_navegacion.dart';
 
 void main() async {
   await Hive.initFlutter();
+  Hive.registerAdapter(TrabajoAdapter());
   Hive.registerAdapter(ClienteAdapter());
   Hive.registerAdapter(ParteAdapter());
-  //Hive.deleteBoxFromDisk('clienteBox');
-  //Hive.deleteBoxFromDisk('parteBox');
   boxClientes = await Hive.openBox<Cliente>('clienteBox');
   boxPartes = await Hive.openBox<Parte>('parteBox');
+  //Hive.deleteBoxFromDisk('clienteBox');
+  //Hive.deleteBoxFromDisk('parteBox');
   runApp(const Home());
 }
 
@@ -179,9 +180,8 @@ class _PrimeraPaginaState extends State<PrimeraPagina> {
           Navigator.of(context)
               .push(
                 MaterialPageRoute(
-                  builder: (context) => _selectedIndex == 0
-                      ? const CrearParte()
-                      : const CrearCliente(),
+                  builder: (context) =>
+                      _selectedIndex == 0 ? const CrearParte() : const CrearCliente(),
                 ),
               )
               .then(
