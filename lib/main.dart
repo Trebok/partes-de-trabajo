@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:partes/widgets/floating_action_button_custom.dart';
 
 import 'lista_clientes.dart';
 import 'lista_partes.dart';
@@ -17,11 +19,42 @@ void main() async {
   Hive.registerAdapter(TrabajoAdapter());
   Hive.registerAdapter(ClienteAdapter());
   Hive.registerAdapter(ParteAdapter());
-  boxClientes = await Hive.openBox<Cliente>('clienteBox');
-  boxPartes = await Hive.openBox<Parte>('parteBox');
   //Hive.deleteBoxFromDisk('clienteBox');
   //Hive.deleteBoxFromDisk('parteBox');
-  runApp(const Home());
+  boxClientes = await Hive.openBox<Cliente>('clienteBox');
+  boxPartes = await Hive.openBox<Parte>('parteBox');
+
+  runApp(const MyApp());
+}
+
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Partes de Trabajo',
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es'),
+      ],
+      theme: ThemeData(
+        colorSchemeSeed: const Color(0xFF0097B2),
+        textTheme: GoogleFonts.poppinsTextTheme(),
+      ),
+      home: const Home(),
+    );
+  }
 }
 
 class Home extends StatefulWidget {
@@ -32,29 +65,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF0097B2),
-        textTheme: GoogleFonts.poppinsTextTheme(),
-      ),
-      title: 'Partes de Trabajo',
-      home: const PrimeraPagina(),
-    );
-  }
-}
-
-class PrimeraPagina extends StatefulWidget {
-  const PrimeraPagina({super.key});
-
-  @override
-  State<PrimeraPagina> createState() => _PrimeraPaginaState();
-}
-
-class _PrimeraPaginaState extends State<PrimeraPagina> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -67,7 +78,7 @@ class _PrimeraPaginaState extends State<PrimeraPagina> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: BarraNavegacion(
-        nombre: _selectedIndex == 0 ? 'PARTES' : 'CLIENTES',
+        nombre: _selectedIndex == 1 ? 'PARTES' : 'CLIENTES',
         drawer: true,
       ),
       drawer: Drawer(
@@ -107,15 +118,6 @@ class _PrimeraPaginaState extends State<PrimeraPagina> {
               ListTile(
                 leading: const Icon(Icons.edit_document),
                 title: const Text('Partes'),
-                selected: _selectedIndex == 0,
-                selectedTileColor: const Color(0x110097B2),
-                onTap: () {
-                  _onItemTapped(0);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.groups),
-                title: const Text('Clientes'),
                 selected: _selectedIndex == 1,
                 selectedTileColor: const Color(0x110097B2),
                 onTap: () {
@@ -123,8 +125,8 @@ class _PrimeraPaginaState extends State<PrimeraPagina> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.person),
-                title: const Text('Perfil'),
+                leading: const Icon(Icons.groups),
+                title: const Text('Clientes'),
                 selected: _selectedIndex == 2,
                 selectedTileColor: const Color(0x110097B2),
                 onTap: () {
@@ -132,8 +134,8 @@ class _PrimeraPaginaState extends State<PrimeraPagina> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.settings),
-                title: const Text('Ajustes'),
+                leading: const Icon(Icons.person),
+                title: const Text('Perfil'),
                 selected: _selectedIndex == 3,
                 selectedTileColor: const Color(0x110097B2),
                 onTap: () {
@@ -141,62 +143,48 @@ class _PrimeraPaginaState extends State<PrimeraPagina> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text('Cerrar Sesión'),
+                leading: const Icon(Icons.settings),
+                title: const Text('Ajustes'),
                 selected: _selectedIndex == 4,
                 selectedTileColor: const Color(0x110097B2),
                 onTap: () {
                   _onItemTapped(4);
                 },
               ),
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text('Cerrar Sesión'),
+                selected: _selectedIndex == 5,
+                selectedTileColor: const Color(0x110097B2),
+                onTap: () {
+                  _onItemTapped(5);
+                },
+              ),
             ],
           ),
         ),
       ),
-      // ignore: prefer_const_constructors
-      body: _selectedIndex == 0 ? ListaPartes() : ListaClientes(),
+      body: switch (_selectedIndex) {
+        1 => ListaPartes(),
+        2 => ListaClientes(),
+        3 => const Scaffold(),
+        4 => const Scaffold(),
+        5 => const Scaffold(),
+        _ => throw UnimplementedError(),
+      },
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: FloatingActionButton(
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(
-            shape: BoxShape.rectangle,
-            gradient: const LinearGradient(
-              colors: [
-                Color(0xFF0097B2),
-                Color(0xFF7ED957),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: const Icon(
-            Icons.add,
-            color: Colors.white,
-            size: 35,
-          ),
-        ),
+      floatingActionButton: FloatingActionButtonCustom(
         onPressed: () {
-          Navigator.of(context)
-              .push(
-                MaterialPageRoute(
-                  builder: (context) =>
-                      _selectedIndex == 0 ? const CrearParte() : const CrearCliente(),
-                ),
-              )
-              .then(
-                _selectedIndex == 0
-                    ? (parte) => setState(() {
-                          if (parte != null) {
-                            boxPartes.add(parte);
-                          }
-                        })
-                    : (cliente) => setState(() {
-                          if (cliente != null) {
-                            boxClientes.add(cliente);
-                          }
-                        }),
-              );
+          switch (_selectedIndex) {
+            case 1:
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const CrearParte()))
+                  .then((parte) => setState(() => parte != null ? boxPartes.add(parte) : null));
+            case 2:
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const CrearCliente()))
+                  .then((cliente) => setState(() => cliente != null ? boxClientes.add(cliente) : null));
+            default:
+              throw UnimplementedError();
+          }
         },
       ),
     );

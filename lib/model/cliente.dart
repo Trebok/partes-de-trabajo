@@ -6,23 +6,23 @@ part 'cliente.g.dart';
 class Cliente {
   Cliente({
     required this.nombre,
-    this.email = '',
-    this.dni = '',
-    this.telefono = '',
-    this.direccion = '',
+    this.email,
+    this.dni,
+    this.telefono,
+    this.direccion,
   });
   @HiveField(0)
   String nombre;
 
   @HiveField(1)
-  String email;
-  
+  String? email;
+
   @HiveField(2)
-  String dni;
+  String? dni;
 
   @HiveField(3)
-  String telefono;
+  String? telefono;
 
   @HiveField(4)
-  String direccion;
+  String? direccion;
 }

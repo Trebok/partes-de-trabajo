@@ -5,7 +5,8 @@ import 'model/boxes.dart';
 import 'model/parte.dart';
 
 class ListaPartes extends StatefulWidget {
-  const ListaPartes({super.key});
+  // ignore: prefer_const_constructors_in_immutables
+  ListaPartes({super.key});
 
   @override
   State<ListaPartes> createState() => _ListaPartesState();
@@ -14,8 +15,7 @@ class ListaPartes extends StatefulWidget {
 class _ListaPartesState extends State<ListaPartes> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-        child: ListView.builder(
+    return ListView.builder(
       itemCount: boxPartes.length,
       itemBuilder: (context, index) {
         Parte parte = boxPartes.getAt(index);
@@ -81,6 +81,6 @@ class _ListaPartesState extends State<ListaPartes> {
           ),
         );
       },
-    ));
+    );
   }
 }

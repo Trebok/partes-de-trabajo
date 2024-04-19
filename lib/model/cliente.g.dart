@@ -18,10 +18,10 @@ class ClienteAdapter extends TypeAdapter<Cliente> {
     };
     return Cliente(
       nombre: fields[0] as String,
-      email: fields[1] as String,
-      dni: fields[2] as String,
-      telefono: fields[3] as String,
-      direccion: fields[4] as String,
+      email: fields[1] as String?,
+      dni: fields[2] as String?,
+      telefono: fields[3] as String?,
+      direccion: fields[4] as String?,
     );
   }
 

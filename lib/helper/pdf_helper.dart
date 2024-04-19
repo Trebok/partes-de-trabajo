@@ -1,8 +1,9 @@
 import 'dart:io';
-import 'package:partes/model/parte.dart';
-import 'package:path_provider/path_provider.dart';
+
 import 'package:open_filex/open_filex.dart';
+import 'package:partes/model/parte.dart';
 import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 class PDFHelper {
@@ -19,10 +20,14 @@ class PDFHelper {
                 pw.Column(
                   children: [
                     pw.Text(parte.cliente.nombre),
-                    pw.Text(parte.cliente.direccion),
-                    pw.Text(parte.cliente.email),
-                    pw.Text(parte.cliente.telefono),
-                    pw.Text(parte.cliente.dni),
+                    pw.Text(parte.horaInicio),
+                    pw.Text(parte.fechaInicio),
+                    pw.Text(parte.horaFinal),
+                    pw.Text(parte.fechaFinal),
+                    pw.Text(parte.cliente.direccion!),
+                    pw.Text(parte.cliente.email!),
+                    pw.Text(parte.cliente.telefono!),
+                    pw.Text(parte.cliente.dni!),
                   ],
                 )
               ],

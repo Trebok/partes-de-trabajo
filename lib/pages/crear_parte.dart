@@ -120,6 +120,8 @@ class _CrearParteState extends State<CrearParte> {
                           );
                           if (seleccionado != null) {
                             setState(() {
+                              print(TimeOfDay.now());
+                              print(seleccionado);
                               _fechaInicioController.text = Utils.formatDate(seleccionado);
                             });
                           }

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'editar_cliente.dart';
 import 'model/boxes.dart';
 import 'model/cliente.dart';
-import 'editar_cliente.dart';
 
 class ListaClientes extends StatefulWidget {
-  const ListaClientes({super.key});
+  // ignore: prefer_const_constructors_in_immutables
+  ListaClientes({super.key});
 
   @override
   State<ListaClientes> createState() => _ListaClientesState();
