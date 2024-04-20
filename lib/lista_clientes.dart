@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'editar_cliente.dart';
 import 'model/boxes.dart';
 import 'model/cliente.dart';
+import 'pages/editar_cliente.dart';
 
 class ListaClientes extends StatefulWidget {
   // ignore: prefer_const_constructors_in_immutables

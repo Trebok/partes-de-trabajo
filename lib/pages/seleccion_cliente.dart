@@ -42,7 +42,11 @@ class _SeleccionClienteState extends State<SeleccionCliente> {
       floatingActionButton: FloatingActionButtonCustom(
         onPressed: () {
           Navigator.push(context, MaterialPageRoute(builder: (context) => const CrearCliente()))
-              .then((cliente) => setState(() => cliente != null ? boxClientes.add(cliente) : null));
+              .then((cliente) => setState(() {
+                    if (cliente != null) {
+                      boxClientes.add(cliente);
+                    }
+                  }));
         },
       ),
     );

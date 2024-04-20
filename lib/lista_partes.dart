@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:partes/helper/pdf_helper.dart';
+import 'package:partes/pages/editar_parte.dart';
 
 import 'model/boxes.dart';
 import 'model/parte.dart';
@@ -23,12 +24,11 @@ class _ListaPartesState extends State<ListaPartes> {
           padding: const EdgeInsets.fromLTRB(15.0, 6.0, 15.0, 0.0),
           child: GestureDetector(
             onTap: () {
-              /*Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                EditarParte(Parte: parte),
-                          ),
-                        );*/
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => EditarParte(parte: parte),
+                ),
+              );
             },
             child: Card.outlined(
               color: const Color(0xffededf1),
@@ -49,14 +49,20 @@ class _ListaPartesState extends State<ListaPartes> {
                           ),
                           IconButton(
                             icon: const Icon(
-                              Icons.delete,
+                              Icons.picture_as_pdf,
                             ),
                             onPressed: () {
                               PDFHelper.createPDF(parte: parte);
-
-                              /*setState(() {
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                            ),
+                            onPressed: () {
+                              setState(() {
                                 boxPartes.deleteAt(index);
-                              });*/
+                              });
                             },
                           ),
                         ],

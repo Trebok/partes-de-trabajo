@@ -178,10 +178,18 @@ class _HomeState extends State<Home> {
           switch (_selectedIndex) {
             case 1:
               Navigator.push(context, MaterialPageRoute(builder: (context) => const CrearParte()))
-                  .then((parte) => setState(() => parte != null ? boxPartes.add(parte) : null));
+                  .then((parte) => setState(() {
+                        if (parte != null) {
+                          boxPartes.add(parte);
+                        }
+                      }));
             case 2:
               Navigator.push(context, MaterialPageRoute(builder: (context) => const CrearCliente()))
-                  .then((cliente) => setState(() => cliente != null ? boxClientes.add(cliente) : null));
+                  .then((cliente) => setState(() {
+                        if (cliente != null) {
+                          boxClientes.add(cliente);
+                        }
+                      }));
             default:
               throw UnimplementedError();
           }

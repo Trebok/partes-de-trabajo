@@ -14,8 +14,7 @@ class _EditarClienteState extends State<EditarCliente> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          BarraNavegacion(nombre: 'Editar Cliente: ${widget.cliente.nombre}'),
+      appBar: BarraNavegacion(nombre: 'EDITAR CLIENTE: ${widget.cliente.nombre}'),
     );
   }
 }
