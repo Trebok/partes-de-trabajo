@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:partes/model/trabajo.dart';
 import 'package:partes/widgets/barra_navegacion.dart';
 import 'package:partes/widgets/boton_gradiente.dart';
@@ -12,7 +11,7 @@ class CrearTrabajo extends StatelessWidget {
 
   final _formKey = GlobalKey<FormState>();
   final _descripcion = TextEditingController();
-  final _materiales = TextEditingController();
+  final _material = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +51,8 @@ class CrearTrabajo extends StatelessWidget {
                 ),
                 TextFieldCustom(
                   prefixIcon: const Icon(Icons.home_repair_service),
-                  labelText: 'Materiales',
-                  controller: _materiales,
+                  labelText: 'Material',
+                  controller: _material,
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(80, 25, 80, 25),
@@ -62,8 +61,9 @@ class CrearTrabajo extends StatelessWidget {
                     onTap: () {
                       if (_formKey.currentState!.validate()) {
                         final trabajo = Trabajo(
+                          numero: numero,
                           descripcion: _descripcion.text,
-                          materiales: _materiales.text,
+                          material: _material.text,
                         );
 
                         Navigator.pop(context, trabajo);

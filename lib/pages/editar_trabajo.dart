@@ -21,7 +21,7 @@ class _EditarTrabajoState extends State<EditarTrabajo> {
   void initState() {
     super.initState();
     _descripcion = TextEditingController(text: widget.trabajo.descripcion);
-    _materiales = TextEditingController(text: widget.trabajo.materiales);
+    _materiales = TextEditingController(text: widget.trabajo.material);
   }
 
   @override
@@ -84,10 +84,11 @@ class _EditarTrabajoState extends State<EditarTrabajo> {
                     onTap: () {
                       if (_formKey.currentState!.validate()) {
                         final trabajo = Trabajo(
+                          numero: widget.numero,
                           descripcion: _descripcion.text,
-                          materiales: _materiales.text,
+                          material: _materiales.text,
                         );
-                  
+
                         Navigator.pop(context, trabajo);
                       }
                     },

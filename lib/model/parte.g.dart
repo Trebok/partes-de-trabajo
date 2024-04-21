@@ -27,13 +27,14 @@ class ParteAdapter extends TypeAdapter<Parte> {
       trabajos: (fields[7] as List).cast<Trabajo>(),
       trabajoFinalizado: fields[8] as bool,
       trabajoPendiente: fields[9] as String?,
-    );
+      number: fields[11] as int,
+    )..year = fields[10] as int;
   }
 
   @override
   void write(BinaryWriter writer, Parte obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.cliente)
       ..writeByte(1)
@@ -53,7 +54,11 @@ class ParteAdapter extends TypeAdapter<Parte> {
       ..writeByte(8)
       ..write(obj.trabajoFinalizado)
       ..writeByte(9)
-      ..write(obj.trabajoPendiente);
+      ..write(obj.trabajoPendiente)
+      ..writeByte(10)
+      ..write(obj.year)
+      ..writeByte(11)
+      ..write(obj.number);
   }
 
   @override

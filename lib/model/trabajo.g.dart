@@ -18,18 +18,21 @@ class TrabajoAdapter extends TypeAdapter<Trabajo> {
     };
     return Trabajo(
       descripcion: fields[0] as String,
-      materiales: fields[1] as String?,
+      material: fields[1] as String?,
+      numero: fields[2] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, Trabajo obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.descripcion)
       ..writeByte(1)
-      ..write(obj.materiales);
+      ..write(obj.material)
+      ..writeByte(2)
+      ..write(obj.numero);
   }
 
   @override

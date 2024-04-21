@@ -17,6 +17,7 @@ class Parte {
     required this.trabajos,
     required this.trabajoFinalizado,
     this.trabajoPendiente,
+    required this.number,
   });
   @HiveField(0)
   Cliente cliente;
@@ -47,4 +48,10 @@ class Parte {
 
   @HiveField(9)
   String? trabajoPendiente;
+
+  @HiveField(10)
+  int year = DateTime.now().year;
+
+  @HiveField(11)
+  int number;
 }

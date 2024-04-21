@@ -12,13 +12,15 @@ class PDFHelper {
   static createPDF({required Parte parte}) async {
     final logoImage = MemoryImage((await rootBundle.load('images/LOGOPRIE.jpg')).buffer.asUint8List());
     final headers = [
+      'Nº',
       'Trabajo realizado',
       'Material utilizado',
     ];
     final data = parte.trabajos.map((item) {
       return [
+        item.numero,
         item.descripcion,
-        item.materiales,
+        item.material,
       ];
     }).toList();
 
@@ -31,11 +33,25 @@ class PDFHelper {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Image(
-                  logoImage,
-                  width: 220,
-                  height: 60,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Parte de trabajo Nº ${parte.number} / ${parte.year}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                    SizedBox(height: 15),
+                    Image(
+                      logoImage,
+                      width: 220,
+                      height: 60,
+                    ),
+                  ],
                 ),
                 Table(
                   columnWidths: const {0: FixedColumnWidth(65), 1: FixedColumnWidth(170)},
@@ -79,10 +95,10 @@ class PDFHelper {
                           )
                         : filaVacia(),
                   ],
-                )
+                ),
               ],
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 15),
             Text('Trabajo realizado por:    José Sebastián Díaz'),
             SizedBox(height: 10),
             Row(
@@ -96,20 +112,22 @@ class PDFHelper {
             Divider(),
             Text('Otros trabajadores:   ${parte.otrosTrabajadores}'),
             Text('Observaciones:   ${parte.observaciones}'),
-            SizedBox(height: 10),
+            SizedBox(height: 15),
             TableHelper.fromTextArray(
               headers: headers,
               headerStyle: TextStyle(fontWeight: FontWeight.bold),
               headerDecoration: const BoxDecoration(color: PdfColors.grey300),
               data: data,
-              cellAlignments: {
-                0: Alignment.topCenter,
-                1: Alignment.topCenter,
-              },
+              border: const TableBorder(
+                horizontalInside: BorderSide(),
+                bottom: BorderSide(),
+                top: BorderSide(),
+              ),
+              headerAlignment: Alignment.centerLeft,
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 15),
             parte.trabajoFinalizado
-                ? Text('Trabajo pendiente:')
+                ? SizedBox.shrink()
                 : Text('Trabajo pendiente:   ${parte.trabajoPendiente}'),
             Row(
               children: [

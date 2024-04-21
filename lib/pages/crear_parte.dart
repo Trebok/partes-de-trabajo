@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:partes/model/boxes.dart';
 import 'package:partes/model/cliente.dart';
 import 'package:partes/model/parte.dart';
 import 'package:partes/model/trabajo.dart';
@@ -254,8 +255,8 @@ class _CrearParteState extends State<CrearParte> {
                                 rowSpacer,
                                 TableRow(
                                   children: [
-                                    const Text('Materiales:'),
-                                    Text(_trabajos[index].materiales!),
+                                    const Text('Material:'),
+                                    Text(_trabajos[index].material!),
                                   ],
                                 ),
                                 rowSpacer,
@@ -373,6 +374,17 @@ class _CrearParteState extends State<CrearParte> {
                     fontSize: 18,
                     onTap: () {
                       if (_formKey.currentState!.validate()) {
+                        final int number;
+                        if (boxPartes.length == 0) {
+                          number = 1;
+                        } else {
+                          final ultimoParte = boxPartes.values.last;
+                          if (ultimoParte.year != DateTime.now().year) {
+                            number = 1;
+                          } else {
+                            number = ultimoParte.number + 1;
+                          }
+                        }
                         final parte = Parte(
                           cliente: _cliente,
                           horaInicio: _horaInicioController.text,
@@ -384,6 +396,7 @@ class _CrearParteState extends State<CrearParte> {
                           trabajos: _trabajos,
                           trabajoFinalizado: _trabajoFinalizado,
                           trabajoPendiente: _trabajoPendienteController.text,
+                          number: number,
                         );
 
                         Navigator.pop(context, parte);

@@ -19,7 +19,8 @@ class _ListaPartesState extends State<ListaPartes> {
     return ListView.builder(
       itemCount: boxPartes.length,
       itemBuilder: (context, index) {
-        Parte parte = boxPartes.getAt(index);
+        int reversedIndex = boxPartes.length - 1 - index;
+        Parte parte = boxPartes.getAt(reversedIndex);
         return Padding(
           padding: const EdgeInsets.fromLTRB(15.0, 6.0, 15.0, 0.0),
           child: GestureDetector(
@@ -44,7 +45,7 @@ class _ListaPartesState extends State<ListaPartes> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            '$index',
+                            '${parte.number}/${parte.year}',
                             style: const TextStyle(fontSize: 15.5),
                           ),
                           IconButton(
@@ -61,7 +62,7 @@ class _ListaPartesState extends State<ListaPartes> {
                             ),
                             onPressed: () {
                               setState(() {
-                                boxPartes.deleteAt(index);
+                                boxPartes.deleteAt(reversedIndex);
                               });
                             },
                           ),
