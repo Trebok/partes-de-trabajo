@@ -21,19 +21,37 @@ class CrearParte extends StatefulWidget {
 }
 
 class _CrearParteState extends State<CrearParte> {
-  final _formKey = GlobalKey<FormState>();
-  final _textFormFieldKey = GlobalKey<FormFieldState<String>>();
+  final _ahora = DateTime.now();
+  final _formKeyGeneral = GlobalKey<FormState>();
+  final _formKeyFechas = GlobalKey<FormState>();
+  final _textFormFieldKeyTrabajos = GlobalKey<FormFieldState<String>>();
   final _clienteController = TextEditingController();
-  final _horaInicioController = TextEditingController(text: Utils.formatTime(DateTime.now()));
-  final _fechaInicioController = TextEditingController(text: Utils.formatDate(DateTime.now()));
-  final _horaFinalController = TextEditingController(text: Utils.formatTime(DateTime.now()));
-  final _fechaFinalController = TextEditingController(text: Utils.formatDate(DateTime.now()));
+  late final _horaInicioController = TextEditingController(text: Utils.formatTime(_ahora));
+  late final _fechaInicioController = TextEditingController(text: Utils.formatDate(_ahora));
+  late final _horaFinalController = TextEditingController(text: Utils.formatTime(_ahora));
+  late final _fechaFinalController = TextEditingController(text: Utils.formatDate(_ahora));
   bool _trabajoFinalizado = false;
   final _trabajoPendienteController = TextEditingController();
   final _otrosTrabajadoresController = TextEditingController();
   final _observacionesController = TextEditingController();
   late Cliente _cliente;
   final List<Trabajo> _trabajos = [];
+
+  late int _horaInicio = _ahora.hour * 60 + _ahora.minute;
+  late DateTime _fechaInicio = DateTime(_ahora.year, _ahora.month, _ahora.day);
+  late int _horaFinal = _ahora.hour * 60 + _ahora.minute;
+  late DateTime _fechaFinal = DateTime(_ahora.year, _ahora.month, _ahora.day);
+
+  bool fechaValida() {
+    if (_fechaInicio.isAfter(_fechaFinal)) {
+      return false;
+    } else if (_fechaInicio.isAtSameMomentAs(_fechaFinal)) {
+      if (_horaInicio >= _horaFinal) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +62,7 @@ class _CrearParteState extends State<CrearParte> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
           child: Form(
-            key: _formKey,
+            key: _formKeyGeneral,
             child: Column(
               children: [
                 FocusScope(
@@ -84,95 +102,138 @@ class _CrearParteState extends State<CrearParte> {
                     ),
                   ),
                 ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFieldCustom(
-                        prefixIcon: const Icon(Icons.watch_later_outlined),
-                        labelText: 'Hora inicio',
-                        controller: _horaInicioController,
-                        readOnly: true,
-                        onTap: () async {
-                          TimeOfDay? seleccionado = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.now(),
-                          );
-                          if (seleccionado != null) {
-                            setState(() {
-                              _horaInicioController.text = seleccionado.format(context);
-                            });
-                          }
-                        },
+                Form(
+                  key: _formKeyFechas,
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormFieldCustom(
+                              prefixIcon: const Icon(Icons.watch_later_outlined),
+                              labelText: 'Hora inicio',
+                              controller: _horaInicioController,
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              readOnly: true,
+                              onTap: () async {
+                                TimeOfDay? seleccionado = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.now(),
+                                );
+                                if (seleccionado != null) {
+                                  setState(() {
+                                    _horaInicioController.text = seleccionado.format(context);
+                                  });
+                                  _horaInicio = seleccionado.hour * 60 + seleccionado.minute;
+                                  _formKeyFechas.currentState!.validate();
+                                }
+                              },
+                              validator: (_) {
+                                if (!fechaValida()) {
+                                  return 'Debe ser anterior';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextFormFieldCustom(
+                              prefixIcon: const Icon(Icons.calendar_today_outlined),
+                              labelText: 'Fecha inicio',
+                              controller: _fechaInicioController,
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              readOnly: true,
+                              onTap: () async {
+                                DateTime? seleccionado = await showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(2000),
+                                  lastDate: DateTime(2100),
+                                );
+                                if (seleccionado != null) {
+                                  setState(() {
+                                    _fechaInicioController.text = Utils.formatDate(seleccionado);
+                                  });
+                                  _fechaInicio = seleccionado;
+                                  _formKeyFechas.currentState!.validate();
+                                }
+                              },
+                              validator: (_) {
+                                if (!fechaValida()) {
+                                  return 'Debe ser anterior';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextFieldCustom(
-                        prefixIcon: const Icon(Icons.calendar_today_outlined),
-                        labelText: 'Fecha inicio',
-                        controller: _fechaInicioController,
-                        readOnly: true,
-                        onTap: () async {
-                          DateTime? seleccionado = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime(2000),
-                            lastDate: DateTime(2100),
-                          );
-                          if (seleccionado != null) {
-                            setState(() {
-                              _fechaInicioController.text = Utils.formatDate(seleccionado);
-                            });
-                          }
-                        },
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormFieldCustom(
+                              prefixIcon: const Icon(Icons.watch_later),
+                              labelText: 'Hora final',
+                              controller: _horaFinalController,
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              readOnly: true,
+                              onTap: () async {
+                                TimeOfDay? seleccionado = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.now(),
+                                );
+                                if (seleccionado != null) {
+                                  setState(() {
+                                    _horaFinalController.text = seleccionado.format(context);
+                                  });
+                                  _horaFinal = seleccionado.hour * 60 + seleccionado.minute;
+                                  _formKeyFechas.currentState!.validate();
+                                }
+                              },
+                              validator: (_) {
+                                if (!fechaValida()) {
+                                  return 'Debe ser posterior';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextFormFieldCustom(
+                              prefixIcon: const Icon(Icons.calendar_today),
+                              labelText: 'Fecha final',
+                              controller: _fechaFinalController,
+                              autovalidateMode: AutovalidateMode.onUserInteraction,
+                              readOnly: true,
+                              onTap: () async {
+                                DateTime? seleccionado = await showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(2000),
+                                  lastDate: DateTime(2100),
+                                );
+                                if (seleccionado != null) {
+                                  setState(() {
+                                    _fechaFinalController.text = Utils.formatDate(seleccionado);
+                                  });
+                                  _fechaFinal = seleccionado;
+                                  _formKeyFechas.currentState!.validate();
+                                }
+                              },
+                              validator: (_) {
+                                if (!fechaValida()) {
+                                  return 'Debe ser posterior';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFieldCustom(
-                        prefixIcon: const Icon(Icons.watch_later),
-                        labelText: 'Hora final',
-                        controller: _horaFinalController,
-                        readOnly: true,
-                        onTap: () async {
-                          TimeOfDay? seleccionado = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.now(),
-                          );
-                          if (seleccionado != null) {
-                            setState(() {
-                              _horaFinalController.text = seleccionado.format(context);
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextFieldCustom(
-                        prefixIcon: const Icon(Icons.calendar_today),
-                        labelText: 'Fecha final',
-                        controller: _fechaFinalController,
-                        readOnly: true,
-                        onTap: () async {
-                          DateTime? seleccionado = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime(2000),
-                            lastDate: DateTime(2100),
-                          );
-                          if (seleccionado != null) {
-                            setState(() {
-                              _fechaFinalController.text = Utils.formatDate(seleccionado);
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 TextFieldCustom(
                   prefixIcon: const Icon(Icons.engineering),
@@ -193,7 +254,7 @@ class _CrearParteState extends State<CrearParte> {
                     },
                     child: TextFormField(
                       //NO CAMBIAR A CUSTOM
-                      key: _textFormFieldKey,
+                      key: _textFormFieldKeyTrabajos,
                       decoration: const InputDecoration(
                         prefixIcon: Icon(Icons.handyman_outlined),
                         labelText: 'Trabajos realizados',
@@ -211,7 +272,7 @@ class _CrearParteState extends State<CrearParte> {
                           if (trabajo != null) {
                             setState(() {
                               _trabajos.add(trabajo);
-                              _textFormFieldKey.currentState!.validate();
+                              _textFormFieldKeyTrabajos.currentState!.validate();
                             });
                           }
                         });
@@ -373,7 +434,9 @@ class _CrearParteState extends State<CrearParte> {
                     nombre: 'CREAR PARTE',
                     fontSize: 18,
                     onTap: () {
-                      if (_formKey.currentState!.validate()) {
+                      _formKeyFechas.currentState!.validate();
+                      if (_formKeyGeneral.currentState!.validate() &&
+                          _formKeyFechas.currentState!.validate()) {
                         final int number;
                         if (boxPartes.length == 0) {
                           number = 1;
