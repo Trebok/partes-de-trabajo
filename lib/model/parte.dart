@@ -18,6 +18,7 @@ class Parte {
     required this.trabajoFinalizado,
     this.trabajoPendiente,
     required this.number,
+    required this.horasTotales,
   });
   @HiveField(0)
   Cliente cliente;
@@ -54,4 +55,7 @@ class Parte {
 
   @HiveField(11)
   int number;
+
+  @HiveField(12)
+  String horasTotales;
 }

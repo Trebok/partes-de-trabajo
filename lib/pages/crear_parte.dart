@@ -118,11 +118,14 @@ class _CrearParteState extends State<CrearParte> {
                               onTap: () async {
                                 TimeOfDay? seleccionado = await showTimePicker(
                                   context: context,
-                                  initialTime: TimeOfDay.now(),
+                                  initialTime:
+                                      TimeOfDay(hour: _horaInicio ~/ 60, minute: _horaInicio % 60),
                                 );
                                 if (seleccionado != null) {
+                                  String horas = seleccionado.toString().split(':')[0].split('(')[1];
+                                  String minutos = seleccionado.toString().split(':')[1].split(')')[0];
                                   setState(() {
-                                    _horaInicioController.text = seleccionado.format(context);
+                                    _horaInicioController.text = '$horas:$minutos';
                                   });
                                   _horaInicio = seleccionado.hour * 60 + seleccionado.minute;
                                   _formKeyFechas.currentState!.validate();
@@ -147,7 +150,7 @@ class _CrearParteState extends State<CrearParte> {
                               onTap: () async {
                                 DateTime? seleccionado = await showDatePicker(
                                   context: context,
-                                  initialDate: DateTime.now(),
+                                  initialDate: _fechaInicio,
                                   firstDate: DateTime(2000),
                                   lastDate: DateTime(2100),
                                 );
@@ -181,11 +184,14 @@ class _CrearParteState extends State<CrearParte> {
                               onTap: () async {
                                 TimeOfDay? seleccionado = await showTimePicker(
                                   context: context,
-                                  initialTime: TimeOfDay.now(),
+                                  initialTime:
+                                      TimeOfDay(hour: _horaFinal ~/ 60, minute: _horaFinal % 60),
                                 );
                                 if (seleccionado != null) {
+                                  String horas = seleccionado.toString().split(':')[0].split('(')[1];
+                                  String minutos = seleccionado.toString().split(':')[1].split(')')[0];
                                   setState(() {
-                                    _horaFinalController.text = seleccionado.format(context);
+                                    _horaFinalController.text = '$horas:$minutos';
                                   });
                                   _horaFinal = seleccionado.hour * 60 + seleccionado.minute;
                                   _formKeyFechas.currentState!.validate();
@@ -210,7 +216,7 @@ class _CrearParteState extends State<CrearParte> {
                               onTap: () async {
                                 DateTime? seleccionado = await showDatePicker(
                                   context: context,
-                                  initialDate: DateTime.now(),
+                                  initialDate: _fechaFinal,
                                   firstDate: DateTime(2000),
                                   lastDate: DateTime(2100),
                                 );
@@ -448,6 +454,10 @@ class _CrearParteState extends State<CrearParte> {
                             number = ultimoParte.number + 1;
                           }
                         }
+                        DateTime comienzo = _fechaInicio.copyWith(minute: _horaInicio);
+                        DateTime acabado = _fechaFinal.copyWith(minute: _horaFinal);
+                        Duration diferencia = acabado.difference(comienzo);
+                        String horasTotales = '${diferencia.inHours}:${diferencia.inMinutes % 60}h';
                         final parte = Parte(
                           cliente: _cliente,
                           horaInicio: _horaInicioController.text,
@@ -460,6 +470,7 @@ class _CrearParteState extends State<CrearParte> {
                           trabajoFinalizado: _trabajoFinalizado,
                           trabajoPendiente: _trabajoPendienteController.text,
                           number: number,
+                          horasTotales: horasTotales,
                         );
 
                         Navigator.pop(context, parte);

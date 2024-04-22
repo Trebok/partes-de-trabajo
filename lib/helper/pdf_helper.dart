@@ -106,7 +106,7 @@ class PDFHelper {
               children: [
                 Text('Hora inicio:   ${parte.horaInicio}h. ${parte.fechaInicio}'),
                 Text('Hora final:   ${parte.horaFinal}h. ${parte.fechaFinal}'),
-                Text("Total horas:   5:15h."),
+                Text("Total horas:   ${parte.horasTotales}"),
               ],
             ),
             Divider(),
