@@ -24,6 +24,9 @@ class PDFHelper {
       ];
     }).toList();
 
+    final checkBoxMarcada = await rootBundle.loadString('images/checkbox-active.svg');
+    final checkBoxVacia = await rootBundle.loadString('images/checkbox-passive.svg');
+
     final doc = Document();
     doc.addPage(MultiPage(
       margin: const EdgeInsets.all(40),
@@ -133,17 +136,29 @@ class PDFHelper {
               children: [
                 Text('Trabajo terminado:       '),
                 Text('SI  '),
-                Checkbox(
-                  value: parte.trabajoFinalizado,
-                  name: 'si',
-                  activeColor: PdfColors.grey,
-                ),
+                parte.trabajoFinalizado
+                    ? SvgImage(
+                        svg: checkBoxMarcada,
+                        width: 16,
+                        height: 16,
+                      )
+                    : SvgImage(
+                        svg: checkBoxVacia,
+                        width: 15,
+                        height: 15,
+                      ),
                 Text('      NO  '),
-                Checkbox(
-                  value: !parte.trabajoFinalizado,
-                  name: 'no',
-                  activeColor: PdfColors.grey,
-                ),
+                !parte.trabajoFinalizado
+                    ? SvgImage(
+                        svg: checkBoxMarcada,
+                        width: 16,
+                        height: 16,
+                      )
+                    : SvgImage(
+                        svg: checkBoxVacia,
+                        width: 15,
+                        height: 15,
+                      ),
               ],
             ),
             SizedBox(height: 25),

@@ -49,6 +49,11 @@
 		<array>
 			<string>es</string>
 		</array>
-
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Para agregar al parte</string>
+		<key>NSCameraUsageDescription</key>
+		<string>Para realizar fotos y agregar al parte</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Necesario para grabar videos</string>
 	</dict>
 </plist>

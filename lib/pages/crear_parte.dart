@@ -164,7 +164,7 @@ class _CrearParteState extends State<CrearParte> {
                               },
                               validator: (_) {
                                 if (!fechaValida()) {
-                                  return 'Debe ser anterior';
+                                  return '';
                                 }
                                 return null;
                               },
@@ -230,7 +230,7 @@ class _CrearParteState extends State<CrearParte> {
                               },
                               validator: (_) {
                                 if (!fechaValida()) {
-                                  return 'Debe ser posterior';
+                                  return '';
                                 }
                                 return null;
                               },
@@ -454,10 +454,12 @@ class _CrearParteState extends State<CrearParte> {
                             number = ultimoParte.number + 1;
                           }
                         }
-                        DateTime comienzo = _fechaInicio.copyWith(minute: _horaInicio);
-                        DateTime acabado = _fechaFinal.copyWith(minute: _horaFinal);
-                        Duration diferencia = acabado.difference(comienzo);
-                        String horasTotales = '${diferencia.inHours}:${diferencia.inMinutes % 60}h';
+                        final comienzo = _fechaInicio.copyWith(minute: _horaInicio);
+                        final acabado = _fechaFinal.copyWith(minute: _horaFinal);
+                        final diferencia = acabado.difference(comienzo);
+                        final horasTotales =
+                            '${diferencia.toString().split(':')[0]}:${diferencia.toString().split(':')[1]}h';
+
                         final parte = Parte(
                           cliente: _cliente,
                           horaInicio: _horaInicioController.text,
