@@ -10,6 +10,7 @@ class CrearTrabajo extends StatelessWidget {
   CrearTrabajo({super.key, required this.numero});
 
   final _formKey = GlobalKey<FormState>();
+
   final _descripcion = TextEditingController();
   final _material = TextEditingController();
 

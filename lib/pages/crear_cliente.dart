@@ -1,25 +1,20 @@
 import 'package:flutter/material.dart';
-
 import 'package:partes/model/cliente.dart';
 import 'package:partes/widgets/barra_navegacion.dart';
+import 'package:partes/widgets/boton_gradiente.dart';
 import 'package:partes/widgets/text_field_custom.dart';
 import 'package:partes/widgets/text_form_field_custom.dart';
-import 'package:partes/widgets/boton_gradiente.dart';
 
-class CrearCliente extends StatefulWidget {
-  const CrearCliente({super.key});
+class CrearCliente extends StatelessWidget {
+  CrearCliente({super.key});
 
-  @override
-  State<CrearCliente> createState() => _CrearClienteState();
-}
+  final _formKey = GlobalKey<FormState>();
 
-class _CrearClienteState extends State<CrearCliente> {
   final nombre = TextEditingController();
   final email = TextEditingController();
   final dni = TextEditingController();
   final telefono = TextEditingController();
   final direccion = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -76,14 +71,16 @@ class _CrearClienteState extends State<CrearCliente> {
                     fontSize: 16,
                     onTap: () {
                       if (_formKey.currentState!.validate()) {
-                        final cliente = Cliente(
-                          nombre: nombre.text,
-                          email: email.text,
-                          dni: dni.text,
-                          telefono: telefono.text,
-                          direccion: direccion.text,
+                        Navigator.pop(
+                          context,
+                          Cliente(
+                            nombre: nombre.text,
+                            email: email.text,
+                            dni: dni.text,
+                            telefono: telefono.text,
+                            direccion: direccion.text,
+                          ),
                         );
-                        Navigator.pop(context, cliente);
                       }
                     },
                   ),

@@ -122,12 +122,16 @@ class _CrearParteState extends State<CrearParte> {
                               onTap: () async {
                                 TimeOfDay? seleccionado = await showTimePicker(
                                   context: context,
-                                  initialTime:
-                                      TimeOfDay(hour: _horaInicio ~/ 60, minute: _horaInicio % 60),
+                                  initialTime: TimeOfDay(
+                                    hour: _horaInicio ~/ 60,
+                                    minute: _horaInicio % 60,
+                                  ),
                                 );
                                 if (seleccionado != null) {
-                                  String horas = seleccionado.toString().split(':')[0].split('(')[1];
-                                  String minutos = seleccionado.toString().split(':')[1].split(')')[0];
+                                  String horas =
+                                      seleccionado.toString().split(':')[0].split('(')[1];
+                                  String minutos =
+                                      seleccionado.toString().split(':')[1].split(')')[0];
                                   setState(() {
                                     _horaInicioController.text = '$horas:$minutos';
                                   });
@@ -188,12 +192,16 @@ class _CrearParteState extends State<CrearParte> {
                               onTap: () async {
                                 TimeOfDay? seleccionado = await showTimePicker(
                                   context: context,
-                                  initialTime:
-                                      TimeOfDay(hour: _horaFinal ~/ 60, minute: _horaFinal % 60),
+                                  initialTime: TimeOfDay(
+                                    hour: _horaFinal ~/ 60,
+                                    minute: _horaFinal % 60,
+                                  ),
                                 );
                                 if (seleccionado != null) {
-                                  String horas = seleccionado.toString().split(':')[0].split('(')[1];
-                                  String minutos = seleccionado.toString().split(':')[1].split(')')[0];
+                                  String horas =
+                                      seleccionado.toString().split(':')[0].split('(')[1];
+                                  String minutos =
+                                      seleccionado.toString().split(':')[1].split(')')[0];
                                   setState(() {
                                     _horaFinalController.text = '$horas:$minutos';
                                   });
@@ -350,7 +358,8 @@ class _CrearParteState extends State<CrearParte> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => EditarTrabajo(trabajo: _trabajos[index]),
+                                          builder: (context) =>
+                                              EditarTrabajo(trabajo: _trabajos[index]),
                                         ),
                                       ).then((final trabajo) {
                                         if (trabajo != null) {
@@ -459,7 +468,7 @@ class _CrearParteState extends State<CrearParte> {
                   padding: const EdgeInsets.fromLTRB(80, 25, 80, 25),
                   child: BotonGradiente(
                     nombre: 'CREAR PARTE',
-                    fontSize: 18,
+                    fontSize: 16,
                     onTap: () {
                       _formKeyFechas.currentState!.validate();
                       if (_formKeyGeneral.currentState!.validate() &&
@@ -476,8 +485,8 @@ class _CrearParteState extends State<CrearParte> {
                           }
                         }
                         final comienzo = _fechaInicio.copyWith(minute: _horaInicio);
-                        final acabado = _fechaFinal.copyWith(minute: _horaFinal);
-                        final diferencia = acabado.difference(comienzo);
+                        final fin = _fechaFinal.copyWith(minute: _horaFinal);
+                        final diferencia = fin.difference(comienzo);
                         final horasTotales =
                             '${diferencia.toString().split(':')[0]}:${diferencia.toString().split(':')[1]}h';
 

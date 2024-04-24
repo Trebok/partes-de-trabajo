@@ -25,11 +25,13 @@ class _ListaPartesState extends State<ListaPartes> {
           padding: const EdgeInsets.fromLTRB(15.0, 6.0, 15.0, 0.0),
           child: GestureDetector(
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => EditarParte(parte: parte),
-                ),
-              );
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => EditarParte(parte: parte)),
+              ).then((parte) => setState(() {
+                    if (parte == null) return;
+                    boxPartes.put('${parte.number}/${parte.year}', parte);
+                  }));
             },
             child: Card.outlined(
               color: const Color(0xffededf1),

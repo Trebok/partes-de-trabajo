@@ -26,8 +26,8 @@ void main() async {
   // Hive.deleteBoxFromDisk('parteBox');
   boxClientes = await Hive.openBox<Cliente>('clienteBox');
   boxPartes = await Hive.openBox<Parte>('parteBox');
-  // boxClientes.add(clienteEjemplo);
-  // boxPartes.add(parteEjemplo);
+  // boxClientes.put('${clienteEjemplo.nombre}${DateTime.now()}', clienteEjemplo);
+  // boxPartes.put('${parteEjemplo.number}/${parteEjemplo.year}', parteEjemplo);
 
   runApp(const MyApp());
 }
@@ -182,19 +182,21 @@ class _HomeState extends State<Home> {
         onPressed: () {
           switch (_selectedIndex) {
             case 1:
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const CrearParte()))
-                  .then((parte) => setState(() {
-                        if (parte != null) {
-                          boxPartes.add(parte);
-                        }
-                      }));
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CrearParte()),
+              ).then((parte) => setState(() {
+                    if (parte == null) return;
+                    boxPartes.put('${parte.number}/${parte.year}', parte);
+                  }));
             case 2:
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const CrearCliente()))
-                  .then((cliente) => setState(() {
-                        if (cliente != null) {
-                          boxClientes.put('${cliente.nombre}${DateTime.now()}', cliente);
-                        }
-                      }));
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CrearCliente()),
+              ).then((cliente) => setState(() {
+                    if (cliente == null) return;
+                    boxClientes.put('${cliente.nombre}${DateTime.now()}', cliente);
+                  }));
             default:
               throw UnimplementedError();
           }

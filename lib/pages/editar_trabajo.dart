@@ -9,7 +9,7 @@ class EditarTrabajo extends StatelessWidget {
   final Trabajo trabajo;
   EditarTrabajo({super.key, required this.trabajo});
 
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
 
   late final _descripcion = TextEditingController(text: trabajo.descripcion);
   late final _materiales = TextEditingController(text: trabajo.material);

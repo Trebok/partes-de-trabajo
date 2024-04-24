@@ -41,7 +41,7 @@ class _SeleccionClienteState extends State<SeleccionCliente> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButtonCustom(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => const CrearCliente()))
+          Navigator.push(context, MaterialPageRoute(builder: (context) => CrearCliente()))
               .then((cliente) => setState(() {
                     if (cliente != null) {
                       boxClientes.add(cliente);
