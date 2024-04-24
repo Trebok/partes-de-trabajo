@@ -15,7 +15,14 @@ class _EditarClienteState extends State<EditarParte> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const BarraNavegacion(nombre: 'EDITAR PARTE:'),
-      body: Text(widget.parte.trabajos[0].descripcion),
+      body: ListView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        itemCount: widget.parte.imagenes.length,
+        itemBuilder: (context, index) {
+          return Image.memory(widget.parte.imagenes[index].imagen);
+        },
+      ),
     );
   }
 }

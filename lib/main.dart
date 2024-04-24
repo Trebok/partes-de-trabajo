@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:partes/data/datos_ejemplo.dart';
+// import 'package:partes/data/datos_ejemplo.dart';
 import 'package:partes/lista_clientes.dart';
 import 'package:partes/lista_partes.dart';
 import 'package:partes/model/boxes.dart';
 import 'package:partes/model/cliente.dart';
+import 'package:partes/model/imagen.dart';
 import 'package:partes/model/parte.dart';
 import 'package:partes/model/trabajo.dart';
 import 'package:partes/pages/crear_cliente.dart';
@@ -17,6 +18,7 @@ import 'package:partes/widgets/floating_action_button_custom.dart';
 void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(TrabajoAdapter());
+  Hive.registerAdapter(ImagenAdapter());
   Hive.registerAdapter(ClienteAdapter());
   Hive.registerAdapter(ParteAdapter());
 

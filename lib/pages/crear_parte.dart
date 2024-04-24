@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:partes/model/boxes.dart';
 import 'package:partes/model/cliente.dart';
+import 'package:partes/model/imagen.dart';
 import 'package:partes/model/parte.dart';
 import 'package:partes/model/trabajo.dart';
 import 'package:partes/pages/crear_trabajo.dart';
@@ -36,6 +39,7 @@ class _CrearParteState extends State<CrearParte> {
   final _observacionesController = TextEditingController();
   late Cliente _cliente;
   final List<Trabajo> _trabajos = [];
+  final List<Imagen> _imagenes = [];
 
   late int _horaInicio = _ahora.hour * 60 + _ahora.minute;
   late DateTime _fechaInicio = DateTime(_ahora.year, _ahora.month, _ahora.day);
@@ -346,10 +350,7 @@ class _CrearParteState extends State<CrearParte> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => EditarTrabajo(
-                                            numero: index + 1,
-                                            trabajo: _trabajos[index],
-                                          ),
+                                          builder: (context) => EditarTrabajo(trabajo: _trabajos[index]),
                                         ),
                                       ).then((final trabajo) {
                                         if (trabajo != null) {
@@ -382,6 +383,9 @@ class _CrearParteState extends State<CrearParte> {
                                       setState(() {
                                         _trabajos.removeAt(index);
                                       });
+                                      for (var i = index; i < _trabajos.length; i++) {
+                                        _trabajos[i].numero--;
+                                      }
                                     },
                                     child: Text(
                                       'ELIMINAR',
@@ -434,6 +438,23 @@ class _CrearParteState extends State<CrearParte> {
                         controller: _trabajoPendienteController,
                       )
                     : const SizedBox.shrink(),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    try {
+                      final imagen = await ImagePicker().pickImage(source: ImageSource.gallery);
+                      if (imagen == null) return;
+
+                      Uint8List imagenBytes = await imagen.readAsBytes();
+                      setState(() {
+                        _imagenes.add(Imagen(numero: 1, imagen: imagenBytes));
+                      });
+                    } on PlatformException catch (e) {
+                      debugPrint('Error al elegir imagen $e');
+                    }
+                  },
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text('Imágenes'),
+                ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(80, 25, 80, 25),
                   child: BotonGradiente(
@@ -473,12 +494,21 @@ class _CrearParteState extends State<CrearParte> {
                           trabajoPendiente: _trabajoPendienteController.text,
                           number: number,
                           horasTotales: horasTotales,
+                          imagenes: _imagenes,
                         );
 
                         Navigator.pop(context, parte);
                       }
                     },
                   ),
+                ),
+                ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: _imagenes.length,
+                  itemBuilder: (context, index) {
+                    return Image.memory(_imagenes[index].imagen);
+                  },
                 ),
               ],
             ),

@@ -19,7 +19,7 @@ class CrearTrabajo extends StatelessWidget {
       appBar: const BarraNavegacion(nombre: 'NUEVO TRABAJO'),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
           child: Form(
             key: _formKey,
             child: Column(
@@ -60,13 +60,14 @@ class CrearTrabajo extends StatelessWidget {
                     nombre: 'AÑADIR TRABAJO',
                     onTap: () {
                       if (_formKey.currentState!.validate()) {
-                        final trabajo = Trabajo(
-                          numero: numero,
-                          descripcion: _descripcion.text,
-                          material: _material.text,
+                        Navigator.pop(
+                          context,
+                          Trabajo(
+                            numero: numero,
+                            descripcion: _descripcion.text,
+                            material: _material.text,
+                          ),
                         );
-
-                        Navigator.pop(context, trabajo);
                       }
                     },
                   ),

@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:partes/model/cliente.dart';
+import 'package:partes/model/imagen.dart';
 import 'package:partes/model/trabajo.dart';
 
 part 'parte.g.dart';
@@ -19,6 +20,7 @@ class Parte {
     this.trabajoPendiente,
     required this.number,
     required this.horasTotales,
+    required this.imagenes,
   });
   @HiveField(0)
   Cliente cliente;
@@ -58,4 +60,7 @@ class Parte {
 
   @HiveField(12)
   String horasTotales;
+
+  @HiveField(13)
+  List<Imagen> imagenes;
 }
