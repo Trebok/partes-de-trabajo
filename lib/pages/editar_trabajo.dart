@@ -56,9 +56,9 @@ class EditarTrabajo extends StatelessWidget {
                   controller: _materiales,
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(70, 25, 70, 25),
+                  padding: const EdgeInsets.only(top: 25, bottom: 25),
                   child: BotonGradiente(
-                    nombre: 'GUARDAR TRABAJO',
+                    nombre: 'GUARDAR',
                     onTap: () {
                       if (_formKey.currentState!.validate()) {
                         Navigator.pop(

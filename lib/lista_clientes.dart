@@ -24,11 +24,15 @@ class _ListaClientesState extends State<ListaClientes> {
               padding: const EdgeInsets.fromLTRB(15.0, 6.0, 15.0, 0.0),
               child: GestureDetector(
                 onTap: () {
-                  Navigator.of(context).push(
+                  Navigator.push(
+                    context,
                     MaterialPageRoute(
                       builder: (context) => EditarCliente(cliente: cliente),
                     ),
-                  );
+                  ).then((cliente) => setState(() {
+                        if (cliente == null) return;
+                        boxClientes.putAt(index, cliente);
+                      }));
                 },
                 child: Card.outlined(
                   color: const Color(0xfff2f2f7),

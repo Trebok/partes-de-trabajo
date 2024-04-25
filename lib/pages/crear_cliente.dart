@@ -65,10 +65,9 @@ class CrearCliente extends StatelessWidget {
                   textCapitalization: TextCapitalization.words,
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(80, 25, 80, 25),
+                  padding: const EdgeInsets.only(top: 25, bottom: 25),
                   child: BotonGradiente(
                     nombre: 'CREAR CLIENTE',
-                    fontSize: 16,
                     onTap: () {
                       if (_formKey.currentState!.validate()) {
                         Navigator.pop(

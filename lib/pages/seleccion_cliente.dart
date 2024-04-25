@@ -43,9 +43,8 @@ class _SeleccionClienteState extends State<SeleccionCliente> {
         onPressed: () {
           Navigator.push(context, MaterialPageRoute(builder: (context) => CrearCliente()))
               .then((cliente) => setState(() {
-                    if (cliente != null) {
-                      boxClientes.add(cliente);
-                    }
+                    if (cliente == null) return;
+                    boxClientes.add(cliente);
                   }));
         },
       ),

@@ -56,9 +56,9 @@ class CrearTrabajo extends StatelessWidget {
                   controller: _material,
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(80, 25, 80, 25),
+                  padding: const EdgeInsets.only(top: 25, bottom: 25),
                   child: BotonGradiente(
-                    nombre: 'AÑADIR TRABAJO',
+                    nombre: 'GUARDAR',
                     onTap: () {
                       if (_formKey.currentState!.validate()) {
                         Navigator.pop(

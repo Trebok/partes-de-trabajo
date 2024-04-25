@@ -101,12 +101,11 @@ class _EditarClienteState extends State<EditarParte> {
                             builder: (context) => const SeleccionCliente(),
                           ),
                         );
-                        if (cliente != null) {
-                          setState(() {
-                            _clienteController.text = cliente.nombre;
-                            _cliente = cliente;
-                          });
-                        }
+                        if (cliente == null) return;
+                        setState(() {
+                          _clienteController.text = cliente.nombre;
+                          _cliente = cliente;
+                        });
                       },
                       validator: (String? value) {
                         if (value == null || value.isEmpty) {
@@ -138,17 +137,16 @@ class _EditarClienteState extends State<EditarParte> {
                                     minute: _horaInicio % 60,
                                   ),
                                 );
-                                if (seleccionado != null) {
-                                  String horas =
-                                      seleccionado.toString().split(':')[0].split('(')[1];
-                                  String minutos =
-                                      seleccionado.toString().split(':')[1].split(')')[0];
-                                  setState(() {
-                                    _horaInicioController.text = '$horas:$minutos';
-                                  });
-                                  _horaInicio = seleccionado.hour * 60 + seleccionado.minute;
-                                  _formKeyFechas.currentState!.validate();
-                                }
+                                if (seleccionado == null) return;
+                                String horas =
+                                    seleccionado.toString().split(':')[0].split('(')[1];
+                                String minutos =
+                                    seleccionado.toString().split(':')[1].split(')')[0];
+                                setState(() {
+                                  _horaInicioController.text = '$horas:$minutos';
+                                });
+                                _horaInicio = seleccionado.hour * 60 + seleccionado.minute;
+                                _formKeyFechas.currentState!.validate();
                               },
                               validator: (_) {
                                 if (!fechaValida()) {
@@ -173,13 +171,12 @@ class _EditarClienteState extends State<EditarParte> {
                                   firstDate: DateTime(2000),
                                   lastDate: DateTime(2100),
                                 );
-                                if (seleccionado != null) {
-                                  setState(() {
-                                    _fechaInicioController.text = Utils.formatDate(seleccionado);
-                                  });
-                                  _fechaInicio = seleccionado;
-                                  _formKeyFechas.currentState!.validate();
-                                }
+                                if (seleccionado == null) return;
+                                setState(() {
+                                  _fechaInicioController.text = Utils.formatDate(seleccionado);
+                                });
+                                _fechaInicio = seleccionado;
+                                _formKeyFechas.currentState!.validate();
                               },
                               validator: (_) {
                                 if (!fechaValida()) {
@@ -208,17 +205,16 @@ class _EditarClienteState extends State<EditarParte> {
                                     minute: _horaFinal % 60,
                                   ),
                                 );
-                                if (seleccionado != null) {
-                                  String horas =
-                                      seleccionado.toString().split(':')[0].split('(')[1];
-                                  String minutos =
-                                      seleccionado.toString().split(':')[1].split(')')[0];
-                                  setState(() {
-                                    _horaFinalController.text = '$horas:$minutos';
-                                  });
-                                  _horaFinal = seleccionado.hour * 60 + seleccionado.minute;
-                                  _formKeyFechas.currentState!.validate();
-                                }
+                                if (seleccionado == null) return;
+                                String horas =
+                                    seleccionado.toString().split(':')[0].split('(')[1];
+                                String minutos =
+                                    seleccionado.toString().split(':')[1].split(')')[0];
+                                setState(() {
+                                  _horaFinalController.text = '$horas:$minutos';
+                                });
+                                _horaFinal = seleccionado.hour * 60 + seleccionado.minute;
+                                _formKeyFechas.currentState!.validate();
                               },
                               validator: (_) {
                                 if (!fechaValida()) {
@@ -243,13 +239,12 @@ class _EditarClienteState extends State<EditarParte> {
                                   firstDate: DateTime(2000),
                                   lastDate: DateTime(2100),
                                 );
-                                if (seleccionado != null) {
-                                  setState(() {
-                                    _fechaFinalController.text = Utils.formatDate(seleccionado);
-                                  });
-                                  _fechaFinal = seleccionado;
-                                  _formKeyFechas.currentState!.validate();
-                                }
+                                if (seleccionado == null) return;
+                                setState(() {
+                                  _fechaFinalController.text = Utils.formatDate(seleccionado);
+                                });
+                                _fechaFinal = seleccionado;
+                                _formKeyFechas.currentState!.validate();
                               },
                               validator: (_) {
                                 if (!fechaValida()) {
@@ -298,12 +293,11 @@ class _EditarClienteState extends State<EditarParte> {
                             builder: (context) => CrearTrabajo(numero: _trabajos.length + 1),
                           ),
                         ).then((final trabajo) {
-                          if (trabajo != null) {
-                            setState(() {
-                              _trabajos.add(trabajo);
-                              _textFormFieldKeyTrabajos.currentState!.validate();
-                            });
-                          }
+                          if (trabajo == null) return;
+                          setState(() {
+                            _trabajos.add(trabajo);
+                            _textFormFieldKeyTrabajos.currentState!.validate();
+                          });
                         });
                       },
                       validator: (_) {
@@ -373,11 +367,10 @@ class _EditarClienteState extends State<EditarParte> {
                                               EditarTrabajo(trabajo: _trabajos[index]),
                                         ),
                                       ).then((final trabajo) {
-                                        if (trabajo != null) {
-                                          setState(() {
-                                            _trabajos[index] = trabajo;
-                                          });
-                                        }
+                                        if (trabajo == null) return;
+                                        setState(() {
+                                          _trabajos[index] = trabajo;
+                                        });
                                       });
                                     },
                                     child: Text(
@@ -476,10 +469,9 @@ class _EditarClienteState extends State<EditarParte> {
                   label: const Text('Imágenes'),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(80, 25, 80, 25),
+                  padding: const EdgeInsets.only(top: 25, bottom: 25),
                   child: BotonGradiente(
                     nombre: 'GUARDAR PARTE',
-                    fontSize: 16,
                     onTap: () {
                       _formKeyFechas.currentState!.validate();
                       if (_formKeyGeneral.currentState!.validate() &&

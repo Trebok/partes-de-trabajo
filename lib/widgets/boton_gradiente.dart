@@ -5,7 +5,7 @@ class BotonGradiente extends StatelessWidget {
   final String nombre;
   final Function()? onTap;
   final double? fontSize;
-  const BotonGradiente({super.key, required this.nombre, this.onTap, this.fontSize = 14});
+  const BotonGradiente({super.key, required this.nombre, this.onTap, this.fontSize = 17});
 
   @override
   Widget build(BuildContext context) {
@@ -13,8 +13,6 @@ class BotonGradiente extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(15),
       child: Ink(
-        height: 50,
-        width: double.infinity,
         decoration: BoxDecoration(
           shape: BoxShape.rectangle,
           gradient: const LinearGradient(
@@ -25,7 +23,8 @@ class BotonGradiente extends StatelessWidget {
           ),
           borderRadius: BorderRadius.circular(15),
         ),
-        child: Center(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
           child: Text(
             nombre,
             style: GoogleFonts.montserrat(
