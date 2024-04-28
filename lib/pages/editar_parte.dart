@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:partes/core/theme/paleta_colores.dart';
 import 'package:partes/model/cliente.dart';
 import 'package:partes/model/imagen.dart';
 import 'package:partes/model/parte.dart';
+import 'package:partes/model/trabajo.dart';
 import 'package:partes/pages/crear_trabajo.dart';
 import 'package:partes/pages/editar_trabajo.dart';
 import 'package:partes/pages/seleccion_cliente.dart';
@@ -38,8 +40,9 @@ class _EditarClienteState extends State<EditarParte> {
       TextEditingController(text: widget.parte.otrosTrabajadores);
   late final _observacionesController = TextEditingController(text: widget.parte.observaciones);
   late Cliente _cliente = widget.parte.cliente;
-  late final _trabajos = widget.parte.trabajos;
-  late final _imagenes = widget.parte.imagenes;
+  late final List<Trabajo> _trabajos = List.from(widget.parte.trabajos);
+
+  late final List<Imagen> _imagenes = List.from(widget.parte.imagenes);
 
   late int _horaInicio = int.parse(widget.parte.horaInicio.split(':')[0]) * 60 +
       int.parse(widget.parte.horaInicio.split(':')[1]);
@@ -315,7 +318,7 @@ class _EditarClienteState extends State<EditarParte> {
                   itemCount: _trabajos.length,
                   itemBuilder: (context, index) {
                     return Card.outlined(
-                      color: const Color(0xfff2f2f7),
+                      color: PaletaColores.colorTarjetas,
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(12, 9, 10, 12),
                         child: Column(
@@ -393,12 +396,41 @@ class _EditarClienteState extends State<EditarParte> {
                                       ),
                                     ),
                                     onPressed: () {
-                                      setState(() {
-                                        _trabajos.removeAt(index);
-                                      });
-                                      for (var i = index; i < _trabajos.length; i++) {
-                                        _trabajos[i].numero--;
-                                      }
+                                      showAdaptiveDialog(
+                                        context: context,
+                                        builder: (context) => SimpleDialog(
+                                          title: const Center(
+                                            child: Text('¿Eliminar trabajo?'),
+                                          ),
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                              children: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: const Text('NO'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                    setState(() {
+                                                      _trabajos.removeAt(index);
+                                                    });
+                                                    for (var i = index;
+                                                        i < _trabajos.length;
+                                                        i++) {
+                                                      _trabajos[i].numero--;
+                                                    }
+                                                  },
+                                                  child: const Text('SI'),
+                                                )
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      );
                                     },
                                     child: Text(
                                       'ELIMINAR',

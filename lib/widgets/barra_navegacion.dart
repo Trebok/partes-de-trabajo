@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:partes/core/theme/paleta_colores.dart';
 
 class BarraNavegacion extends StatelessWidget implements PreferredSizeWidget {
   final String nombre;
@@ -33,8 +34,8 @@ class BarraNavegacion extends StatelessWidget implements PreferredSizeWidget {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF0097B2),
-              Color(0xFF7ED957),
+              PaletaColores.gradiente1,
+              PaletaColores.gradiente2,
             ],
           ),
         ),

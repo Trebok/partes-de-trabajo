@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:partes/core/theme/paleta_colores.dart';
 
 class FloatingActionButtonCustom extends StatelessWidget {
   final void Function()? onPressed;
@@ -18,8 +19,8 @@ class FloatingActionButtonCustom extends StatelessWidget {
           shape: BoxShape.rectangle,
           gradient: const LinearGradient(
             colors: [
-              Color(0xFF0097B2),
-              Color(0xFF7ED957),
+              PaletaColores.gradiente1,
+              PaletaColores.gradiente2,
             ],
           ),
           borderRadius: BorderRadius.circular(15),

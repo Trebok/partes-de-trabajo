@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:partes/core/theme/paleta_colores.dart';
 import 'package:partes/model/boxes.dart';
 import 'package:partes/model/cliente.dart';
 import 'package:partes/model/imagen.dart';
@@ -38,8 +39,8 @@ class _CrearParteState extends State<CrearParte> {
   final _otrosTrabajadoresController = TextEditingController();
   final _observacionesController = TextEditingController();
   late Cliente _cliente;
-  final List<Trabajo> _trabajos = [];
-  final List<Imagen> _imagenes = [];
+  final _trabajos = <Trabajo>[];
+  final _imagenes = <Imagen>[];
 
   late int _horaInicio = _ahora.hour * 60 + _ahora.minute;
   late DateTime _fechaInicio = DateTime(_ahora.year, _ahora.month, _ahora.day);
@@ -304,7 +305,7 @@ class _CrearParteState extends State<CrearParte> {
                   itemCount: _trabajos.length,
                   itemBuilder: (context, index) {
                     return Card.outlined(
-                      color: const Color(0xfff2f2f7),
+                      color: PaletaColores.colorTarjetas,
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(12, 9, 10, 12),
                         child: Column(
@@ -382,12 +383,41 @@ class _CrearParteState extends State<CrearParte> {
                                       ),
                                     ),
                                     onPressed: () {
-                                      setState(() {
-                                        _trabajos.removeAt(index);
-                                      });
-                                      for (var i = index; i < _trabajos.length; i++) {
-                                        _trabajos[i].numero--;
-                                      }
+                                      showAdaptiveDialog(
+                                        context: context,
+                                        builder: (context) => SimpleDialog(
+                                          title: const Center(
+                                            child: Text('¿Eliminar trabajo?'),
+                                          ),
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                              children: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: const Text('NO'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                    setState(() {
+                                                      _trabajos.removeAt(index);
+                                                    });
+                                                    for (var i = index;
+                                                        i < _trabajos.length;
+                                                        i++) {
+                                                      _trabajos[i].numero--;
+                                                    }
+                                                  },
+                                                  child: const Text('SI'),
+                                                )
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      );
                                     },
                                     child: Text(
                                       'ELIMINAR',
@@ -460,7 +490,7 @@ class _CrearParteState extends State<CrearParte> {
                 Padding(
                   padding: const EdgeInsets.only(top: 25, bottom: 25),
                   child: BotonGradiente(
-                    nombre: 'CREAR PARTE',
+                    nombre: 'GUARDAR PARTE',
                     onTap: () {
                       _formKeyFechas.currentState!.validate();
                       if (_formKeyGeneral.currentState!.validate() &&

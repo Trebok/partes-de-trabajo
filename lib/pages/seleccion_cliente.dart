@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:partes/core/theme/paleta_colores.dart';
 import 'package:partes/model/boxes.dart';
 import 'package:partes/model/cliente.dart';
 import 'package:partes/pages/crear_cliente.dart';
@@ -28,7 +29,7 @@ class _SeleccionClienteState extends State<SeleccionCliente> {
                 Navigator.pop(context, cliente);
               },
               child: Card.outlined(
-                color: const Color(0xfff6f6f6),
+                color: PaletaColores.colorTarjetas,
                 child: SizedBox(
                   height: 40.0,
                   child: Center(child: Text(cliente.nombre)),

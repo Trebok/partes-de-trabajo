@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:partes/core/theme/paleta_colores.dart';
 import 'package:partes/helper/pdf_helper.dart';
 import 'package:partes/pages/editar_parte.dart';
 
@@ -28,13 +29,13 @@ class _ListaPartesState extends State<ListaPartes> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => EditarParte(parte: parte)),
-              ).then((parte) => setState(() {
-                    if (parte == null) return;
-                    boxPartes.put('${parte.number}/${parte.year}', parte);
+              ).then((parteEditado) => setState(() {
+                    if (parteEditado == null) return;
+                    boxPartes.put('${parteEditado.number}/${parteEditado.year}', parteEditado);
                   }));
             },
             child: Card.outlined(
-              color: const Color(0xffededf1),
+              color: PaletaColores.colorTarjetas,
               child: SizedBox(
                 height: 150.0,
                 child: Padding(
@@ -63,9 +64,36 @@ class _ListaPartesState extends State<ListaPartes> {
                               Icons.delete,
                             ),
                             onPressed: () {
-                              setState(() {
-                                boxPartes.deleteAt(reversedIndex);
-                              });
+                              showAdaptiveDialog(
+                                context: context,
+                                builder: (context) => SimpleDialog(
+                                  title: const Center(
+                                    child: Text('¿Eliminar parte?'),
+                                  ),
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                      children: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('NO'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            setState(() {
+                                              boxPartes.deleteAt(reversedIndex);
+                                            });
+                                          },
+                                          child: const Text('SI'),
+                                        )
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
                             },
                           ),
                         ],

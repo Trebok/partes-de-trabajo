@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:partes/core/theme/paleta_colores.dart';
 
 class BotonGradiente extends StatelessWidget {
   final String nombre;
@@ -17,8 +18,8 @@ class BotonGradiente extends StatelessWidget {
           shape: BoxShape.rectangle,
           gradient: const LinearGradient(
             colors: [
-              Color(0xFF0097B2),
-              Color(0xFF7ED957),
+              PaletaColores.gradiente1,
+              PaletaColores.gradiente2,
             ],
           ),
           borderRadius: BorderRadius.circular(15),

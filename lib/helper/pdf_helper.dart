@@ -190,7 +190,7 @@ class PDFHelper {
           SizedBox(height: 3),
           Image(
             MemoryImage(item.imagen),
-            width: 160,
+            width: 250,
             height: 214,
           ),
         ],

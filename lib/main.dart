@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:partes/core/theme/paleta_colores.dart';
+import 'package:partes/core/theme/theme.dart';
 // import 'package:partes/data/datos_ejemplo.dart';
 import 'package:partes/lista_clientes.dart';
 import 'package:partes/lista_partes.dart';
@@ -53,10 +54,7 @@ class _MyAppState extends State<MyApp> {
       supportedLocales: const [
         Locale('es'),
       ],
-      theme: ThemeData(
-        colorSchemeSeed: const Color(0xFF0097B2),
-        textTheme: GoogleFonts.poppinsTextTheme(),
-      ),
+      theme: AppTheme.lightThemeMode,
       home: const Home(),
     );
   }
@@ -96,8 +94,8 @@ class _HomeState extends State<Home> {
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Color(0xFF0097B2),
-                      Color(0xFF7ED957),
+                      PaletaColores.gradiente1,
+                      PaletaColores.gradiente2,
                     ],
                   ),
                 ),
@@ -124,7 +122,7 @@ class _HomeState extends State<Home> {
                 leading: const Icon(Icons.edit_document),
                 title: const Text('Partes'),
                 selected: _selectedIndex == 1,
-                selectedTileColor: const Color(0x110097B2),
+                selectedTileColor: PaletaColores.colorSeleccionado,
                 onTap: () {
                   _onItemTapped(1);
                 },
@@ -133,7 +131,7 @@ class _HomeState extends State<Home> {
                 leading: const Icon(Icons.groups),
                 title: const Text('Clientes'),
                 selected: _selectedIndex == 2,
-                selectedTileColor: const Color(0x110097B2),
+                selectedTileColor: PaletaColores.colorSeleccionado,
                 onTap: () {
                   _onItemTapped(2);
                 },
@@ -142,7 +140,7 @@ class _HomeState extends State<Home> {
                 leading: const Icon(Icons.person),
                 title: const Text('Perfil'),
                 selected: _selectedIndex == 3,
-                selectedTileColor: const Color(0x110097B2),
+                selectedTileColor: PaletaColores.colorSeleccionado,
                 onTap: () {
                   _onItemTapped(3);
                 },
@@ -151,7 +149,7 @@ class _HomeState extends State<Home> {
                 leading: const Icon(Icons.settings),
                 title: const Text('Ajustes'),
                 selected: _selectedIndex == 4,
-                selectedTileColor: const Color(0x110097B2),
+                selectedTileColor: PaletaColores.colorSeleccionado,
                 onTap: () {
                   _onItemTapped(4);
                 },
@@ -160,7 +158,7 @@ class _HomeState extends State<Home> {
                 leading: const Icon(Icons.logout),
                 title: const Text('Cerrar Sesión'),
                 selected: _selectedIndex == 5,
-                selectedTileColor: const Color(0x110097B2),
+                selectedTileColor: PaletaColores.colorSeleccionado,
                 onTap: () {
                   _onItemTapped(5);
                 },

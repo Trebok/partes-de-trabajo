@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:partes/core/theme/paleta_colores.dart';
 
 import 'model/boxes.dart';
 import 'model/cliente.dart';
@@ -29,13 +30,19 @@ class _ListaClientesState extends State<ListaClientes> {
                     MaterialPageRoute(
                       builder: (context) => EditarCliente(cliente: cliente),
                     ),
-                  ).then((cliente) => setState(() {
-                        if (cliente == null) return;
-                        boxClientes.putAt(index, cliente);
+                  ).then((clienteEditado) => setState(() {
+                        if (clienteEditado == null) return;
+                        if (cliente.nombre != clienteEditado.nombre) {
+                          boxClientes.deleteAt(index);
+                          boxClientes.put(
+                              '${clienteEditado.nombre}${DateTime.now()}', clienteEditado);
+                        } else {
+                          boxClientes.putAt(index, clienteEditado);
+                        }
                       }));
                 },
                 child: Card.outlined(
-                  color: const Color(0xfff2f2f7),
+                  color: PaletaColores.colorTarjetas,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20.0, 3.0, 20.0, 3.0),
                     child: Row(
@@ -49,9 +56,36 @@ class _ListaClientesState extends State<ListaClientes> {
                         ),
                         IconButton(
                           onPressed: () {
-                            setState(() {
-                              boxClientes.deleteAt(index);
-                            });
+                            showAdaptiveDialog(
+                              context: context,
+                              builder: (context) => SimpleDialog(
+                                title: const Center(
+                                  child: Text('¿Eliminar cliente?'),
+                                ),
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('NO'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          setState(() {
+                                            boxClientes.deleteAt(index);
+                                          });
+                                        },
+                                        child: const Text('SI'),
+                                      )
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
                           },
                           icon: const Icon(
                             Icons.delete,
