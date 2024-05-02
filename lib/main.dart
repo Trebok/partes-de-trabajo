@@ -8,6 +8,7 @@ import 'package:partes/lista_clientes.dart';
 import 'package:partes/lista_partes.dart';
 import 'package:partes/model/boxes.dart';
 import 'package:partes/model/cliente.dart';
+import 'package:partes/model/firma.dart';
 import 'package:partes/model/imagen.dart';
 import 'package:partes/model/parte.dart';
 import 'package:partes/model/trabajo.dart';
@@ -18,6 +19,7 @@ import 'package:partes/widgets/floating_action_button_custom.dart';
 
 void main() async {
   await Hive.initFlutter();
+  Hive.registerAdapter(FirmaAdapter());
   Hive.registerAdapter(TrabajoAdapter());
   Hive.registerAdapter(ImagenAdapter());
   Hive.registerAdapter(ClienteAdapter());
@@ -28,7 +30,7 @@ void main() async {
   boxClientes = await Hive.openBox<Cliente>('clienteBox');
   boxPartes = await Hive.openBox<Parte>('parteBox');
   // boxClientes.put('${clienteEjemplo.nombre}${DateTime.now()}', clienteEjemplo);
-  // boxPartes.put('${parteEjemplo.number}/${parteEjemplo.year}', parteEjemplo);
+  // boxPartes.add(parteEjemplo);
 
   runApp(const MyApp());
 }
@@ -122,7 +124,7 @@ class _HomeState extends State<Home> {
                 leading: const Icon(Icons.edit_document),
                 title: const Text('Partes'),
                 selected: _selectedIndex == 1,
-                selectedTileColor: PaletaColores.colorSeleccionado,
+                selectedTileColor: PaletaColores.seleccionDrawer,
                 onTap: () {
                   _onItemTapped(1);
                 },
@@ -131,7 +133,7 @@ class _HomeState extends State<Home> {
                 leading: const Icon(Icons.groups),
                 title: const Text('Clientes'),
                 selected: _selectedIndex == 2,
-                selectedTileColor: PaletaColores.colorSeleccionado,
+                selectedTileColor: PaletaColores.seleccionDrawer,
                 onTap: () {
                   _onItemTapped(2);
                 },
@@ -140,7 +142,7 @@ class _HomeState extends State<Home> {
                 leading: const Icon(Icons.person),
                 title: const Text('Perfil'),
                 selected: _selectedIndex == 3,
-                selectedTileColor: PaletaColores.colorSeleccionado,
+                selectedTileColor: PaletaColores.seleccionDrawer,
                 onTap: () {
                   _onItemTapped(3);
                 },
@@ -149,7 +151,7 @@ class _HomeState extends State<Home> {
                 leading: const Icon(Icons.settings),
                 title: const Text('Ajustes'),
                 selected: _selectedIndex == 4,
-                selectedTileColor: PaletaColores.colorSeleccionado,
+                selectedTileColor: PaletaColores.seleccionDrawer,
                 onTap: () {
                   _onItemTapped(4);
                 },
@@ -158,7 +160,7 @@ class _HomeState extends State<Home> {
                 leading: const Icon(Icons.logout),
                 title: const Text('Cerrar Sesión'),
                 selected: _selectedIndex == 5,
-                selectedTileColor: PaletaColores.colorSeleccionado,
+                selectedTileColor: PaletaColores.seleccionDrawer,
                 onTap: () {
                   _onItemTapped(5);
                 },
@@ -185,7 +187,7 @@ class _HomeState extends State<Home> {
                 MaterialPageRoute(builder: (context) => const CrearParte()),
               ).then((parte) => setState(() {
                     if (parte == null) return;
-                    boxPartes.put('${parte.number}/${parte.year}', parte);
+                    boxPartes.add(parte);
                   }));
             case 2:
               Navigator.push(

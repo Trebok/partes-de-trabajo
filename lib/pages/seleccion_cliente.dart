@@ -29,7 +29,7 @@ class _SeleccionClienteState extends State<SeleccionCliente> {
                 Navigator.pop(context, cliente);
               },
               child: Card.outlined(
-                color: PaletaColores.colorTarjetas,
+                color: PaletaColores.tarjetas,
                 child: SizedBox(
                   height: 40.0,
                   child: Center(child: Text(cliente.nombre)),

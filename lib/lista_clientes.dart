@@ -42,7 +42,7 @@ class _ListaClientesState extends State<ListaClientes> {
                       }));
                 },
                 child: Card.outlined(
-                  color: PaletaColores.colorTarjetas,
+                  color: PaletaColores.tarjetas,
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20.0, 3.0, 20.0, 3.0),
                     child: Row(

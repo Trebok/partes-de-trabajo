@@ -5,11 +5,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:partes/core/theme/paleta_colores.dart';
 import 'package:partes/model/boxes.dart';
 import 'package:partes/model/cliente.dart';
+import 'package:partes/model/firma.dart';
 import 'package:partes/model/imagen.dart';
 import 'package:partes/model/parte.dart';
 import 'package:partes/model/trabajo.dart';
 import 'package:partes/pages/crear_trabajo.dart';
 import 'package:partes/pages/editar_trabajo.dart';
+import 'package:partes/pages/firmar.dart';
 import 'package:partes/pages/seleccion_cliente.dart';
 import 'package:partes/utils.dart';
 import 'package:partes/widgets/barra_navegacion.dart';
@@ -40,6 +42,7 @@ class _CrearParteState extends State<CrearParte> {
   final _observacionesController = TextEditingController();
   late Cliente _cliente;
   final _trabajos = <Trabajo>[];
+  Firma? _firma;
   final _imagenes = <Imagen>[];
 
   late int _horaInicio = _ahora.hour * 60 + _ahora.minute;
@@ -305,7 +308,7 @@ class _CrearParteState extends State<CrearParte> {
                   itemCount: _trabajos.length,
                   itemBuilder: (context, index) {
                     return Card.outlined(
-                      color: PaletaColores.colorTarjetas,
+                      color: PaletaColores.tarjetas,
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(12, 9, 10, 12),
                         child: Column(
@@ -436,10 +439,10 @@ class _CrearParteState extends State<CrearParte> {
                     );
                   },
                 ),
-                SizedBox(height: _trabajos.isEmpty ? 0 : 10),
+                if (_trabajos.isNotEmpty) const SizedBox(height: 10),
                 const Divider(
                   height: 0,
-                  color: Color.fromARGB(255, 109, 109, 110),
+                  color: PaletaColores.dividerFormulario,
                 ),
                 FocusScope(
                   child: Focus(
@@ -463,29 +466,149 @@ class _CrearParteState extends State<CrearParte> {
                     ),
                   ),
                 ),
-                !_trabajoFinalizado
-                    ? TextFieldCustom(
-                        prefixIcon: const Icon(Icons.build_outlined),
-                        labelText: 'Trabajo pendiente',
-                        controller: _trabajoPendienteController,
-                      )
-                    : const SizedBox.shrink(),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    try {
-                      final imagen = await ImagePicker().pickImage(source: ImageSource.gallery);
-                      if (imagen == null) return;
+                if (!_trabajoFinalizado)
+                  TextFieldCustom(
+                    prefixIcon: const Icon(Icons.build_outlined),
+                    labelText: 'Trabajo pendiente',
+                    controller: _trabajoPendienteController,
+                  ),
+                FocusScope(
+                  child: Focus(
+                    onFocusChange: (hasFocus) {
+                      if (hasFocus) {
+                        FocusScope.of(context).unfocus();
+                      }
+                    },
+                    child: TextFormFieldCustom(
+                      prefixIcon: const Icon(Icons.image),
+                      labelText: 'Imágenes',
+                      suffixIcon: const Icon(Icons.add_rounded),
+                      border: InputBorder.none,
+                      readOnly: true,
+                      onTap: () async {
+                        try {
+                          final imagen =
+                              await ImagePicker().pickImage(source: ImageSource.gallery);
+                          if (imagen == null) return;
 
-                      Uint8List imagenBytes = await imagen.readAsBytes();
-                      setState(() {
-                        _imagenes.add(Imagen(numero: 1, imagen: imagenBytes));
-                      });
-                    } on PlatformException catch (e) {
-                      debugPrint('Error al elegir imagen $e');
-                    }
+                          Uint8List imagenBytes = await imagen.readAsBytes();
+                          setState(() {
+                            _imagenes.add(Imagen(numero: 1, imagen: imagenBytes));
+                          });
+                        } on PlatformException catch (e) {
+                          debugPrint('Error al elegir imagen $e');
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+                  itemCount: _imagenes.length,
+                  itemBuilder: (context, index) {
+                    return Image.memory(_imagenes[index].imagen);
                   },
-                  icon: const Icon(Icons.camera_alt),
-                  label: const Text('Imágenes'),
+                ),
+                if (_imagenes.isNotEmpty) const SizedBox(height: 10),
+                const Divider(
+                  height: 0,
+                  color: PaletaColores.dividerFormulario,
+                ),
+                FocusScope(
+                  child: Focus(
+                    onFocusChange: (hasFocus) {
+                      if (hasFocus) {
+                        FocusScope.of(context).unfocus();
+                      }
+                    },
+                    child: TextFieldCustom(
+                      prefixIcon: const Icon(Icons.border_color_outlined),
+                      labelText: 'Firma',
+                      suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
+                      border: InputBorder.none,
+                      readOnly: true,
+                      onTap: () async {
+                        if (_firma == null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: ((context) => const Firmar())),
+                          ).then((final firma) {
+                            if (firma == null) return;
+
+                            setState(() {
+                              _firma = firma;
+                            });
+                          });
+                        } else {
+                          showAdaptiveDialog(
+                            context: context,
+                            builder: (context) => SimpleDialog(
+                              title: const Center(
+                                child: Text(
+                                    'Si sigue adelante eliminará la firma actual. ¿Desea continuar?'),
+                              ),
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text('NO'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: ((context) => const Firmar())),
+                                        ).then((final firma) {
+                                          setState(() {
+                                            _firma = firma;
+                                          });
+                                        });
+                                      },
+                                      child: const Text('SI'),
+                                    )
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                if (_firma != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Card.outlined(
+                      color: PaletaColores.tarjetas,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: Column(
+                            children: [
+                              Text(_firma!.nombre),
+                              if (_firma!.dni!.isNotEmpty) Text(_firma!.dni!),
+                              Image.memory(_firma!.dibujo),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                const Divider(
+                  height: 0,
+                  color: PaletaColores.dividerFormulario,
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 25, bottom: 25),
@@ -526,20 +649,13 @@ class _CrearParteState extends State<CrearParte> {
                           number: number,
                           horasTotales: horasTotales,
                           imagenes: _imagenes,
+                          firma: _firma,
                         );
 
                         Navigator.pop(context, parte);
                       }
                     },
                   ),
-                ),
-                ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: _imagenes.length,
-                  itemBuilder: (context, index) {
-                    return Image.memory(_imagenes[index].imagen);
-                  },
                 ),
               ],
             ),

@@ -31,11 +31,11 @@ class _ListaPartesState extends State<ListaPartes> {
                 MaterialPageRoute(builder: (context) => EditarParte(parte: parte)),
               ).then((parteEditado) => setState(() {
                     if (parteEditado == null) return;
-                    boxPartes.put('${parteEditado.number}/${parteEditado.year}', parteEditado);
+                    boxPartes.putAt(reversedIndex, parteEditado);
                   }));
             },
             child: Card.outlined(
-              color: PaletaColores.colorTarjetas,
+              color: PaletaColores.tarjetas,
               child: SizedBox(
                 height: 150.0,
                 child: Padding(

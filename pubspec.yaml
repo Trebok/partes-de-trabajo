@@ -46,6 +46,8 @@ dependencies:
   open_filex: ^4.4.0
   share_plus: ^8.0.3
   image_picker: ^1.1.0
+  signature: ^5.4.1
+  flutter_svg: ^2.0.10+1
   
 
  

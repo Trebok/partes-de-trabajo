@@ -65,38 +65,34 @@ class PDFHelper {
                       Text(parte.cliente.nombre),
                     ],
                   ),
-                  parte.cliente.dni!.isNotEmpty
-                      ? TableRow(
-                          children: [
-                            Text('DNI/NIF:'),
-                            Text(parte.cliente.dni!),
-                          ],
-                        )
-                      : filaVacia(),
-                  parte.cliente.direccion!.isNotEmpty
-                      ? TableRow(
-                          children: [
-                            Text('Dirección:'),
-                            Text(parte.cliente.direccion!),
-                          ],
-                        )
-                      : filaVacia(),
-                  parte.cliente.telefono!.isNotEmpty
-                      ? TableRow(
-                          children: [
-                            Text('Teléfono:'),
-                            Text(parte.cliente.telefono!),
-                          ],
-                        )
-                      : filaVacia(),
-                  parte.cliente.email!.isNotEmpty
-                      ? TableRow(
-                          children: [
-                            Text('Email:'),
-                            Text(parte.cliente.email!),
-                          ],
-                        )
-                      : filaVacia(),
+                  if (parte.cliente.dni!.isNotEmpty)
+                    TableRow(
+                      children: [
+                        Text('DNI/NIF:'),
+                        Text(parte.cliente.dni!),
+                      ],
+                    ),
+                  if (parte.cliente.direccion!.isNotEmpty)
+                    TableRow(
+                      children: [
+                        Text('Dirección:'),
+                        Text(parte.cliente.direccion!),
+                      ],
+                    ),
+                  if (parte.cliente.telefono!.isNotEmpty)
+                    TableRow(
+                      children: [
+                        Text('Teléfono:'),
+                        Text(parte.cliente.telefono!),
+                      ],
+                    ),
+                  if (parte.cliente.email!.isNotEmpty)
+                    TableRow(
+                      children: [
+                        Text('Email:'),
+                        Text(parte.cliente.email!),
+                      ],
+                    ),
                 ],
               ),
             ],
@@ -112,15 +108,10 @@ class PDFHelper {
               Text("Total horas:   ${parte.horasTotales}"),
             ],
           ),
-          parte.otrosTrabajadores!.isEmpty && parte.observaciones!.isEmpty
-              ? SizedBox.shrink()
-              : Divider(),
-          parte.otrosTrabajadores!.isEmpty
-              ? SizedBox.shrink()
-              : Text('Otros trabajadores:   ${parte.otrosTrabajadores}'),
-          parte.observaciones!.isEmpty
-              ? SizedBox.shrink()
-              : Text('Observaciones:   ${parte.observaciones}'),
+          if (parte.otrosTrabajadores!.isNotEmpty || parte.observaciones!.isNotEmpty) Divider(),
+          if (parte.otrosTrabajadores!.isNotEmpty)
+            Text('Otros trabajadores:   ${parte.otrosTrabajadores}'),
+          if (parte.observaciones!.isNotEmpty) Text('Observaciones:   ${parte.observaciones}'),
           SizedBox(height: 10),
           TableHelper.fromTextArray(
             headers: headers,
@@ -135,9 +126,8 @@ class PDFHelper {
             headerAlignment: Alignment.centerLeft,
           ),
           SizedBox(height: 10),
-          parte.trabajoFinalizado || parte.trabajoPendiente!.isEmpty
-              ? SizedBox.shrink()
-              : Text('Trabajo pendiente:   ${parte.trabajoPendiente}'),
+          if (!parte.trabajoFinalizado && parte.trabajoPendiente!.isNotEmpty)
+            Text('Trabajo pendiente:   ${parte.trabajoPendiente}'),
           Row(
             children: [
               Text('Trabajo terminado:       '),
@@ -168,17 +158,16 @@ class PDFHelper {
             ],
           ),
           SizedBox(height: 15),
-          parte.imagenes.isEmpty
-              ? SizedBox.shrink()
-              : Center(
-                  child: Text(
-                    'IMÁGENES',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
+          if (parte.imagenes.isNotEmpty)
+            Center(
+              child: Text(
+                'IMÁGENES',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
                 ),
+              ),
+            ),
         ],
       ),
     );
@@ -197,20 +186,25 @@ class PDFHelper {
       ));
     }
 
-    children.add(
-      SizedBox(
-        width: double.infinity,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-                'F\n        I\n                R\n                        M\n                                A'),
-            Text('Fdo.   Pedro'),
-            Text('DNI:   25745634B'),
-          ],
+    if (parte.firma != null) {
+      children.add(
+        SizedBox(
+          width: double.infinity,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Image(
+                MemoryImage(parte.firma!.dibujo),
+                width: 120,
+                height: 80,
+              ),
+              Text('Fdo.   ${parte.firma!.nombre}'),
+              if (parte.firma!.dni!.isNotEmpty) Text('DNI:   ${parte.firma!.dni}'),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    }
 
     Document.debug = false;
 
@@ -235,14 +229,5 @@ class PDFHelper {
     final file = File(savePath);
     await file.writeAsBytes(await pdf.save());
     OpenFilex.open(file.path);
-  }
-
-  static TableRow filaVacia() {
-    return TableRow(
-      children: [
-        SizedBox.shrink(),
-        SizedBox.shrink(),
-      ],
-    );
   }
 }

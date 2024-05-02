@@ -4,6 +4,7 @@ class TextFieldCustom extends StatelessWidget {
   final Widget? prefixIcon;
   final String? labelText;
   final Widget? suffixIcon;
+  final InputBorder? border;
   final TextEditingController? controller;
   final TextInputType? keyboardType;
   final TextCapitalization textCapitalization;
@@ -20,6 +21,7 @@ class TextFieldCustom extends StatelessWidget {
     this.textCapitalization = TextCapitalization.sentences,
     this.readOnly = false,
     this.onTap,
+    this.border,
   });
 
   @override
@@ -29,6 +31,7 @@ class TextFieldCustom extends StatelessWidget {
         prefixIcon: prefixIcon,
         labelText: labelText,
         suffixIcon: suffixIcon,
+        border: border,
       ),
       controller: controller,
       maxLines: null,
