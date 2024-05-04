@@ -19,8 +19,8 @@ class FloatingActionButtonCustom extends StatelessWidget {
           shape: BoxShape.rectangle,
           gradient: const LinearGradient(
             colors: [
-              PaletaColores.gradiente1,
-              PaletaColores.gradiente2,
+              PaletaColores.primario,
+              PaletaColores.secundario,
             ],
           ),
           borderRadius: BorderRadius.circular(15),

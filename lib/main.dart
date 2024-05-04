@@ -9,7 +9,6 @@ import 'package:partes/lista_partes.dart';
 import 'package:partes/model/boxes.dart';
 import 'package:partes/model/cliente.dart';
 import 'package:partes/model/firma.dart';
-import 'package:partes/model/imagen.dart';
 import 'package:partes/model/parte.dart';
 import 'package:partes/model/trabajo.dart';
 import 'package:partes/pages/crear_cliente.dart';
@@ -21,7 +20,6 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(FirmaAdapter());
   Hive.registerAdapter(TrabajoAdapter());
-  Hive.registerAdapter(ImagenAdapter());
   Hive.registerAdapter(ClienteAdapter());
   Hive.registerAdapter(ParteAdapter());
 
@@ -96,8 +94,8 @@ class _HomeState extends State<Home> {
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      PaletaColores.gradiente1,
-                      PaletaColores.gradiente2,
+                      PaletaColores.primario,
+                      PaletaColores.secundario,
                     ],
                   ),
                 ),

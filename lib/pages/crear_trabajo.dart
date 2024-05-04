@@ -1,18 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:partes/core/theme/paleta_colores.dart';
 import 'package:partes/model/trabajo.dart';
 import 'package:partes/widgets/barra_navegacion.dart';
 import 'package:partes/widgets/boton_gradiente.dart';
 import 'package:partes/widgets/text_field_custom.dart';
 import 'package:partes/widgets/text_form_field_custom.dart';
 
-class CrearTrabajo extends StatelessWidget {
+class CrearTrabajo extends StatefulWidget {
   final int numero;
-  CrearTrabajo({super.key, required this.numero});
+  const CrearTrabajo({super.key, required this.numero});
 
+  @override
+  State<CrearTrabajo> createState() => _CrearTrabajoState();
+}
+
+class _CrearTrabajoState extends State<CrearTrabajo> {
   final _formKey = GlobalKey<FormState>();
 
   final _descripcion = TextEditingController();
   final _material = TextEditingController();
+  final _imagenes = <Uint8List>[];
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +43,7 @@ class CrearTrabajo extends StatelessWidget {
                     },
                     child: TextFieldCustom(
                       prefixIcon: const Icon(Icons.numbers),
-                      labelText: 'Nº $numero',
+                      labelText: 'Nº ${widget.numero}',
                       readOnly: true,
                     ),
                   ),
@@ -55,6 +64,52 @@ class CrearTrabajo extends StatelessWidget {
                   labelText: 'Material',
                   controller: _material,
                 ),
+                FocusScope(
+                  child: Focus(
+                    onFocusChange: (hasFocus) {
+                      if (hasFocus) {
+                        FocusScope.of(context).unfocus();
+                      }
+                    },
+                    child: TextFormFieldCustom(
+                      prefixIcon: const Icon(Icons.image),
+                      labelText: 'Imágenes',
+                      suffixIcon: const Icon(Icons.add_rounded),
+                      border: InputBorder.none,
+                      readOnly: true,
+                      onTap: () async {
+                        try {
+                          final imagen =
+                              await ImagePicker().pickImage(source: ImageSource.gallery);
+                          if (imagen == null) return;
+
+                          final imagenBytes = await imagen.readAsBytes();
+
+                          setState(() {
+                            _imagenes.add(imagenBytes);
+                          });
+                        } on PlatformException catch (e) {
+                          debugPrint('Error al elegir imagen $e');
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+                  itemCount: _imagenes.length,
+                  itemBuilder: (context, index) {
+                    return Image.memory(_imagenes[index]);
+                  },
+                ),
+                if (_imagenes.isNotEmpty) const SizedBox(height: 10),
+                const Divider(
+                  height: 0,
+                  color: PaletaColores.dividerFormulario,
+                ),
                 Padding(
                   padding: const EdgeInsets.only(top: 25, bottom: 25),
                   child: BotonGradiente(
@@ -64,9 +119,10 @@ class CrearTrabajo extends StatelessWidget {
                         Navigator.pop(
                           context,
                           Trabajo(
-                            numero: numero,
+                            numero: widget.numero,
                             descripcion: _descripcion.text,
                             material: _material.text,
+                            imagenes: _imagenes,
                           ),
                         );
                       }

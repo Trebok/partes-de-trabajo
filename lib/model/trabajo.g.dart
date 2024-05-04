@@ -17,22 +17,25 @@ class TrabajoAdapter extends TypeAdapter<Trabajo> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Trabajo(
-      descripcion: fields[0] as String,
-      material: fields[1] as String?,
-      numero: fields[2] as int,
+      descripcion: fields[1] as String,
+      material: fields[2] as String?,
+      numero: fields[0] as int,
+      imagenes: (fields[3] as List).cast<Uint8List>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Trabajo obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
-      ..write(obj.descripcion)
+      ..write(obj.numero)
       ..writeByte(1)
-      ..write(obj.material)
+      ..write(obj.descripcion)
       ..writeByte(2)
-      ..write(obj.numero);
+      ..write(obj.material)
+      ..writeByte(3)
+      ..write(obj.imagenes);
   }
 
   @override

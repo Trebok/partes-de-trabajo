@@ -4,7 +4,7 @@ import 'package:hive/hive.dart';
 
 part 'firma.g.dart';
 
-@HiveType(typeId: 5)
+@HiveType(typeId: 4)
 class Firma {
   Firma({
     required this.dibujo,

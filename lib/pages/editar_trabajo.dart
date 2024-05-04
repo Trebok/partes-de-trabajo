@@ -1,18 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:partes/core/theme/paleta_colores.dart';
 import 'package:partes/model/trabajo.dart';
 import 'package:partes/widgets/barra_navegacion.dart';
 import 'package:partes/widgets/boton_gradiente.dart';
 import 'package:partes/widgets/text_field_custom.dart';
 import 'package:partes/widgets/text_form_field_custom.dart';
 
-class EditarTrabajo extends StatelessWidget {
+class EditarTrabajo extends StatefulWidget {
   final Trabajo trabajo;
-  EditarTrabajo({super.key, required this.trabajo});
+  const EditarTrabajo({super.key, required this.trabajo});
 
+  @override
+  State<EditarTrabajo> createState() => _EditarTrabajoState();
+}
+
+class _EditarTrabajoState extends State<EditarTrabajo> {
   final _formKey = GlobalKey<FormState>();
 
-  late final _descripcion = TextEditingController(text: trabajo.descripcion);
-  late final _materiales = TextEditingController(text: trabajo.material);
+  late final _descripcion = TextEditingController(text: widget.trabajo.descripcion);
+  late final _materiales = TextEditingController(text: widget.trabajo.material);
+  late final List<Uint8List> _imagenes = List.from(widget.trabajo.imagenes);
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +43,7 @@ class EditarTrabajo extends StatelessWidget {
                     },
                     child: TextFieldCustom(
                       prefixIcon: const Icon(Icons.numbers),
-                      labelText: 'Nº ${trabajo.numero}',
+                      labelText: 'Nº ${widget.trabajo.numero}',
                       readOnly: true,
                     ),
                   ),
@@ -55,6 +64,52 @@ class EditarTrabajo extends StatelessWidget {
                   labelText: 'Material',
                   controller: _materiales,
                 ),
+                FocusScope(
+                  child: Focus(
+                    onFocusChange: (hasFocus) {
+                      if (hasFocus) {
+                        FocusScope.of(context).unfocus();
+                      }
+                    },
+                    child: TextFormFieldCustom(
+                      prefixIcon: const Icon(Icons.image),
+                      labelText: 'Imágenes',
+                      suffixIcon: const Icon(Icons.add_rounded),
+                      border: InputBorder.none,
+                      readOnly: true,
+                      onTap: () async {
+                        try {
+                          final imagen =
+                              await ImagePicker().pickImage(source: ImageSource.gallery);
+                          if (imagen == null) return;
+
+                          final imagenBytes = await imagen.readAsBytes();
+
+                          setState(() {
+                            _imagenes.add(imagenBytes);
+                          });
+                        } on PlatformException catch (e) {
+                          debugPrint('Error al elegir imagen $e');
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+                  itemCount: _imagenes.length,
+                  itemBuilder: (context, index) {
+                    return Image.memory(_imagenes[index]);
+                  },
+                ),
+                if (_imagenes.isNotEmpty) const SizedBox(height: 10),
+                const Divider(
+                  height: 0,
+                  color: PaletaColores.dividerFormulario,
+                ),
                 Padding(
                   padding: const EdgeInsets.only(top: 25, bottom: 25),
                   child: BotonGradiente(
@@ -64,9 +119,10 @@ class EditarTrabajo extends StatelessWidget {
                         Navigator.pop(
                           context,
                           Trabajo(
-                            numero: trabajo.numero,
+                            numero: widget.trabajo.numero,
                             descripcion: _descripcion.text,
                             material: _materiales.text,
+                            imagenes: _imagenes,
                           ),
                         );
                       }

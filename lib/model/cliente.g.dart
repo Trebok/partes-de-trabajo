@@ -8,7 +8,7 @@ part of 'cliente.dart';
 
 class ClienteAdapter extends TypeAdapter<Cliente> {
   @override
-  final int typeId = 1;
+  final int typeId = 2;
 
   @override
   Cliente read(BinaryReader reader) {

@@ -28,6 +28,14 @@ class PDFHelper {
     final checkBoxMarcada = await rootBundle.loadString('images/checkbox-active.svg');
     final checkBoxVacia = await rootBundle.loadString('images/checkbox-passive.svg');
 
+    bool hayImagenes = false;
+    for (var trabajo in parte.trabajos) {
+      if (trabajo.imagenes.isNotEmpty) {
+        hayImagenes = true;
+        break;
+      }
+    }
+
     final children = <Widget>[];
 
     children.add(
@@ -158,7 +166,7 @@ class PDFHelper {
             ],
           ),
           SizedBox(height: 15),
-          if (parte.imagenes.isNotEmpty)
+          if (hayImagenes)
             Center(
               child: Text(
                 'IMÁGENES',
@@ -172,18 +180,22 @@ class PDFHelper {
       ),
     );
 
-    for (final item in parte.imagenes) {
-      children.add(Column(
-        children: [
-          Text('Trabajo Nº ${item.numero}'),
-          SizedBox(height: 3),
-          Image(
-            MemoryImage(item.imagen),
-            width: 250,
-            height: 214,
+    for (final trabajo in parte.trabajos) {
+      for (var imagen in trabajo.imagenes) {
+        children.add(
+          Column(
+            children: [
+              Text('Trabajo Nº ${trabajo.numero}'),
+              SizedBox(height: 3),
+              Image(
+                MemoryImage(imagen),
+                width: 250,
+                height: 214,
+              ),
+            ],
           ),
-        ],
-      ));
+        );
+      }
     }
 
     if (parte.firma != null) {

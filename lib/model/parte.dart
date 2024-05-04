@@ -1,12 +1,11 @@
 import 'package:hive/hive.dart';
 import 'package:partes/model/cliente.dart';
 import 'package:partes/model/firma.dart';
-import 'package:partes/model/imagen.dart';
 import 'package:partes/model/trabajo.dart';
 
 part 'parte.g.dart';
 
-@HiveType(typeId: 2)
+@HiveType(typeId: 1)
 class Parte {
   Parte({
     required this.cliente,
@@ -21,7 +20,6 @@ class Parte {
     this.trabajoPendiente,
     required this.number,
     required this.horasTotales,
-    required this.imagenes,
     this.firma,
   });
   @HiveField(0)
@@ -64,8 +62,5 @@ class Parte {
   String horasTotales;
 
   @HiveField(13)
-  List<Imagen> imagenes;
-
-  @HiveField(14)
   Firma? firma;
 }

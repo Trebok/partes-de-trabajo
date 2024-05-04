@@ -8,7 +8,7 @@ part of 'parte.dart';
 
 class ParteAdapter extends TypeAdapter<Parte> {
   @override
-  final int typeId = 2;
+  final int typeId = 1;
 
   @override
   Parte read(BinaryReader reader) {
@@ -29,15 +29,14 @@ class ParteAdapter extends TypeAdapter<Parte> {
       trabajoPendiente: fields[9] as String?,
       number: fields[11] as int,
       horasTotales: fields[12] as String,
-      imagenes: (fields[13] as List).cast<Imagen>(),
-      firma: fields[14] as Firma?,
+      firma: fields[13] as Firma?,
     )..year = fields[10] as int;
   }
 
   @override
   void write(BinaryWriter writer, Parte obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.cliente)
       ..writeByte(1)
@@ -65,8 +64,6 @@ class ParteAdapter extends TypeAdapter<Parte> {
       ..writeByte(12)
       ..write(obj.horasTotales)
       ..writeByte(13)
-      ..write(obj.imagenes)
-      ..writeByte(14)
       ..write(obj.firma);
   }
 

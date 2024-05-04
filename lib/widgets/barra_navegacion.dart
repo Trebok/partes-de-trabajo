@@ -34,8 +34,8 @@ class BarraNavegacion extends StatelessWidget implements PreferredSizeWidget {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              PaletaColores.gradiente1,
-              PaletaColores.gradiente2,
+              PaletaColores.primario,
+              PaletaColores.secundario,
             ],
           ),
         ),

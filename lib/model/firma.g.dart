@@ -8,7 +8,7 @@ part of 'firma.dart';
 
 class FirmaAdapter extends TypeAdapter<Firma> {
   @override
-  final int typeId = 5;
+  final int typeId = 4;
 
   @override
   Firma read(BinaryReader reader) {

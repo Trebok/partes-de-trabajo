@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:partes/core/theme/paleta_colores.dart';
 import 'package:partes/model/cliente.dart';
 import 'package:partes/model/firma.dart';
-import 'package:partes/model/imagen.dart';
 import 'package:partes/model/parte.dart';
 import 'package:partes/model/trabajo.dart';
 import 'package:partes/pages/crear_trabajo.dart';
@@ -42,9 +39,9 @@ class _EditarClienteState extends State<EditarParte> {
       TextEditingController(text: widget.parte.otrosTrabajadores);
   late final _observacionesController = TextEditingController(text: widget.parte.observaciones);
   late Cliente _cliente = widget.parte.cliente;
-  late final List<Trabajo> _trabajos = List.from(widget.parte.trabajos);
+  late final _trabajos =
+      List<Trabajo>.from(widget.parte.trabajos.map((trabajo) => trabajo.copia()));
   late Firma? _firma = widget.parte.firma;
-  late final List<Imagen> _imagenes = List.from(widget.parte.imagenes);
 
   late int _horaInicio = int.parse(widget.parte.horaInicio.split(':')[0]) * 60 +
       int.parse(widget.parte.horaInicio.split(':')[1]);
@@ -349,6 +346,24 @@ class _EditarClienteState extends State<EditarParte> {
                                   ],
                                 ),
                                 rowSpacer,
+                                if (_trabajos[index].imagenes.isNotEmpty)
+                                  TableRow(
+                                    children: [
+                                      const Text('Imágenes:'),
+                                      GridView.builder(
+                                        physics: const NeverScrollableScrollPhysics(),
+                                        shrinkWrap: true,
+                                        gridDelegate:
+                                            const SliverGridDelegateWithFixedCrossAxisCount(
+                                                crossAxisCount: 2),
+                                        itemCount: _trabajos[index].imagenes.length,
+                                        itemBuilder: (context, index2) {
+                                          return Image.memory(_trabajos[index].imagenes[index2]);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                if (_trabajos[index].imagenes.isNotEmpty) rowSpacer,
                               ],
                             ),
                             Row(
@@ -359,7 +374,7 @@ class _EditarClienteState extends State<EditarParte> {
                                   width: 122,
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF8a8a8a),
+                                      backgroundColor: PaletaColores.editarTrabajo,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10.0),
                                       ),
@@ -392,7 +407,7 @@ class _EditarClienteState extends State<EditarParte> {
                                   width: 122,
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF0097af),
+                                      backgroundColor: PaletaColores.eliminarTrabajo,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10.0),
                                       ),
@@ -484,51 +499,6 @@ class _EditarClienteState extends State<EditarParte> {
                     labelText: 'Trabajo pendiente',
                     controller: _trabajoPendienteController,
                   ),
-                FocusScope(
-                  child: Focus(
-                    onFocusChange: (hasFocus) {
-                      if (hasFocus) {
-                        FocusScope.of(context).unfocus();
-                      }
-                    },
-                    child: TextFormFieldCustom(
-                      prefixIcon: const Icon(Icons.image),
-                      labelText: 'Imágenes',
-                      suffixIcon: const Icon(Icons.add_rounded),
-                      border: InputBorder.none,
-                      readOnly: true,
-                      onTap: () async {
-                        try {
-                          final imagen =
-                              await ImagePicker().pickImage(source: ImageSource.gallery);
-                          if (imagen == null) return;
-
-                          Uint8List imagenBytes = await imagen.readAsBytes();
-                          setState(() {
-                            _imagenes.add(Imagen(numero: 1, imagen: imagenBytes));
-                          });
-                        } on PlatformException catch (e) {
-                          debugPrint('Error al elegir imagen $e');
-                        }
-                      },
-                    ),
-                  ),
-                ),
-                GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
-                  itemCount: _imagenes.length,
-                  itemBuilder: (context, index) {
-                    return Image.memory(_imagenes[index].imagen);
-                  },
-                ),
-                if (_imagenes.isNotEmpty) const SizedBox(height: 10),
-                const Divider(
-                  height: 0,
-                  color: PaletaColores.dividerFormulario,
-                ),
                 FocusScope(
                   child: Focus(
                     onFocusChange: (hasFocus) {
@@ -649,7 +619,6 @@ class _EditarClienteState extends State<EditarParte> {
                           trabajoPendiente: _trabajoPendienteController.text,
                           number: widget.parte.number,
                           horasTotales: horasTotales,
-                          imagenes: _imagenes,
                           firma: _firma,
                         );
 

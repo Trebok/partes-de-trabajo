@@ -16,88 +16,86 @@ class ListaClientes extends StatefulWidget {
 class _ListaClientesState extends State<ListaClientes> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: ListView.builder(
-          itemCount: boxClientes.length,
-          itemBuilder: (context, index) {
-            Cliente cliente = boxClientes.getAt(index);
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(15.0, 6.0, 15.0, 0.0),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditarCliente(cliente: cliente),
-                    ),
-                  ).then((clienteEditado) => setState(() {
-                        if (clienteEditado == null) return;
-                        if (cliente.nombre != clienteEditado.nombre) {
-                          boxClientes.deleteAt(index);
-                          boxClientes.put(
-                              '${clienteEditado.nombre}${DateTime.now()}', clienteEditado);
-                        } else {
-                          boxClientes.putAt(index, clienteEditado);
-                        }
-                      }));
-                },
-                child: Card.outlined(
-                  color: PaletaColores.tarjetas,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20.0, 3.0, 20.0, 3.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          cliente.nombre,
-                          style: const TextStyle(
-                            fontSize: 16,
-                          ),
+    return ListView.builder(
+        itemCount: boxClientes.length,
+        itemBuilder: (context, index) {
+          Cliente cliente = boxClientes.getAt(index);
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(15.0, 6.0, 15.0, 0.0),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditarCliente(cliente: cliente),
+                  ),
+                ).then((clienteEditado) => setState(() {
+                      if (clienteEditado == null) return;
+                      if (cliente.nombre != clienteEditado.nombre) {
+                        boxClientes.deleteAt(index);
+                        boxClientes.put(
+                            '${clienteEditado.nombre}${DateTime.now()}', clienteEditado);
+                      } else {
+                        boxClientes.putAt(index, clienteEditado);
+                      }
+                    }));
+              },
+              child: Card.outlined(
+                color: PaletaColores.tarjetas,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20.0, 3.0, 20.0, 3.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        cliente.nombre,
+                        style: const TextStyle(
+                          fontSize: 16,
                         ),
-                        IconButton(
-                          onPressed: () {
-                            showAdaptiveDialog(
-                              context: context,
-                              builder: (context) => SimpleDialog(
-                                title: const Center(
-                                  child: Text('¿Eliminar cliente?'),
-                                ),
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                    children: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text('NO'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          setState(() {
-                                            boxClientes.deleteAt(index);
-                                          });
-                                        },
-                                        child: const Text('SI'),
-                                      )
-                                    ],
-                                  ),
-                                ],
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          showAdaptiveDialog(
+                            context: context,
+                            builder: (context) => SimpleDialog(
+                              title: const Center(
+                                child: Text('¿Eliminar cliente?'),
                               ),
-                            );
-                          },
-                          icon: const Icon(
-                            Icons.delete,
-                          ),
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text('NO'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        setState(() {
+                                          boxClientes.deleteAt(index);
+                                        });
+                                      },
+                                      child: const Text('SI'),
+                                    )
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.delete,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            );
-          }),
-    );
+            ),
+          );
+        });
   }
 }

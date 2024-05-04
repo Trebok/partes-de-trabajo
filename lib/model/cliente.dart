@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'cliente.g.dart';
 
-@HiveType(typeId: 1)
+@HiveType(typeId: 2)
 class Cliente {
   Cliente({
     required this.nombre,
