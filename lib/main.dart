@@ -77,12 +77,19 @@ class _HomeState extends State<Home> {
     Navigator.pop(context);
   }
 
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: BarraNavegacion(
         nombre: _selectedIndex == 1 ? 'PARTES' : 'CLIENTES',
-        drawer: true,
+        leading: IconButton(
+          icon: const Icon(Icons.menu_rounded),
+          color: Colors.white,
+          onPressed: () => _scaffoldKey.currentState!.openDrawer(),
+        ),
       ),
       drawer: Drawer(
         child: SingleChildScrollView(

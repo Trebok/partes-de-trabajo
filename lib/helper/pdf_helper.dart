@@ -134,8 +134,6 @@ class PDFHelper {
             headerAlignment: Alignment.centerLeft,
           ),
           SizedBox(height: 10),
-          if (!parte.trabajoFinalizado && parte.trabajoPendiente!.isNotEmpty)
-            Text('Trabajo pendiente:   ${parte.trabajoPendiente}'),
           Row(
             children: [
               Text('Trabajo terminado:       '),
@@ -165,6 +163,8 @@ class PDFHelper {
                     ),
             ],
           ),
+          if (!parte.trabajoFinalizado && parte.trabajoPendiente!.isNotEmpty)
+            Text('Trabajo pendiente:   ${parte.trabajoPendiente}'),
           SizedBox(height: 15),
           if (hayImagenes)
             Center(

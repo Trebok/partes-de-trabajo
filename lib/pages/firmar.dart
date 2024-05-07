@@ -21,8 +21,9 @@ class _FirmarState extends State<Firmar> {
   final _formKeyGeneral = GlobalKey<FormState>();
   final _nombre = TextEditingController();
   final _dni = TextEditingController();
-  final SignatureController _controladorFirma = SignatureController(
+  final _controladorFirma = SignatureController(
     penStrokeWidth: 2,
+    penColor: PaletaColores.firma,
   );
 
   @override
@@ -38,29 +39,21 @@ class _FirmarState extends State<Firmar> {
       body: SingleChildScrollView(
         physics: const ScrollPhysics(),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+          padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKeyGeneral,
             child: Column(
               children: [
-                TextFormFieldCustom(
-                  prefixIcon: const Icon(Icons.person),
-                  labelText: 'Persona firmante',
-                  controller: _nombre,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Este campo es obligatorio.';
-                    }
-                    return null;
-                  },
+                Container(
+                  decoration: BoxDecoration(border: Border.all()),
+                  child: Signature(
+                    controller: _controladorFirma,
+                    height: 250,
+                    width: MediaQuery.sizeOf(context).width - 42,
+                    backgroundColor: PaletaColores.fondoFirma,
+                  ),
                 ),
-                TextFieldCustom(
-                  prefixIcon: const Icon(Icons.credit_card),
-                  labelText: 'DNI',
-                  controller: _dni,
-                ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 10),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF8a8a8a),
@@ -79,12 +72,23 @@ class _FirmarState extends State<Firmar> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                Signature(
-                  controller: _controladorFirma,
-                  height: 250,
-                  width: MediaQuery.sizeOf(context).width - 40,
-                  backgroundColor: PaletaColores.fondoFirma,
+                const SizedBox(height: 50),
+                TextFormFieldCustom(
+                  prefixIcon: const Icon(Icons.person),
+                  labelText: 'Persona firmante',
+                  controller: _nombre,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Este campo es obligatorio.';
+                    }
+                    return null;
+                  },
+                ),
+                TextFieldCustom(
+                  prefixIcon: const Icon(Icons.credit_card),
+                  labelText: 'DNI',
+                  controller: _dni,
                 ),
                 const SizedBox(
                   height: 30,
@@ -94,11 +98,13 @@ class _FirmarState extends State<Firmar> {
                   onTap: () async {
                     if (_formKeyGeneral.currentState!.validate()) {
                       if (_controladorFirma.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Firma vacía'),
-                          ),
-                        );
+                        ScaffoldMessenger.of(context)
+                          ..removeCurrentSnackBar()
+                          ..showSnackBar(
+                            const SnackBar(
+                              content: Text('Firma vacía'),
+                            ),
+                          );
                         return;
                       }
 

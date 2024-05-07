@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:partes/core/theme/paleta_colores.dart';
 import 'package:partes/model/cliente.dart';
 import 'package:partes/model/firma.dart';
@@ -59,21 +59,52 @@ class _EditarClienteState extends State<EditarParte> {
     int.parse(widget.parte.fechaFinal.split('/')[0]),
   );
 
-  bool fechaValida() {
-    if (_fechaInicio.isAfter(_fechaFinal)) {
-      return false;
-    } else if (_fechaInicio.isAtSameMomentAs(_fechaFinal)) {
-      if (_horaInicio >= _horaFinal) {
-        return false;
-      }
-    }
-    return true;
-  }
+  final _listKey = GlobalKey<AnimatedListState>();
+
+  bool _modoSeleccion = false;
+
+  final List<int> _seleccionados = [];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const BarraNavegacion(nombre: 'EDITAR PARTE:'),
+      appBar: BarraNavegacion(
+        nombre: _modoSeleccion ? _tituloSeleccion() : 'EDITAR PARTE',
+        leading: _modoSeleccion
+            ? IconButton(
+                icon: const Icon(Icons.close_rounded),
+                color: Colors.white,
+                onPressed: () {
+                  _seleccionados.clear();
+                  _modoSeleccion = false;
+                  setState(() {});
+                },
+              )
+            : null,
+        actions: [
+          Visibility(
+            visible: _modoSeleccion,
+            child: IconButton(
+              icon: const Icon(Icons.delete),
+              color: Colors.white,
+              onPressed: () {
+                _seleccionados.sort((a, b) => b.compareTo(a));
+                for (var indice in _seleccionados) {
+                  _eliminarTrabajo(context, _trabajos[indice]);
+
+                  _trabajos.removeAt(indice);
+                  for (var i = indice; i < _trabajos.length; i++) {
+                    _trabajos[i].numero--;
+                  }
+                }
+                _seleccionados.clear();
+                _modoSeleccion = false;
+                setState(() {});
+              },
+            ),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         physics: const ScrollPhysics(),
         child: Padding(
@@ -151,7 +182,7 @@ class _EditarClienteState extends State<EditarParte> {
                                 _formKeyFechas.currentState!.validate();
                               },
                               validator: (_) {
-                                if (!fechaValida()) {
+                                if (!_fechaValida()) {
                                   return 'Debe ser anterior';
                                 }
                                 return null;
@@ -181,7 +212,7 @@ class _EditarClienteState extends State<EditarParte> {
                                 _formKeyFechas.currentState!.validate();
                               },
                               validator: (_) {
-                                if (!fechaValida()) {
+                                if (!_fechaValida()) {
                                   return '';
                                 }
                                 return null;
@@ -219,7 +250,7 @@ class _EditarClienteState extends State<EditarParte> {
                                 _formKeyFechas.currentState!.validate();
                               },
                               validator: (_) {
-                                if (!fechaValida()) {
+                                if (!_fechaValida()) {
                                   return 'Debe ser posterior';
                                 }
                                 return null;
@@ -249,7 +280,7 @@ class _EditarClienteState extends State<EditarParte> {
                                 _formKeyFechas.currentState!.validate();
                               },
                               validator: (_) {
-                                if (!fechaValida()) {
+                                if (!_fechaValida()) {
                                   return '';
                                 }
                                 return null;
@@ -296,6 +327,7 @@ class _EditarClienteState extends State<EditarParte> {
                           ),
                         ).then((final trabajo) {
                           if (trabajo == null) return;
+                          _listKey.currentState!.insertItem(_trabajos.length);
                           setState(() {
                             _trabajos.add(trabajo);
                             _textFormFieldKeyTrabajos.currentState!.validate();
@@ -311,160 +343,153 @@ class _EditarClienteState extends State<EditarParte> {
                     ),
                   ),
                 ),
-                ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: _trabajos.length,
-                  itemBuilder: (context, index) {
-                    return Card.outlined(
-                      color: PaletaColores.tarjetas,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 9, 10, 12),
-                        child: Column(
-                          children: [
-                            Table(
-                              columnWidths: const {0: FixedColumnWidth(100)},
+                SlidableAutoCloseBehavior(
+                  child: AnimatedList(
+                    key: _listKey,
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    initialItemCount: _trabajos.length,
+                    itemBuilder: (context, index, animation) {
+                      return Stack(
+                        children: [
+                          Positioned.fill(
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              decoration: BoxDecoration(
+                                color: PaletaColores.eliminarTrabajo,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                          Slidable(
+                            enabled: !_modoSeleccion,
+                            key: UniqueKey(),
+                            endActionPane: ActionPane(
+                              extentRatio: 0.3,
+                              motion: const BehindMotion(),
                               children: [
-                                TableRow(
-                                  children: [
-                                    const Text('Nº:'),
-                                    Text('${index + 1}'),
-                                  ],
+                                SlidableAction(
+                                  onPressed: (context) {
+                                    _eliminarTrabajo(context, _trabajos[index]);
+                                    setState(() {
+                                      _trabajos.removeAt(index);
+                                      for (var i = index; i < _trabajos.length; i++) {
+                                        _trabajos[i].numero--;
+                                      }
+                                    });
+                                  },
+                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  backgroundColor: Colors.transparent,
+                                  foregroundColor: Colors.white,
+                                  icon: Icons.delete,
+                                  label: 'ELIMINAR',
                                 ),
-                                rowSpacer,
-                                TableRow(
-                                  children: [
-                                    const Text('Descripción:'),
-                                    Text(_trabajos[index].descripcion),
-                                  ],
-                                ),
-                                rowSpacer,
-                                TableRow(
-                                  children: [
-                                    const Text('Material:'),
-                                    Text(_trabajos[index].material!),
-                                  ],
-                                ),
-                                rowSpacer,
-                                if (_trabajos[index].imagenes.isNotEmpty)
-                                  TableRow(
-                                    children: [
-                                      const Text('Imágenes:'),
-                                      GridView.builder(
-                                        physics: const NeverScrollableScrollPhysics(),
-                                        shrinkWrap: true,
-                                        gridDelegate:
-                                            const SliverGridDelegateWithFixedCrossAxisCount(
-                                                crossAxisCount: 2),
-                                        itemCount: _trabajos[index].imagenes.length,
-                                        itemBuilder: (context, index2) {
-                                          return Image.memory(_trabajos[index].imagenes[index2]);
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                if (_trabajos[index].imagenes.isNotEmpty) rowSpacer,
                               ],
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                SizedBox(
-                                  height: 35,
-                                  width: 122,
-                                  child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: PaletaColores.editarTrabajo,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10.0),
+                            child: Card.outlined(
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              color: PaletaColores.tarjetas,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(12),
+                                onTap: () {
+                                  if (_modoSeleccion) {
+                                    _seleccionar(index);
+                                  } else {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            EditarTrabajo(trabajo: _trabajos[index]),
                                       ),
-                                    ),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              EditarTrabajo(trabajo: _trabajos[index]),
-                                        ),
-                                      ).then((final trabajo) {
-                                        if (trabajo == null) return;
-                                        setState(() {
-                                          _trabajos[index] = trabajo;
-                                        });
+                                    ).then((final trabajo) {
+                                      if (trabajo == null) return;
+                                      setState(() {
+                                        _trabajos[index] = trabajo;
                                       });
-                                    },
-                                    child: Text(
-                                      'EDITAR',
-                                      style: GoogleFonts.montserrat(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 35,
-                                  width: 122,
-                                  child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: PaletaColores.eliminarTrabajo,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10.0),
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      showAdaptiveDialog(
-                                        context: context,
-                                        builder: (context) => SimpleDialog(
-                                          title: const Center(
-                                            child: Text('¿Eliminar trabajo?'),
-                                          ),
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                              children: [
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                  },
-                                                  child: const Text('NO'),
+                                    });
+                                  }
+                                },
+                                onLongPress: () {
+                                  _modoSeleccion = true;
+                                  _seleccionar(index);
+                                },
+                                child: Stack(
+                                  alignment: Alignment.topRight,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(12, 9, 10, 12),
+                                      child: Column(
+                                        children: [
+                                          Table(
+                                            columnWidths: const {0: FixedColumnWidth(100)},
+                                            children: [
+                                              TableRow(
+                                                children: [
+                                                  const Text('Nº:'),
+                                                  Text('${index + 1}'),
+                                                ],
+                                              ),
+                                              rowSpacer,
+                                              TableRow(
+                                                children: [
+                                                  const Text('Descripción:'),
+                                                  Text(_trabajos[index].descripcion),
+                                                ],
+                                              ),
+                                              rowSpacer,
+                                              TableRow(
+                                                children: [
+                                                  const Text('Material:'),
+                                                  Text(_trabajos[index].material!),
+                                                ],
+                                              ),
+                                              if (_trabajos[index].imagenes.isNotEmpty)
+                                                rowSpacer,
+                                              if (_trabajos[index].imagenes.isNotEmpty)
+                                                TableRow(
+                                                  children: [
+                                                    const Text('Imágenes:'),
+                                                    GridView.builder(
+                                                      physics:
+                                                          const NeverScrollableScrollPhysics(),
+                                                      shrinkWrap: true,
+                                                      gridDelegate:
+                                                          const SliverGridDelegateWithFixedCrossAxisCount(
+                                                              crossAxisCount: 2),
+                                                      itemCount:
+                                                          _trabajos[index].imagenes.length,
+                                                      itemBuilder: (context, index2) {
+                                                        return Image.memory(
+                                                            _trabajos[index].imagenes[index2]);
+                                                      },
+                                                    ),
+                                                  ],
                                                 ),
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                    setState(() {
-                                                      _trabajos.removeAt(index);
-                                                    });
-                                                    for (var i = index;
-                                                        i < _trabajos.length;
-                                                        i++) {
-                                                      _trabajos[i].numero--;
-                                                    }
-                                                  },
-                                                  child: const Text('SI'),
-                                                )
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                    child: Text(
-                                      'ELIMINAR',
-                                      style: GoogleFonts.montserrat(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                            ],
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ),
+                                    Visibility(
+                                      visible: _modoSeleccion,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(10.0),
+                                        child: Icon(
+                                            color: const Color(0xFF40b884),
+                                            _seleccionados.contains(index)
+                                                ? Icons.check_box
+                                                : Icons.check_box_outline_blank),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
                 if (_trabajos.isNotEmpty) const SizedBox(height: 10),
                 const Divider(
@@ -482,6 +507,7 @@ class _EditarClienteState extends State<EditarParte> {
                       prefixIcon: const Icon(Icons.fact_check_outlined),
                       labelText: 'Trabajo finalizado',
                       suffixIcon: Switch.adaptive(
+                        activeTrackColor: PaletaColores.primario,
                         value: _trabajoFinalizado,
                         onChanged: (bool value) {
                           setState(() {
@@ -634,11 +660,105 @@ class _EditarClienteState extends State<EditarParte> {
       ),
     );
   }
-}
 
-const rowSpacer = TableRow(
-  children: [
-    SizedBox(height: 9),
-    SizedBox(height: 9),
-  ],
-);
+  final rowSpacer = const TableRow(
+    children: [
+      SizedBox(height: 9),
+      SizedBox(height: 9),
+    ],
+  );
+
+  bool _fechaValida() {
+    if (_fechaInicio.isAfter(_fechaFinal)) {
+      return false;
+    } else if (_fechaInicio.isAtSameMomentAs(_fechaFinal)) {
+      if (_horaInicio >= _horaFinal) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  String _tituloSeleccion() {
+    return _seleccionados.length > 1
+        ? '${_seleccionados.length} seleccionados'
+        : '1 seleccionado';
+  }
+
+  void _seleccionar(final int indice) {
+    if (_seleccionados.remove(indice)) {
+      if (_seleccionados.isEmpty) {
+        _modoSeleccion = false;
+      }
+    } else {
+      _seleccionados.add(indice);
+    }
+    setState(() {});
+  }
+
+  void _eliminarTrabajo(BuildContext context, Trabajo trabajoBorrado) {
+    _listKey.currentState!.removeItem(
+      trabajoBorrado.numero - 1,
+      ((context, animation) {
+        return SizeTransition(
+          key: UniqueKey(),
+          sizeFactor: animation,
+          child: Card.outlined(
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            color: PaletaColores.tarjetas,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 9, 10, 12),
+              child: Column(
+                children: [
+                  Table(
+                    columnWidths: const {0: FixedColumnWidth(100)},
+                    children: [
+                      TableRow(
+                        children: [
+                          const Text('Nº:'),
+                          Text('${trabajoBorrado.numero}'),
+                        ],
+                      ),
+                      rowSpacer,
+                      TableRow(
+                        children: [
+                          const Text('Descripción:'),
+                          Text(trabajoBorrado.descripcion),
+                        ],
+                      ),
+                      rowSpacer,
+                      TableRow(
+                        children: [
+                          const Text('Material:'),
+                          Text(trabajoBorrado.material!),
+                        ],
+                      ),
+                      if (trabajoBorrado.imagenes.isNotEmpty) rowSpacer,
+                      if (trabajoBorrado.imagenes.isNotEmpty)
+                        TableRow(
+                          children: [
+                            const Text('Imágenes:'),
+                            GridView.builder(
+                              physics: const NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2),
+                              itemCount: trabajoBorrado.imagenes.length,
+                              itemBuilder: (context, index2) {
+                                return Image.memory(trabajoBorrado.imagenes[index2]);
+                              },
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }),
+      duration: const Duration(milliseconds: 500),
+    );
+  }
+}

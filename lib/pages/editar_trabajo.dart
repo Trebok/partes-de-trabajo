@@ -7,6 +7,7 @@ import 'package:partes/widgets/barra_navegacion.dart';
 import 'package:partes/widgets/boton_gradiente.dart';
 import 'package:partes/widgets/text_field_custom.dart';
 import 'package:partes/widgets/text_form_field_custom.dart';
+import 'package:photo_view/photo_view.dart';
 
 class EditarTrabajo extends StatefulWidget {
   final Trabajo trabajo;
@@ -102,7 +103,21 @@ class _EditarTrabajoState extends State<EditarTrabajo> {
                       const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
                   itemCount: _imagenes.length,
                   itemBuilder: (context, index) {
-                    return Image.memory(_imagenes[index]);
+                    final imagen = _imagenes[index];
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ImagenFullScreen(imagen: imagen),
+                          ),
+                        );
+                      },
+                      child: Hero(
+                        tag: imagen,
+                        child: Image.memory(imagen),
+                      ),
+                    );
                   },
                 ),
                 if (_imagenes.isNotEmpty) const SizedBox(height: 10),
@@ -134,6 +149,37 @@ class _EditarTrabajoState extends State<EditarTrabajo> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class ImagenFullScreen extends StatelessWidget {
+  final Uint8List imagen;
+
+  const ImagenFullScreen({
+    super.key,
+    required this.imagen,
+  });
+
+  PhotoViewScaleState scaleStateCycle(PhotoViewScaleState scaleState) {
+    switch (scaleState) {
+      case PhotoViewScaleState.initial:
+        return PhotoViewScaleState.originalSize;
+      case PhotoViewScaleState.zoomedIn:
+        return PhotoViewScaleState.initial;
+      default:
+        return PhotoViewScaleState.initial;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PhotoView(
+      imageProvider: MemoryImage(imagen),
+      heroAttributes: PhotoViewHeroAttributes(tag: imagen),
+      minScale: PhotoViewComputedScale.contained,
+      maxScale: PhotoViewComputedScale.covered * 3,
+      scaleStateCycle: scaleStateCycle,
     );
   }
 }

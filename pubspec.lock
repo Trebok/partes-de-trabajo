@@ -315,6 +315,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.19"
+  flutter_slidable:
+    dependency: "direct main"
+    description:
+      name: flutter_slidable
+      sha256: "673403d2eeef1f9e8483bd6d8d92aae73b1d8bd71f382bc3930f699c731bc27c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
   flutter_svg:
     dependency: "direct main"
     description:
@@ -693,6 +701,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.2"
+  photo_view:
+    dependency: "direct main"
+    description:
+      name: photo_view
+      sha256: "1fc3d970a91295fbd1364296575f854c9863f225505c28c46e0a03e48960c75e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.15.0"
   platform:
     dependency: transitive
     description:
