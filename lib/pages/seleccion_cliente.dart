@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:partes/core/theme/paleta_colores.dart';
 import 'package:partes/model/boxes.dart';
 import 'package:partes/model/cliente.dart';
-import 'package:partes/pages/crear_cliente.dart';
+import 'package:partes/pages/cliente_pagina.dart';
 import 'package:partes/widgets/barra_navegacion.dart';
 import 'package:partes/widgets/floating_action_button_custom.dart';
 
@@ -17,7 +17,7 @@ class _SeleccionClienteState extends State<SeleccionCliente> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const BarraNavegacion(nombre: 'Selecciona un cliente'),
+      appBar: const BarraNavegacion(nombre: 'SELECCIÓN CLIENTE'),
       body: ListView.builder(
         itemCount: boxClientes.length,
         itemBuilder: (context, index) {
@@ -29,7 +29,7 @@ class _SeleccionClienteState extends State<SeleccionCliente> {
                 Navigator.pop(context, cliente);
               },
               child: Card.outlined(
-                color: PaletaColores.tarjetas,
+                color: PaletaColores.tarjeta,
                 child: SizedBox(
                   height: 40.0,
                   child: Center(child: Text(cliente.nombre)),
@@ -42,8 +42,8 @@ class _SeleccionClienteState extends State<SeleccionCliente> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButtonCustom(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => CrearCliente()))
-              .then((cliente) => setState(() {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => ClientePagina()))
+              .then((final cliente) => setState(() {
                     if (cliente == null) return;
                     boxClientes.add(cliente);
                   }));

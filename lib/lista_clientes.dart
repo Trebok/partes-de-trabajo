@@ -3,7 +3,7 @@ import 'package:partes/core/theme/paleta_colores.dart';
 
 import 'model/boxes.dart';
 import 'model/cliente.dart';
-import 'pages/editar_cliente.dart';
+import 'pages/cliente_pagina.dart';
 
 class ListaClientes extends StatefulWidget {
   // ignore: prefer_const_constructors_in_immutables
@@ -21,15 +21,15 @@ class _ListaClientesState extends State<ListaClientes> {
         itemBuilder: (context, index) {
           Cliente cliente = boxClientes.getAt(index);
           return Padding(
-            padding: const EdgeInsets.fromLTRB(15.0, 6.0, 15.0, 0.0),
+            padding: const EdgeInsets.fromLTRB(15.0, 12.0, 15.0, 0.0),
             child: GestureDetector(
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => EditarCliente(cliente: cliente),
+                    builder: (context) => ClientePagina(cliente: cliente),
                   ),
-                ).then((clienteEditado) => setState(() {
+                ).then((final clienteEditado) => setState(() {
                       if (clienteEditado == null) return;
                       if (cliente.nombre != clienteEditado.nombre) {
                         boxClientes.deleteAt(index);
@@ -41,7 +41,7 @@ class _ListaClientesState extends State<ListaClientes> {
                     }));
               },
               child: Card.outlined(
-                color: PaletaColores.tarjetas,
+                color: PaletaColores.tarjeta,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20.0, 3.0, 20.0, 3.0),
                   child: Row(

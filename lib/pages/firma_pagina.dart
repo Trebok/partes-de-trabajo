@@ -10,14 +10,14 @@ import 'package:partes/widgets/text_field_custom.dart';
 import 'package:partes/widgets/text_form_field_custom.dart';
 import 'package:signature/signature.dart';
 
-class Firmar extends StatefulWidget {
-  const Firmar({super.key});
+class FirmaPagina extends StatefulWidget {
+  const FirmaPagina({super.key});
 
   @override
-  State<Firmar> createState() => _FirmarState();
+  State<FirmaPagina> createState() => _FirmaPaginaState();
 }
 
-class _FirmarState extends State<Firmar> {
+class _FirmaPaginaState extends State<FirmaPagina> {
   final _formKeyGeneral = GlobalKey<FormState>();
   final _nombre = TextEditingController();
   final _dni = TextEditingController();

@@ -5,22 +5,30 @@ import 'package:partes/widgets/boton_gradiente.dart';
 import 'package:partes/widgets/text_field_custom.dart';
 import 'package:partes/widgets/text_form_field_custom.dart';
 
-class EditarCliente extends StatelessWidget {
-  final Cliente cliente;
-  EditarCliente({super.key, required this.cliente});
+class ClientePagina extends StatelessWidget {
+  final Cliente? cliente;
+
+  ClientePagina({super.key, this.cliente})
+      : titulo = cliente != null ? 'EDITAR CLIENTE' : 'NUEVO CLIENTE',
+        nombre = TextEditingController(text: cliente != null ? cliente.nombre : ''),
+        email = TextEditingController(text: cliente != null ? cliente.email : ''),
+        dni = TextEditingController(text: cliente != null ? cliente.dni : ''),
+        telefono = TextEditingController(text: cliente != null ? cliente.telefono : ''),
+        direccion = TextEditingController(text: cliente != null ? cliente.direccion : '');
+
+  final String titulo;
+  final TextEditingController nombre;
+  final TextEditingController email;
+  final TextEditingController dni;
+  final TextEditingController telefono;
+  final TextEditingController direccion;
 
   final _formKey = GlobalKey<FormState>();
-
-  late final nombre = TextEditingController(text: cliente.nombre);
-  late final email = TextEditingController(text: cliente.email);
-  late final dni = TextEditingController(text: cliente.dni);
-  late final telefono = TextEditingController(text: cliente.telefono);
-  late final direccion = TextEditingController(text: cliente.direccion);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const BarraNavegacion(nombre: 'EDITAR CLIENTE'),
+      appBar: BarraNavegacion(nombre: titulo),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(15, 5, 20, 20),

@@ -9,25 +9,44 @@ import 'package:partes/widgets/text_field_custom.dart';
 import 'package:partes/widgets/text_form_field_custom.dart';
 import 'package:photo_view/photo_view.dart';
 
-class EditarTrabajo extends StatefulWidget {
-  final Trabajo trabajo;
-  const EditarTrabajo({super.key, required this.trabajo});
+class TrabajoPagina extends StatefulWidget {
+  final int numero;
+  final Trabajo? trabajo;
+  const TrabajoPagina({super.key, required this.numero, this.trabajo});
 
   @override
-  State<EditarTrabajo> createState() => _EditarTrabajoState();
+  State<TrabajoPagina> createState() => _TrabajoPaginaState();
 }
 
-class _EditarTrabajoState extends State<EditarTrabajo> {
+class _TrabajoPaginaState extends State<TrabajoPagina> {
+  late String titulo;
   final _formKey = GlobalKey<FormState>();
 
-  late final _descripcion = TextEditingController(text: widget.trabajo.descripcion);
-  late final _materiales = TextEditingController(text: widget.trabajo.material);
-  late final List<Uint8List> _imagenes = List.from(widget.trabajo.imagenes);
+  late final TextEditingController _descripcion;
+  late final TextEditingController _material;
+  late final List<Uint8List> _imagenes;
+
+  @override
+  void initState() {
+    if (widget.trabajo == null) {
+      titulo = 'NUEVO TRABAJO';
+      _descripcion = TextEditingController();
+      _material = TextEditingController();
+      _imagenes = [];
+    } else {
+      titulo = 'EDITAR TRABAJO';
+      _descripcion = TextEditingController(text: widget.trabajo!.descripcion);
+      _material = TextEditingController(text: widget.trabajo!.material);
+      _imagenes = List.from(widget.trabajo!.imagenes);
+    }
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const BarraNavegacion(nombre: 'EDITAR TRABAJO'),
+      appBar: BarraNavegacion(nombre: titulo),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
@@ -44,7 +63,7 @@ class _EditarTrabajoState extends State<EditarTrabajo> {
                     },
                     child: TextFieldCustom(
                       prefixIcon: const Icon(Icons.numbers),
-                      labelText: 'Nº ${widget.trabajo.numero}',
+                      labelText: 'Nº ${widget.numero}',
                       readOnly: true,
                     ),
                   ),
@@ -63,7 +82,7 @@ class _EditarTrabajoState extends State<EditarTrabajo> {
                 TextFieldCustom(
                   prefixIcon: const Icon(Icons.home_repair_service),
                   labelText: 'Material',
-                  controller: _materiales,
+                  controller: _material,
                 ),
                 FocusScope(
                   child: Focus(
@@ -123,7 +142,7 @@ class _EditarTrabajoState extends State<EditarTrabajo> {
                 if (_imagenes.isNotEmpty) const SizedBox(height: 10),
                 const Divider(
                   height: 0,
-                  color: PaletaColores.dividerFormulario,
+                  color: PaletaColores.grisBordes,
                 ),
                 Padding(
                   padding: const EdgeInsets.only(top: 25, bottom: 25),
@@ -134,9 +153,9 @@ class _EditarTrabajoState extends State<EditarTrabajo> {
                         Navigator.pop(
                           context,
                           Trabajo(
-                            numero: widget.trabajo.numero,
+                            numero: widget.numero,
                             descripcion: _descripcion.text,
-                            material: _materiales.text,
+                            material: _material.text,
                             imagenes: _imagenes,
                           ),
                         );
