@@ -12,6 +12,7 @@ import 'package:partes/pages/trabajo_pagina.dart';
 import 'package:partes/utils.dart';
 import 'package:partes/widgets/barra_navegacion.dart';
 import 'package:partes/widgets/boton_gradiente.dart';
+import 'package:partes/widgets/tarjeta.dart';
 import 'package:partes/widgets/text_field_custom.dart';
 import 'package:partes/widgets/text_form_field_custom.dart';
 
@@ -422,88 +423,81 @@ class _PartePaginaState extends State<PartePagina> {
                       shrinkWrap: true,
                       initialItemCount: _trabajos.length,
                       itemBuilder: (context, index, animation) {
-                        return Stack(
-                          children: [
-                            Positioned.fill(
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: PaletaColores.eliminarDeslizable,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                            Slidable(
-                              enabled: !_modoSeleccion,
-                              key: UniqueKey(),
-                              startActionPane: ActionPane(
-                                extentRatio: 0.3,
-                                motion: const BehindMotion(),
-                                children: [
-                                  SlidableAction(
-                                    autoClose: false,
-                                    onPressed: (context) {
-                                      showAdaptiveDialog(
-                                        context: context,
-                                        builder: (context) => SimpleDialog(
-                                          title: const Center(
-                                            child: Text('¿Eliminar trabajo?'),
-                                          ),
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                              children: [
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                    setState(() {});
-                                                  },
-                                                  child: const Text('NO'),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                    _eliminarTrabajo(context, _trabajos[index]);
-                                                    setState(() {
-                                                      _trabajos.removeAt(index);
-                                                      for (var i = index;
-                                                          i < _trabajos.length;
-                                                          i++) {
-                                                        _trabajos[i].numero--;
-                                                      }
-                                                    });
-                                                  },
-                                                  child: const Text('SI'),
-                                                )
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                                    backgroundColor: Colors.transparent,
-                                    foregroundColor: Colors.white,
-                                    icon: Icons.delete,
-                                    label: 'ELIMINAR',
-                                  ),
-                                ],
-                              ),
-                              child: Card(
-                                elevation: 0,
-                                margin: const EdgeInsets.symmetric(vertical: 4),
-                                color: _seleccionados.contains(index)
-                                    ? PaletaColores.tarjetaSeleccionada
-                                    : PaletaColores.tarjeta,
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
                                 child: Container(
                                   decoration: BoxDecoration(
+                                    color: PaletaColores.eliminarDeslizable,
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: _seleccionados.contains(index)
-                                          ? PaletaColores.primario
-                                          : PaletaColores.grisBordes,
-                                    ),
                                   ),
+                                ),
+                              ),
+                              Slidable(
+                                enabled: !_modoSeleccion,
+                                key: UniqueKey(),
+                                startActionPane: ActionPane(
+                                  extentRatio: 0.3,
+                                  motion: const BehindMotion(),
+                                  children: [
+                                    SlidableAction(
+                                      autoClose: false,
+                                      onPressed: (context) {
+                                        showAdaptiveDialog(
+                                          context: context,
+                                          builder: (context) => SimpleDialog(
+                                            title: const Center(
+                                              child: Text('¿Eliminar trabajo?'),
+                                            ),
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                children: [
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                      setState(() {});
+                                                    },
+                                                    child: const Text('NO'),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                      _eliminarTrabajo(
+                                                          context, _trabajos[index]);
+                                                      setState(() {
+                                                        _trabajos.removeAt(index);
+                                                        for (var i = index;
+                                                            i < _trabajos.length;
+                                                            i++) {
+                                                          _trabajos[i].numero--;
+                                                        }
+                                                      });
+                                                    },
+                                                    child: const Text('SI'),
+                                                  )
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                      backgroundColor: Colors.transparent,
+                                      foregroundColor: Colors.white,
+                                      icon: Icons.delete,
+                                      label: 'ELIMINAR',
+                                    ),
+                                  ],
+                                ),
+                                child: Tarjeta(
+                                  color: _seleccionados.contains(index)
+                                      ? PaletaColores.tarjetaSeleccionada
+                                      : null,
+                                  colorBorde: _seleccionados.contains(index)
+                                      ? PaletaColores.primario
+                                      : null,
                                   child: InkWell(
                                     borderRadius: BorderRadius.circular(12),
                                     onTap: () {
@@ -514,7 +508,9 @@ class _PartePaginaState extends State<PartePagina> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) => TrabajoPagina(
-                                                numero: index + 1, trabajo: _trabajos[index]),
+                                              numero: index + 1,
+                                              trabajo: _trabajos[index],
+                                            ),
                                           ),
                                         ).then((final trabajo) {
                                           if (trabajo == null) return;
@@ -605,13 +601,13 @@ class _PartePaginaState extends State<PartePagina> {
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         );
                       },
                     ),
                   ),
-                  if (_trabajos.isNotEmpty) const SizedBox(height: 10),
+                  if (_trabajos.isNotEmpty) const SizedBox(height: 5),
                   const Divider(
                     height: 0,
                     color: PaletaColores.grisBordes,
@@ -716,9 +712,8 @@ class _PartePaginaState extends State<PartePagina> {
                   ),
                   if (_firma != null)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Card.outlined(
-                        color: PaletaColores.tarjeta,
+                      padding: const EdgeInsets.only(bottom: 15),
+                      child: Tarjeta(
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: SizedBox(
@@ -743,49 +738,49 @@ class _PartePaginaState extends State<PartePagina> {
                     child: BotonGradiente(
                       nombre: 'GUARDAR PARTE',
                       onTap: () {
-                        // _formKeyFechas.currentState!.validate();
-                        // if (_formKeyGeneral.currentState!.validate() &&
-                        //     _formKeyFechas.currentState!.validate()) {
-                        final int number;
-                        if (widget.parte == null) {
-                          if (boxPartes.length == 0) {
-                            number = 1;
-                          } else {
-                            final ultimoParte = boxPartes.values.last;
-                            if (ultimoParte.year != DateTime.now().year) {
+                        _formKeyFechas.currentState!.validate();
+                        if (_formKeyGeneral.currentState!.validate() &&
+                            _formKeyFechas.currentState!.validate()) {
+                          final int number;
+                          if (widget.parte == null) {
+                            if (boxPartes.length == 0) {
                               number = 1;
                             } else {
-                              number = ultimoParte.number + 1;
+                              final ultimoParte = boxPartes.values.last;
+                              if (ultimoParte.year != DateTime.now().year) {
+                                number = 1;
+                              } else {
+                                number = ultimoParte.number + 1;
+                              }
                             }
+                          } else {
+                            number = -1;
                           }
-                        } else {
-                          number = -1;
+
+                          final comienzo = _fechaInicio.copyWith(minute: _horaInicio);
+                          final fin = _fechaFinal.copyWith(minute: _horaFinal);
+                          final diferencia = fin.difference(comienzo);
+                          final horasTotales =
+                              '${diferencia.toString().split(':')[0]}:${diferencia.toString().split(':')[1]}h';
+
+                          final parte = Parte(
+                            cliente: _cliente,
+                            horaInicio: _horaInicioController.text,
+                            fechaInicio: _fechaInicioController.text,
+                            horaFinal: _horaFinalController.text,
+                            fechaFinal: _fechaFinalController.text,
+                            otrosTrabajadores: _otrosTrabajadoresController.text,
+                            observaciones: _observacionesController.text,
+                            trabajos: _trabajos,
+                            trabajoFinalizado: _trabajoFinalizado,
+                            trabajoPendiente: _trabajoPendienteController.text,
+                            number: widget.parte == null ? number : widget.parte!.number,
+                            horasTotales: horasTotales,
+                            firma: _firma,
+                          );
+
+                          Navigator.pop(context, parte);
                         }
-
-                        final comienzo = _fechaInicio.copyWith(minute: _horaInicio);
-                        final fin = _fechaFinal.copyWith(minute: _horaFinal);
-                        final diferencia = fin.difference(comienzo);
-                        final horasTotales =
-                            '${diferencia.toString().split(':')[0]}:${diferencia.toString().split(':')[1]}h';
-
-                        final parte = Parte(
-                          cliente: _cliente,
-                          horaInicio: _horaInicioController.text,
-                          fechaInicio: _fechaInicioController.text,
-                          horaFinal: _horaFinalController.text,
-                          fechaFinal: _fechaFinalController.text,
-                          otrosTrabajadores: _otrosTrabajadoresController.text,
-                          observaciones: _observacionesController.text,
-                          trabajos: _trabajos,
-                          trabajoFinalizado: _trabajoFinalizado,
-                          trabajoPendiente: _trabajoPendienteController.text,
-                          number: widget.parte == null ? number : widget.parte!.number,
-                          horasTotales: horasTotales,
-                          firma: _firma,
-                        );
-
-                        Navigator.pop(context, parte);
-                        // }
                       },
                     ),
                   ),
@@ -847,56 +842,57 @@ class _PartePaginaState extends State<PartePagina> {
         return SizeTransition(
           key: UniqueKey(),
           sizeFactor: animation,
-          child: Card.outlined(
-            margin: const EdgeInsets.symmetric(vertical: 4),
-            color: PaletaColores.tarjeta,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 9, 10, 12),
-              child: Column(
-                children: [
-                  Table(
-                    columnWidths: const {0: FixedColumnWidth(100)},
-                    children: [
-                      TableRow(
-                        children: [
-                          const Text('Nº:'),
-                          Text('${trabajoBorrado.numero}'),
-                        ],
-                      ),
-                      rowSpacer,
-                      TableRow(
-                        children: [
-                          const Text('Descripción:'),
-                          Text(trabajoBorrado.descripcion),
-                        ],
-                      ),
-                      rowSpacer,
-                      TableRow(
-                        children: [
-                          const Text('Material:'),
-                          Text(trabajoBorrado.material!),
-                        ],
-                      ),
-                      if (trabajoBorrado.imagenes.isNotEmpty) rowSpacer,
-                      if (trabajoBorrado.imagenes.isNotEmpty)
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Tarjeta(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 9, 10, 12),
+                child: Column(
+                  children: [
+                    Table(
+                      columnWidths: const {0: FixedColumnWidth(100)},
+                      children: [
                         TableRow(
                           children: [
-                            const Text('Imágenes:'),
-                            GridView.builder(
-                              physics: const NeverScrollableScrollPhysics(),
-                              shrinkWrap: true,
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2),
-                              itemCount: trabajoBorrado.imagenes.length,
-                              itemBuilder: (context, index2) {
-                                return Image.memory(trabajoBorrado.imagenes[index2]);
-                              },
-                            ),
+                            const Text('Nº:'),
+                            Text('${trabajoBorrado.numero}'),
                           ],
                         ),
-                    ],
-                  ),
-                ],
+                        rowSpacer,
+                        TableRow(
+                          children: [
+                            const Text('Descripción:'),
+                            Text(trabajoBorrado.descripcion),
+                          ],
+                        ),
+                        rowSpacer,
+                        TableRow(
+                          children: [
+                            const Text('Material:'),
+                            Text(trabajoBorrado.material!),
+                          ],
+                        ),
+                        if (trabajoBorrado.imagenes.isNotEmpty) rowSpacer,
+                        if (trabajoBorrado.imagenes.isNotEmpty)
+                          TableRow(
+                            children: [
+                              const Text('Imágenes:'),
+                              GridView.builder(
+                                physics: const NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2),
+                                itemCount: trabajoBorrado.imagenes.length,
+                                itemBuilder: (context, index2) {
+                                  return Image.memory(trabajoBorrado.imagenes[index2]);
+                                },
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
