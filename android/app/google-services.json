@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "1069598198937",
+    "project_id": "partes-de-trabajo-571fb",
+    "storage_bucket": "partes-de-trabajo-571fb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1069598198937:android:4318fbb24f7b078e263c08",
+        "android_client_info": {
+          "package_name": "com.instalacioneselectricasprie.partesdetrabajo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1069598198937-bkhfo5elnjk9i54kl8v38v33ph2ersjr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyBqrWvUT3tA-7Fmzz45mrCcJueLRSkds"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1069598198937-bkhfo5elnjk9i54kl8v38v33ph2ersjr.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1069598198937-qb5o4c94mp5bud6eun6u55a36nseuvv6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.instalacioneselectricasprie.partesdetrabajo"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:partes/model/boxes.dart';
-import 'package:partes/model/cliente.dart';
-import 'package:partes/pages/cliente_pagina.dart';
-import 'package:partes/widgets/barra_navegacion.dart';
-import 'package:partes/widgets/floating_action_button_custom.dart';
-import 'package:partes/widgets/tarjeta.dart';
+import 'package:partesdetrabajo/model/boxes.dart';
+import 'package:partesdetrabajo/model/cliente.dart';
+import 'package:partesdetrabajo/pages/cliente_pagina.dart';
+import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
+import 'package:partesdetrabajo/widgets/floating_action_button_custom.dart';
+import 'package:partesdetrabajo/widgets/tarjeta.dart';
 
 class SeleccionCliente extends StatefulWidget {
   const SeleccionCliente({super.key});

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:partes/core/theme/paleta_colores.dart';
+import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
 
 class BarraNavegacion extends StatelessWidget implements PreferredSizeWidget {
   final Widget? leading;

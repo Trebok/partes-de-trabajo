@@ -1,7 +1,7 @@
 import 'package:hive/hive.dart';
-import 'package:partes/model/cliente.dart';
-import 'package:partes/model/firma.dart';
-import 'package:partes/model/trabajo.dart';
+import 'package:partesdetrabajo/model/cliente.dart';
+import 'package:partesdetrabajo/model/firma.dart';
+import 'package:partesdetrabajo/model/trabajo.dart';
 
 part 'parte.g.dart';
 

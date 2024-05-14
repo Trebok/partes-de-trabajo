@@ -2,12 +2,12 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:partes/core/theme/paleta_colores.dart';
-import 'package:partes/model/firma.dart';
-import 'package:partes/widgets/barra_navegacion.dart';
-import 'package:partes/widgets/boton_gradiente.dart';
-import 'package:partes/widgets/text_field_custom.dart';
-import 'package:partes/widgets/text_form_field_custom.dart';
+import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
+import 'package:partesdetrabajo/model/firma.dart';
+import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
+import 'package:partesdetrabajo/widgets/boton_gradiente.dart';
+import 'package:partesdetrabajo/widgets/text_field_custom.dart';
+import 'package:partesdetrabajo/widgets/text_form_field_custom.dart';
 import 'package:signature/signature.dart';
 
 class FirmaPagina extends StatefulWidget {

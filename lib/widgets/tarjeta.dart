@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:partes/core/theme/paleta_colores.dart';
+import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
 
 class Tarjeta extends StatelessWidget {
   final Widget? child;

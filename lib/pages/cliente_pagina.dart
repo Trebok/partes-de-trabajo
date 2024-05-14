@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:partes/model/cliente.dart';
-import 'package:partes/widgets/barra_navegacion.dart';
-import 'package:partes/widgets/boton_gradiente.dart';
-import 'package:partes/widgets/text_field_custom.dart';
-import 'package:partes/widgets/text_form_field_custom.dart';
+import 'package:partesdetrabajo/model/cliente.dart';
+import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
+import 'package:partesdetrabajo/widgets/boton_gradiente.dart';
+import 'package:partesdetrabajo/widgets/text_field_custom.dart';
+import 'package:partesdetrabajo/widgets/text_form_field_custom.dart';
 
 class ClientePagina extends StatelessWidget {
   final Cliente? cliente;

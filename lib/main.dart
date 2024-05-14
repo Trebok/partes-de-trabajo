@@ -1,22 +1,30 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:partes/core/theme/paleta_colores.dart';
-import 'package:partes/core/theme/theme.dart';
-import 'package:partes/helper/pdf_helper.dart';
-import 'package:partes/model/boxes.dart';
-import 'package:partes/model/cliente.dart';
-import 'package:partes/model/firma.dart';
-import 'package:partes/model/parte.dart';
-import 'package:partes/model/trabajo.dart';
-import 'package:partes/pages/cliente_pagina.dart';
-import 'package:partes/pages/parte_pagina.dart';
-import 'package:partes/widgets/barra_navegacion.dart';
-import 'package:partes/widgets/floating_action_button_custom.dart';
-import 'package:partes/widgets/tarjeta.dart';
+import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
+import 'package:partesdetrabajo/core/theme/theme.dart';
+import 'package:partesdetrabajo/data/datos_ejemplo.dart';
+import 'package:partesdetrabajo/firebase_options.dart';
+import 'package:partesdetrabajo/helper/pdf_helper.dart';
+import 'package:partesdetrabajo/model/boxes.dart';
+import 'package:partesdetrabajo/model/cliente.dart';
+import 'package:partesdetrabajo/model/firma.dart';
+import 'package:partesdetrabajo/model/parte.dart';
+import 'package:partesdetrabajo/model/trabajo.dart';
+import 'package:partesdetrabajo/pages/cliente_pagina.dart';
+import 'package:partesdetrabajo/pages/parte_pagina.dart';
+import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
+import 'package:partesdetrabajo/widgets/floating_action_button_custom.dart';
+import 'package:partesdetrabajo/widgets/tarjeta.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   await Hive.initFlutter();
   Hive.registerAdapter(FirmaAdapter());
   Hive.registerAdapter(TrabajoAdapter());
@@ -27,8 +35,8 @@ void main() async {
   // Hive.deleteBoxFromDisk('parteBox');
   boxClientes = await Hive.openBox<Cliente>('clienteBox');
   boxPartes = await Hive.openBox<Parte>('parteBox');
-  // boxClientes.put('${clienteEjemplo.nombre}${DateTime.now()}', clienteEjemplo);
-  // boxPartes.add(parteEjemplo);
+  boxClientes.put('${clienteEjemplo.nombre}${DateTime.now()}', clienteEjemplo);
+  boxPartes.add(parteEjemplo);
 
   runApp(const MyApp());
 }
@@ -54,8 +62,9 @@ class _MyAppState extends State<MyApp> {
       supportedLocales: const [
         Locale('es'),
       ],
-      theme: AppTheme.lightThemeMode,
       home: const Home(),
+      theme: AppTheme.lightThemeMode,
+      darkTheme: AppTheme.darkThemeMode,
     );
   }
 }
@@ -75,13 +84,15 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends State<Home> with TickerProviderStateMixin {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   Pagina _paginaActual = Pagina.partes;
   String titulo = 'PARTES';
 
   bool _modoSeleccion = false;
   final List<int> _seleccionados = [];
+
+  Map<int, SlidableController> deslizablesABorrar = {};
 
   void _cambiarPaginaActual(Pagina seleccionada) {
     setState(() {
@@ -185,13 +196,30 @@ class _HomeState extends State<Home> {
                                 child: const Text('NO'),
                               ),
                               TextButton(
-                                onPressed: () {
+                                onPressed: () async {
+                                  setState(() {
+                                    borrando = true;
+                                  });
                                   Navigator.pop(context);
+
                                   _seleccionados.sort((a, b) => b.compareTo(a));
-                                  for (final indice in _seleccionados) {
-                                    _eliminarParte(context, indice);
-                                    boxPartes.deleteAt(indice);
-                                  }
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    for (final indice in _seleccionados) {
+                                      deslizablesABorrar[indice]!.openStartActionPane();
+                                      deslizablesABorrar[indice]!.dismiss(
+                                        ResizeRequest(
+                                          const Duration(milliseconds: 100),
+                                          () {
+                                            setState(() {
+                                              boxPartes.deleteAt(indice);
+                                            });
+                                          },
+                                        ),
+                                      );
+                                    }
+                                  });
+                                  await Future.delayed(const Duration(milliseconds: 450));
+                                  borrando = false;
                                   _salirModoSeleccion();
                                 },
                                 child: const Text('SI'),
@@ -220,13 +248,24 @@ class _HomeState extends State<Home> {
                                 child: const Text('NO'),
                               ),
                               TextButton(
-                                onPressed: () {
+                                onPressed: () async {
                                   Navigator.pop(context);
+
                                   _seleccionados.sort((a, b) => b.compareTo(a));
                                   for (final indice in _seleccionados) {
-                                    _eliminarClientes(context, indice);
-                                    boxClientes.deleteAt(indice);
+                                    deslizablesABorrar[indice]!.openStartActionPane();
+                                    deslizablesABorrar[indice]!.dismiss(
+                                      ResizeRequest(
+                                        const Duration(milliseconds: 100),
+                                        () {
+                                          setState(() {
+                                            boxClientes.deleteAt(indice);
+                                          });
+                                        },
+                                      ),
+                                    );
                                   }
+                                  await Future.delayed(const Duration(milliseconds: 450));
                                   _salirModoSeleccion();
                                 },
                                 child: const Text('SI'),
@@ -360,7 +399,6 @@ class _HomeState extends State<Home> {
                   MaterialPageRoute(builder: (context) => const PartePagina()),
                 ).then((final parte) => setState(() {
                       if (parte == null) return;
-                      _animatedListKeyPartes.currentState!.insertItem(boxPartes.length);
                       boxPartes.add(parte);
                     }));
               case Pagina.clientes:
@@ -369,7 +407,7 @@ class _HomeState extends State<Home> {
                   MaterialPageRoute(builder: (context) => ClientePagina()),
                 ).then((final cliente) => setState(() {
                       if (cliente == null) return;
-                      _animatedListKeyClientes.currentState!.insertItem(boxClientes.length);
+
                       boxClientes.put('${cliente.nombre}${DateTime.now()}', cliente);
                     }));
               default:
@@ -381,17 +419,20 @@ class _HomeState extends State<Home> {
     );
   }
 
-  final _animatedListKeyPartes = GlobalKey<AnimatedListState>();
+  bool borrando = false;
 
   Widget listaPartes() {
     return SlidableAutoCloseBehavior(
-      child: AnimatedList(
+      closeWhenOpened: !_modoSeleccion,
+      child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-        key: _animatedListKeyPartes,
-        initialItemCount: boxPartes.length,
-        itemBuilder: (context, index, animation) {
+        itemCount: boxPartes.length,
+        itemBuilder: (context, index) {
           int indiceInvertido = boxPartes.length - 1 - index;
           Parte parte = boxPartes.getAt(indiceInvertido);
+          final slidableController = SlidableController(this);
+          deslizablesABorrar[indiceInvertido] = slidableController;
+
           return Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: Stack(
@@ -400,7 +441,7 @@ class _HomeState extends State<Home> {
                   left: 0,
                   top: 0,
                   bottom: 0,
-                  right: MediaQuery.sizeOf(context).width / 2 - 20,
+                  right: borrando ? 0 : MediaQuery.sizeOf(context).width / 2 - 20,
                   child: Container(
                     decoration: BoxDecoration(
                       color: PaletaColores.eliminarDeslizable,
@@ -409,18 +450,21 @@ class _HomeState extends State<Home> {
                   ),
                 ),
                 Positioned(
-                  left: MediaQuery.sizeOf(context).width / 2 - 20,
+                  left: borrando
+                      ? MediaQuery.sizeOf(context).width
+                      : MediaQuery.sizeOf(context).width / 2 - 20,
                   top: 0,
                   bottom: 0,
                   right: 0,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: PaletaColores.enviarDeslizable,
+                      color: PaletaColores.primario,
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
                 Slidable(
+                  controller: slidableController,
                   enabled: !_modoSeleccion,
                   key: UniqueKey(),
                   startActionPane: ActionPane(
@@ -428,6 +472,7 @@ class _HomeState extends State<Home> {
                     motion: const BehindMotion(),
                     children: [
                       SlidableAction(
+                        padding: EdgeInsets.zero,
                         autoClose: false,
                         onPressed: (context) {
                           showAdaptiveDialog(
@@ -448,11 +493,28 @@ class _HomeState extends State<Home> {
                                       child: const Text('NO'),
                                     ),
                                     TextButton(
-                                      onPressed: () {
+                                      onPressed: () async {
                                         Navigator.pop(context);
-                                        _eliminarParte(context, indiceInvertido);
                                         setState(() {
-                                          boxPartes.deleteAt(indiceInvertido);
+                                          borrando = true;
+                                        });
+                                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                                          deslizablesABorrar[indiceInvertido]!
+                                              .openStartActionPane();
+                                          deslizablesABorrar[indiceInvertido]!.dismiss(
+                                            ResizeRequest(
+                                              const Duration(milliseconds: 100),
+                                              () {
+                                                setState(() {
+                                                  boxPartes.deleteAt(indiceInvertido);
+                                                });
+                                              },
+                                            ),
+                                          );
+                                        });
+                                        await Future.delayed(const Duration(milliseconds: 450));
+                                        setState(() {
+                                          borrando = false;
                                         });
                                       },
                                       child: const Text('SI'),
@@ -466,7 +528,6 @@ class _HomeState extends State<Home> {
                         backgroundColor: Colors.transparent,
                         foregroundColor: Colors.white,
                         icon: Icons.delete,
-                        label: 'ELIMINAR',
                       ),
                     ],
                   ),
@@ -475,12 +536,40 @@ class _HomeState extends State<Home> {
                     motion: const BehindMotion(),
                     children: [
                       SlidableAction(
+                        padding: EdgeInsets.zero,
                         autoClose: false,
-                        onPressed: (context) {},
+                        onPressed: (context) async {
+                          // GoogleAuthApi.signOut();
+
+                          // final user = await GoogleAuthApi.signIn();
+
+                          // if (user == null) return;
+
+                          // final email = user.email;
+                          // final auth = await user.authentication;
+                          // final accessToken = auth.accessToken;
+
+                          // if (accessToken == null) return;
+                          // final smtpServer = gmailSaslXoauth2(email, accessToken);
+                          // final mensaje = Message()
+                          //   ..from = Address(email, 'Johannes')
+                          //   ..recipients = ['trebok2@gmail.com']
+                          //   ..subject = 'Hello Johannes'
+                          //   ..text = ' This is a test email!';
+
+                          // try {
+                          //   await send(mensaje, smtpServer);
+                          //   ScaffoldMessenger.of(context)
+                          //     ..removeCurrentSnackBar()
+                          //     ..showSnackBar(
+                          //         const SnackBar(content: Text('Sent email successfully!')));
+                          // } on MailerException catch (e) {
+                          //   print(e);
+                          // }
+                        },
                         backgroundColor: Colors.transparent,
                         foregroundColor: Colors.white,
                         icon: Icons.mail,
-                        label: 'ENVIAR',
                       ),
                     ],
                   ),
@@ -580,73 +669,17 @@ class _HomeState extends State<Home> {
     );
   }
 
-  void _eliminarParte(BuildContext context, int indice) {
-    Parte parteBorrado = boxPartes.getAt(indice);
-    _animatedListKeyPartes.currentState!.removeItem(
-      boxPartes.length - 1 - indice,
-      ((context, animation) {
-        return SizeTransition(
-          key: UniqueKey(),
-          sizeFactor: animation,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Tarjeta(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${parteBorrado.number}/${parteBorrado.year}',
-                          style: const TextStyle(fontSize: 15.5),
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.picture_as_pdf,
-                          ),
-                          onPressed: () {},
-                        ),
-                        const SizedBox(
-                          width: 50,
-                        )
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        const Icon(
-                          size: 30,
-                          color: Color(0xffbfbfbf),
-                          Icons.person,
-                        ),
-                        const SizedBox(width: 10.0),
-                        Text(parteBorrado.cliente.nombre),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      }),
-      duration: const Duration(milliseconds: 500),
-    );
-  }
-
-  final _animatedListKeyClientes = GlobalKey<AnimatedListState>();
-
   Widget listaClientes() {
     return SlidableAutoCloseBehavior(
-      child: AnimatedList(
+      closeWhenOpened: !_modoSeleccion,
+      child: ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          key: _animatedListKeyClientes,
-          initialItemCount: boxClientes.length,
-          itemBuilder: (context, indice, animation) {
+          itemCount: boxClientes.length,
+          itemBuilder: (context, indice) {
             Cliente cliente = boxClientes.getAt(indice);
+            final slidableController = SlidableController(this);
+            deslizablesABorrar[indice] = slidableController;
+
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: Stack(
@@ -660,6 +693,7 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                   Slidable(
+                    controller: slidableController,
                     enabled: !_modoSeleccion,
                     key: UniqueKey(),
                     startActionPane: ActionPane(
@@ -667,6 +701,7 @@ class _HomeState extends State<Home> {
                       motion: const BehindMotion(),
                       children: [
                         SlidableAction(
+                          padding: EdgeInsets.zero,
                           autoClose: false,
                           onPressed: (context) {
                             showAdaptiveDialog(
@@ -689,10 +724,14 @@ class _HomeState extends State<Home> {
                                       TextButton(
                                         onPressed: () {
                                           Navigator.pop(context);
-                                          _eliminarClientes(context, indice);
-                                          setState(() {
-                                            boxClientes.deleteAt(indice);
-                                          });
+                                          slidableController.dismiss(ResizeRequest(
+                                            const Duration(milliseconds: 100),
+                                            () {
+                                              setState(() {
+                                                boxClientes.deleteAt(indice);
+                                              });
+                                            },
+                                          ));
                                         },
                                         child: const Text('SI'),
                                       )
@@ -705,7 +744,6 @@ class _HomeState extends State<Home> {
                           backgroundColor: Colors.transparent,
                           foregroundColor: Colors.white,
                           icon: Icons.delete,
-                          label: 'ELIMINAR',
                         ),
                       ],
                     ),
@@ -782,38 +820,6 @@ class _HomeState extends State<Home> {
               ),
             );
           }),
-    );
-  }
-
-  void _eliminarClientes(BuildContext context, int indice) {
-    Cliente clienteBorrado = boxClientes.getAt(indice);
-    _animatedListKeyClientes.currentState!.removeItem(
-      indice,
-      ((context, animation) {
-        return SizeTransition(
-          key: UniqueKey(),
-          sizeFactor: animation,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Tarjeta(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    Text(
-                      clienteBorrado.nombre,
-                      style: const TextStyle(
-                        fontSize: 15,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      }),
-      duration: const Duration(milliseconds: 500),
     );
   }
 }

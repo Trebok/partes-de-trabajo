@@ -13,7 +13,7 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>partes</string>
+		<string>partesdetrabajo</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -55,5 +55,19 @@
 		<string>Para realizar fotos y agregar al parte</string>
 		<key>NSMicrophoneUsageDescription</key>
 		<string>Necesario para grabar videos</string>
+		<key>GIDClientID</key>
+		<string>1069598198937-vkdf9ctm8g2c8h3q06b5va0ao2tflej3.apps.googleusercontent.com</string>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>
+						com.googleusercontent.apps.1069598198937-vkdf9ctm8g2c8h3q06b5va0ao2tflej3</string>
+				</array>
+			</dict>
+		</array>
 	</dict>
 </plist>

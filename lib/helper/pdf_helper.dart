@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:open_filex/open_filex.dart';
-import 'package:partes/model/parte.dart';
+import 'package:partesdetrabajo/model/parte.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';

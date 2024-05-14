@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:partes/core/theme/paleta_colores.dart';
-import 'package:partes/model/boxes.dart';
-import 'package:partes/model/cliente.dart';
-import 'package:partes/model/firma.dart';
-import 'package:partes/model/parte.dart';
-import 'package:partes/model/trabajo.dart';
-import 'package:partes/pages/firma_pagina.dart';
-import 'package:partes/pages/seleccion_cliente.dart';
-import 'package:partes/pages/trabajo_pagina.dart';
-import 'package:partes/utils.dart';
-import 'package:partes/widgets/barra_navegacion.dart';
-import 'package:partes/widgets/boton_gradiente.dart';
-import 'package:partes/widgets/tarjeta.dart';
-import 'package:partes/widgets/text_field_custom.dart';
-import 'package:partes/widgets/text_form_field_custom.dart';
+import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
+import 'package:partesdetrabajo/model/boxes.dart';
+import 'package:partesdetrabajo/model/cliente.dart';
+import 'package:partesdetrabajo/model/firma.dart';
+import 'package:partesdetrabajo/model/parte.dart';
+import 'package:partesdetrabajo/model/trabajo.dart';
+import 'package:partesdetrabajo/pages/firma_pagina.dart';
+import 'package:partesdetrabajo/pages/seleccion_cliente.dart';
+import 'package:partesdetrabajo/pages/trabajo_pagina.dart';
+import 'package:partesdetrabajo/utils.dart';
+import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
+import 'package:partesdetrabajo/widgets/boton_gradiente.dart';
+import 'package:partesdetrabajo/widgets/tarjeta.dart';
+import 'package:partesdetrabajo/widgets/text_field_custom.dart';
+import 'package:partesdetrabajo/widgets/text_form_field_custom.dart';
 
 class PartePagina extends StatefulWidget {
   final Parte? parte;
@@ -443,6 +443,7 @@ class _PartePaginaState extends State<PartePagina> {
                                   motion: const BehindMotion(),
                                   children: [
                                     SlidableAction(
+                                      padding: EdgeInsets.zero,
                                       autoClose: false,
                                       onPressed: (context) {
                                         showAdaptiveDialog(

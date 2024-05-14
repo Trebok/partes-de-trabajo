@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:partes/core/theme/paleta_colores.dart';
-import 'package:partes/model/trabajo.dart';
-import 'package:partes/widgets/barra_navegacion.dart';
-import 'package:partes/widgets/boton_gradiente.dart';
-import 'package:partes/widgets/text_field_custom.dart';
-import 'package:partes/widgets/text_form_field_custom.dart';
+import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
+import 'package:partesdetrabajo/model/trabajo.dart';
+import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
+import 'package:partesdetrabajo/widgets/boton_gradiente.dart';
+import 'package:partesdetrabajo/widgets/text_field_custom.dart';
+import 'package:partesdetrabajo/widgets/text_form_field_custom.dart';
 import 'package:photo_view/photo_view.dart';
 
 class TrabajoPagina extends StatefulWidget {
