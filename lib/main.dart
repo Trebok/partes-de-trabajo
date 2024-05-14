@@ -1,11 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server/gmail.dart';
+import 'package:partesdetrabajo/api/autenticacion_usuario.dart';
 import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
 import 'package:partesdetrabajo/core/theme/theme.dart';
-import 'package:partesdetrabajo/data/datos_ejemplo.dart';
 import 'package:partesdetrabajo/firebase_options.dart';
 import 'package:partesdetrabajo/helper/pdf_helper.dart';
 import 'package:partesdetrabajo/model/boxes.dart';
@@ -18,6 +21,7 @@ import 'package:partesdetrabajo/pages/parte_pagina.dart';
 import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
 import 'package:partesdetrabajo/widgets/floating_action_button_custom.dart';
 import 'package:partesdetrabajo/widgets/tarjeta.dart';
+import 'package:sign_in_button/sign_in_button.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,8 +39,8 @@ void main() async {
   // Hive.deleteBoxFromDisk('parteBox');
   boxClientes = await Hive.openBox<Cliente>('clienteBox');
   boxPartes = await Hive.openBox<Parte>('parteBox');
-  boxClientes.put('${clienteEjemplo.nombre}${DateTime.now()}', clienteEjemplo);
-  boxPartes.add(parteEjemplo);
+  // boxClientes.put('${clienteEjemplo.nombre}${DateTime.now()}', clienteEjemplo);
+  // boxPartes.add(parteEjemplo);
 
   runApp(const MyApp());
 }
@@ -62,9 +66,47 @@ class _MyAppState extends State<MyApp> {
       supportedLocales: const [
         Locale('es'),
       ],
-      home: const Home(),
       theme: AppTheme.lightThemeMode,
       darkTheme: AppTheme.darkThemeMode,
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator.adaptive());
+          } else if (snapshot.hasError) {
+            return const Center(child: Text('Algo ha ido mal!'));
+          } else if (snapshot.hasData) {
+            return const Home();
+          } else {
+            return const Login();
+          }
+        },
+      ),
+    );
+  }
+}
+
+class Login extends StatelessWidget {
+  const Login({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Center(
+            child: SignInButton(
+              Buttons.googleDark,
+              padding: const EdgeInsets.only(right: 10),
+              text: 'Inicia sesión con Google',
+              onPressed: () {
+                AutenticacionUsuarios().inicioSesionGoogle();
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -85,6 +127,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> with TickerProviderStateMixin {
+  final usuario = FirebaseAuth.instance.currentUser!;
+
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   Pagina _paginaActual = Pagina.partes;
   String titulo = 'PARTES';
@@ -318,15 +362,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
-                      const Text(
-                        'Nombre',
-                        style: TextStyle(
+                      Text(
+                        usuario.displayName ?? 'Nombre',
+                        style: const TextStyle(
                           color: Colors.white,
                         ),
                       ),
-                      const Text(
-                        'nombre@email.com',
-                        style: TextStyle(
+                      Text(
+                        usuario.email ?? 'nombre@email.com',
+                        style: const TextStyle(
                           color: Colors.white,
                         ),
                       ),
@@ -375,7 +419,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   selected: _paginaActual == Pagina.cerrarSesion,
                   selectedTileColor: PaletaColores.seleccionDrawer,
                   onTap: () {
-                    _cambiarPaginaActual(Pagina.cerrarSesion);
+                    AutenticacionUsuarios().cerrarSesionGoogle();
+                    // _cambiarPaginaActual(Pagina.cerrarSesion);
                   },
                 ),
               ],
@@ -385,7 +430,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         body: switch (_paginaActual) {
           Pagina.partes => listaPartes(),
           Pagina.clientes => listaClientes(),
-          Pagina.perfil => const Scaffold(),
+          Pagina.perfil => perfil(),
           Pagina.ajustes => const Scaffold(),
           Pagina.cerrarSesion => const Scaffold(),
         },
@@ -539,33 +584,35 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         padding: EdgeInsets.zero,
                         autoClose: false,
                         onPressed: (context) async {
-                          // GoogleAuthApi.signOut();
+                          try {
+                            final email = usuario.email;
+                            final accessToken = await AutenticacionUsuarios().getAccessToken();
+                            final smtpServer = gmailSaslXoauth2(email!, accessToken!);
+                            final mensaje = Message()
+                              ..from = Address(email, usuario.displayName)
+                              ..recipients = ['trebok2@gmail.com']
+                              ..subject =
+                                  '${parte.cliente.nombre} - Parte de trabajo ${parte.number}/${parte.year}'
+                              ..text = ' This is a test email!';
 
-                          // final user = await GoogleAuthApi.signIn();
-
-                          // if (user == null) return;
-
-                          // final email = user.email;
-                          // final auth = await user.authentication;
-                          // final accessToken = auth.accessToken;
-
-                          // if (accessToken == null) return;
-                          // final smtpServer = gmailSaslXoauth2(email, accessToken);
-                          // final mensaje = Message()
-                          //   ..from = Address(email, 'Johannes')
-                          //   ..recipients = ['trebok2@gmail.com']
-                          //   ..subject = 'Hello Johannes'
-                          //   ..text = ' This is a test email!';
-
-                          // try {
-                          //   await send(mensaje, smtpServer);
-                          //   ScaffoldMessenger.of(context)
-                          //     ..removeCurrentSnackBar()
-                          //     ..showSnackBar(
-                          //         const SnackBar(content: Text('Sent email successfully!')));
-                          // } on MailerException catch (e) {
-                          //   print(e);
-                          // }
+                            try {
+                              await send(mensaje, smtpServer);
+                              ScaffoldMessenger.of(context)
+                                ..removeCurrentSnackBar()
+                                ..showSnackBar(
+                                    const SnackBar(content: Text('Sent email successfully!')));
+                            } on MailerException catch (e) {
+                              print(e);
+                            }
+                          } on FirebaseAuthException catch (error) {
+                            print(error.message);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Ups... Algo salió mal')));
+                          } catch (error) {
+                            print(error.toString());
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Ups... Algo salió mal')));
+                          }
                         },
                         backgroundColor: Colors.transparent,
                         foregroundColor: Colors.white,
@@ -820,6 +867,23 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               ),
             );
           }),
+    );
+  }
+
+  Widget perfil() {
+    return Center(
+      child: Column(
+        children: [
+          const SizedBox(height: 10),
+          CircleAvatar(
+            radius: 40,
+            backgroundImage: NetworkImage(usuario.photoURL!),
+          ),
+          const SizedBox(height: 8),
+          Text(usuario.displayName!),
+          Text(usuario.email!),
+        ],
+      ),
     );
   }
 }
