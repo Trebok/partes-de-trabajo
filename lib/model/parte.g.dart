@@ -30,13 +30,14 @@ class ParteAdapter extends TypeAdapter<Parte> {
       number: fields[11] as int,
       horasTotales: fields[12] as String,
       firma: fields[13] as Firma?,
+      enviado: fields[14] as bool,
     )..year = fields[10] as int;
   }
 
   @override
   void write(BinaryWriter writer, Parte obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.cliente)
       ..writeByte(1)
@@ -64,7 +65,9 @@ class ParteAdapter extends TypeAdapter<Parte> {
       ..writeByte(12)
       ..write(obj.horasTotales)
       ..writeByte(13)
-      ..write(obj.firma);
+      ..write(obj.firma)
+      ..writeByte(14)
+      ..write(obj.enviado);
   }
 
   @override

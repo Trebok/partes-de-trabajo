@@ -24,12 +24,11 @@ class PartePagina extends StatefulWidget {
   State<PartePagina> createState() => _PartePaginaState();
 }
 
-class _PartePaginaState extends State<PartePagina> {
+class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin {
   late String titulo;
   final _formKeyGeneral = GlobalKey<FormState>();
   final _formKeyFechas = GlobalKey<FormState>();
   final _textFormFieldKeyTrabajos = GlobalKey<FormFieldState<String>>();
-  final _animatedListKey = GlobalKey<AnimatedListState>();
 
   late Cliente _cliente;
   late final TextEditingController _clienteController;
@@ -52,6 +51,7 @@ class _PartePaginaState extends State<PartePagina> {
 
   bool _modoSeleccion = false;
   final List<int> _seleccionados = [];
+  Map<int, SlidableController> deslizablesABorrar = {};
 
   @override
   void initState() {
@@ -153,17 +153,26 @@ class _PartePaginaState extends State<PartePagina> {
                               child: const Text('NO'),
                             ),
                             TextButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 Navigator.pop(context);
                                 _seleccionados.sort((a, b) => b.compareTo(a));
                                 for (var indice in _seleccionados) {
-                                  _eliminarTrabajo(context, _trabajos[indice]);
-
-                                  _trabajos.removeAt(indice);
-                                  for (var i = indice; i < _trabajos.length; i++) {
-                                    _trabajos[i].numero--;
-                                  }
+                                  deslizablesABorrar[indice]!.openStartActionPane();
+                                  deslizablesABorrar[indice]!.dismiss(
+                                    ResizeRequest(
+                                      const Duration(milliseconds: 100),
+                                      () {
+                                        setState(() {
+                                          _trabajos.removeAt(indice);
+                                          for (var i = indice; i < _trabajos.length; i++) {
+                                            _trabajos[i].numero--;
+                                          }
+                                        });
+                                      },
+                                    ),
+                                  );
                                 }
+                                await Future.delayed(const Duration(milliseconds: 450));
                                 _salirModoSeleccion();
                               },
                               child: const Text('SI'),
@@ -400,7 +409,7 @@ class _PartePaginaState extends State<PartePagina> {
                             ),
                           ).then((final trabajo) {
                             if (trabajo == null) return;
-                            _animatedListKey.currentState!.insertItem(_trabajos.length);
+
                             setState(() {
                               _trabajos.add(trabajo);
                               _textFormFieldKeyTrabajos.currentState!.validate();
@@ -417,12 +426,14 @@ class _PartePaginaState extends State<PartePagina> {
                     ),
                   ),
                   SlidableAutoCloseBehavior(
-                    child: AnimatedList(
-                      key: _animatedListKey,
+                    closeWhenOpened: !_modoSeleccion,
+                    child: ListView.builder(
                       physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,
-                      initialItemCount: _trabajos.length,
-                      itemBuilder: (context, index, animation) {
+                      itemCount: _trabajos.length,
+                      itemBuilder: (context, indice) {
+                        final slidableController = SlidableController(this);
+                        deslizablesABorrar[indice] = slidableController;
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: Stack(
@@ -436,6 +447,7 @@ class _PartePaginaState extends State<PartePagina> {
                                 ),
                               ),
                               Slidable(
+                                controller: slidableController,
                                 enabled: !_modoSeleccion,
                                 key: UniqueKey(),
                                 startActionPane: ActionPane(
@@ -459,23 +471,29 @@ class _PartePaginaState extends State<PartePagina> {
                                                   TextButton(
                                                     onPressed: () {
                                                       Navigator.pop(context);
-                                                      setState(() {});
+                                                      slidableController.close();
                                                     },
                                                     child: const Text('NO'),
                                                   ),
                                                   TextButton(
                                                     onPressed: () {
                                                       Navigator.pop(context);
-                                                      _eliminarTrabajo(
-                                                          context, _trabajos[index]);
-                                                      setState(() {
-                                                        _trabajos.removeAt(index);
-                                                        for (var i = index;
-                                                            i < _trabajos.length;
-                                                            i++) {
-                                                          _trabajos[i].numero--;
-                                                        }
-                                                      });
+
+                                                      slidableController.dismiss(
+                                                        ResizeRequest(
+                                                          const Duration(milliseconds: 100),
+                                                          () {
+                                                            setState(() {
+                                                              _trabajos.removeAt(indice);
+                                                              for (var i = indice;
+                                                                  i < _trabajos.length;
+                                                                  i++) {
+                                                                _trabajos[i].numero--;
+                                                              }
+                                                            });
+                                                          },
+                                                        ),
+                                                      );
                                                     },
                                                     child: const Text('SI'),
                                                   )
@@ -488,42 +506,41 @@ class _PartePaginaState extends State<PartePagina> {
                                       backgroundColor: Colors.transparent,
                                       foregroundColor: Colors.white,
                                       icon: Icons.delete,
-                                      label: 'ELIMINAR',
                                     ),
                                   ],
                                 ),
                                 child: Tarjeta(
-                                  color: _seleccionados.contains(index)
+                                  color: _seleccionados.contains(indice)
                                       ? PaletaColores.tarjetaSeleccionada
                                       : null,
-                                  colorBorde: _seleccionados.contains(index)
+                                  colorBorde: _seleccionados.contains(indice)
                                       ? PaletaColores.primario
                                       : null,
                                   child: InkWell(
                                     borderRadius: BorderRadius.circular(12),
                                     onTap: () {
                                       if (_modoSeleccion) {
-                                        _seleccionar(index);
+                                        _seleccionar(indice);
                                       } else {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) => TrabajoPagina(
-                                              numero: index + 1,
-                                              trabajo: _trabajos[index],
+                                              numero: indice + 1,
+                                              trabajo: _trabajos[indice],
                                             ),
                                           ),
                                         ).then((final trabajo) {
                                           if (trabajo == null) return;
                                           setState(() {
-                                            _trabajos[index] = trabajo;
+                                            _trabajos[indice] = trabajo;
                                           });
                                         });
                                       }
                                     },
                                     onLongPress: () {
                                       _modoSeleccion = true;
-                                      _seleccionar(index);
+                                      _seleccionar(indice);
                                     },
                                     child: Stack(
                                       alignment: Alignment.topRight,
@@ -538,26 +555,26 @@ class _PartePaginaState extends State<PartePagina> {
                                                   TableRow(
                                                     children: [
                                                       const Text('Nº:'),
-                                                      Text('${index + 1}'),
+                                                      Text('${indice + 1}'),
                                                     ],
                                                   ),
                                                   rowSpacer,
                                                   TableRow(
                                                     children: [
                                                       const Text('Descripción:'),
-                                                      Text(_trabajos[index].descripcion),
+                                                      Text(_trabajos[indice].descripcion),
                                                     ],
                                                   ),
                                                   rowSpacer,
                                                   TableRow(
                                                     children: [
                                                       const Text('Material:'),
-                                                      Text(_trabajos[index].material!),
+                                                      Text(_trabajos[indice].material!),
                                                     ],
                                                   ),
-                                                  if (_trabajos[index].imagenes.isNotEmpty)
+                                                  if (_trabajos[indice].imagenes.isNotEmpty)
                                                     rowSpacer,
-                                                  if (_trabajos[index].imagenes.isNotEmpty)
+                                                  if (_trabajos[indice].imagenes.isNotEmpty)
                                                     TableRow(
                                                       children: [
                                                         const Text('Imágenes:'),
@@ -569,9 +586,9 @@ class _PartePaginaState extends State<PartePagina> {
                                                               const SliverGridDelegateWithFixedCrossAxisCount(
                                                                   crossAxisCount: 2),
                                                           itemCount:
-                                                              _trabajos[index].imagenes.length,
+                                                              _trabajos[indice].imagenes.length,
                                                           itemBuilder: (context, index2) {
-                                                            return Image.memory(_trabajos[index]
+                                                            return Image.memory(_trabajos[indice]
                                                                 .imagenes[index2]);
                                                           },
                                                         ),
@@ -586,7 +603,7 @@ class _PartePaginaState extends State<PartePagina> {
                                           visible: _modoSeleccion,
                                           child: Padding(
                                             padding: const EdgeInsets.all(10.0),
-                                            child: _seleccionados.contains(index)
+                                            child: _seleccionados.contains(indice)
                                                 ? const Icon(
                                                     color: PaletaColores.primario,
                                                     Icons.check_box,
@@ -834,72 +851,5 @@ class _PartePaginaState extends State<PartePagina> {
       _seleccionados.clear();
       _modoSeleccion = false;
     });
-  }
-
-  void _eliminarTrabajo(BuildContext context, Trabajo trabajoBorrado) {
-    _animatedListKey.currentState!.removeItem(
-      trabajoBorrado.numero - 1,
-      ((context, animation) {
-        return SizeTransition(
-          key: UniqueKey(),
-          sizeFactor: animation,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Tarjeta(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 9, 10, 12),
-                child: Column(
-                  children: [
-                    Table(
-                      columnWidths: const {0: FixedColumnWidth(100)},
-                      children: [
-                        TableRow(
-                          children: [
-                            const Text('Nº:'),
-                            Text('${trabajoBorrado.numero}'),
-                          ],
-                        ),
-                        rowSpacer,
-                        TableRow(
-                          children: [
-                            const Text('Descripción:'),
-                            Text(trabajoBorrado.descripcion),
-                          ],
-                        ),
-                        rowSpacer,
-                        TableRow(
-                          children: [
-                            const Text('Material:'),
-                            Text(trabajoBorrado.material!),
-                          ],
-                        ),
-                        if (trabajoBorrado.imagenes.isNotEmpty) rowSpacer,
-                        if (trabajoBorrado.imagenes.isNotEmpty)
-                          TableRow(
-                            children: [
-                              const Text('Imágenes:'),
-                              GridView.builder(
-                                physics: const NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 2),
-                                itemCount: trabajoBorrado.imagenes.length,
-                                itemBuilder: (context, index2) {
-                                  return Image.memory(trabajoBorrado.imagenes[index2]);
-                                },
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      }),
-      duration: const Duration(milliseconds: 500),
-    );
   }
 }

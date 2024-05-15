@@ -21,6 +21,7 @@ class Parte {
     required this.number,
     required this.horasTotales,
     this.firma,
+    this.enviado = false,
   });
   @HiveField(0)
   Cliente cliente;
@@ -63,4 +64,7 @@ class Parte {
 
   @HiveField(13)
   Firma? firma;
+
+  @HiveField(14)
+  bool enviado;
 }

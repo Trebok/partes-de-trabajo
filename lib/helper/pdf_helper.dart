@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:open_filex/open_filex.dart';
 import 'package:partesdetrabajo/model/parte.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -9,7 +8,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart';
 
 class PDFHelper {
-  static createPDF({required Parte parte}) async {
+  static Future<File> createPDF({required Parte parte}) async {
     final logoImage =
         MemoryImage((await rootBundle.load('images/LOGOPRIE.jpg')).buffer.asUint8List());
     final headers = [
@@ -240,6 +239,7 @@ class PDFHelper {
     final savePath = path.join(dir.path, fileName);
     final file = File(savePath);
     await file.writeAsBytes(await pdf.save());
-    OpenFilex.open(file.path);
+    return file;
+    // OpenFilex.open(file.path);
   }
 }

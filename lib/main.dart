@@ -6,10 +6,11 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
-import 'package:partesdetrabajo/api/autenticacion_usuario.dart';
 import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
 import 'package:partesdetrabajo/core/theme/theme.dart';
 import 'package:partesdetrabajo/firebase_options.dart';
+import 'package:partesdetrabajo/helper/autenticacion_usuario.dart';
+import 'package:partesdetrabajo/helper/local_storage.dart';
 import 'package:partesdetrabajo/helper/pdf_helper.dart';
 import 'package:partesdetrabajo/model/boxes.dart';
 import 'package:partesdetrabajo/model/cliente.dart';
@@ -19,13 +20,15 @@ import 'package:partesdetrabajo/model/trabajo.dart';
 import 'package:partesdetrabajo/pages/cliente_pagina.dart';
 import 'package:partesdetrabajo/pages/parte_pagina.dart';
 import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
+import 'package:partesdetrabajo/widgets/boton_gradiente.dart';
 import 'package:partesdetrabajo/widgets/floating_action_button_custom.dart';
 import 'package:partesdetrabajo/widgets/tarjeta.dart';
+import 'package:partesdetrabajo/widgets/text_form_field_custom.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await LocalStorage.configurePrefs();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -116,7 +119,6 @@ enum Pagina {
   clientes,
   perfil,
   ajustes,
-  cerrarSesion,
 }
 
 class Home extends StatefulWidget {
@@ -135,7 +137,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   bool _modoSeleccion = false;
   final List<int> _seleccionados = [];
-
   Map<int, SlidableController> deslizablesABorrar = {};
 
   void _cambiarPaginaActual(Pagina seleccionada) {
@@ -153,9 +154,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         case Pagina.ajustes:
           titulo = 'AJUSTES';
           break;
-        case Pagina.cerrarSesion:
-          titulo = 'CERRAR SESIÓN';
-          break;
+
         default:
           titulo = '';
       }
@@ -326,9 +325,118 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             Visibility(
               visible: _modoSeleccion,
               child: IconButton(
+                tooltip: 'Enviar por correo',
                 icon: const Icon(Icons.mail),
                 color: Colors.white,
-                onPressed: () {},
+                onPressed: () async {
+                  try {
+                    showDialog(
+                      barrierDismissible: false,
+                      barrierColor: Colors.transparent,
+                      context: context,
+                      builder: (context) {
+                        return const PopScope(
+                          canPop: false,
+                          child: Center(
+                            child: CircularProgressIndicator.adaptive(),
+                          ),
+                        );
+                      },
+                    );
+                    final email = usuario.email;
+                    final accessToken = await AutenticacionUsuarios().getAccessToken();
+                    final smtpServer = gmailSaslXoauth2(email!, accessToken!);
+                    final connection = PersistentConnection(smtpServer);
+
+                    _seleccionados.sort((a, b) => b.compareTo(b));
+                    for (final indice in _seleccionados) {
+                      final parte = boxPartes.getAt(indice);
+
+                      final mensaje = Message()
+                        ..from = Address(email, usuario.displayName)
+                        ..recipients = [LocalStorage.prefs.getString('emailDestino')]
+                        ..subject =
+                            '${parte.cliente.nombre} - Parte de trabajo ${parte.number}/${parte.year}'
+                        // ..text = ' This is a test email!'
+                        ..attachments = [
+                          FileAttachment(
+                            await PDFHelper.createPDF(parte: parte),
+                          ),
+                        ];
+                      await connection.send(mensaje);
+
+                      parte.enviado = true;
+                      boxPartes.putAt(indice, parte);
+                      ScaffoldMessenger.of(context)
+                        ..removeCurrentSnackBar()
+                        ..showSnackBar(SnackBar(
+                          content: Text(
+                              '¡Parte enviado a ${LocalStorage.prefs.get('emailDestino')}!'),
+                          backgroundColor: Colors.green,
+                        ));
+                    }
+                    await connection.close();
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context)
+                      ..removeCurrentSnackBar()
+                      ..showSnackBar(SnackBar(
+                        content: Text(
+                            '¡${_seleccionados.length} partes enviados a ${LocalStorage.prefs.get('emailDestino')}!'),
+                        backgroundColor: Colors.green,
+                      ));
+                    Navigator.of(context).pop();
+                    _salirModoSeleccion();
+                  } on MailerException catch (e) {
+                    print(e.toString());
+                    ScaffoldMessenger.of(context)
+                      ..removeCurrentSnackBar()
+                      ..showSnackBar(const SnackBar(
+                        content: Text(
+                            'Error al enviar, asegurate de asignar un email en los ajustes.'),
+                        backgroundColor: Color.fromARGB(255, 211, 0, 0),
+                      ));
+                  } on FirebaseAuthException catch (error) {
+                    print(error.message);
+                    ScaffoldMessenger.of(context)
+                      ..removeCurrentSnackBar()
+                      ..showSnackBar(const SnackBar(content: Text('Ups... Algo salió mal.')));
+                  } catch (error) {
+                    print(error.toString());
+                    ScaffoldMessenger.of(context)
+                      ..removeCurrentSnackBar()
+                      ..showSnackBar(const SnackBar(content: Text('Ups... Algo salió mal.')));
+                  }
+                },
+              ),
+            ),
+            Visibility(
+              visible: _modoSeleccion && _paginaActual == Pagina.partes,
+              child: PopupMenuButton(
+                iconColor: Colors.white,
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    onTap: () {
+                      for (final indice in _seleccionados) {
+                        final Parte parte = boxPartes.getAt(indice);
+                        parte.enviado = false;
+                        boxPartes.putAt(indice, parte);
+                      }
+                      _salirModoSeleccion();
+                    },
+                    child: const Text('Marcar como NO enviado'),
+                  ),
+                  PopupMenuItem(
+                    onTap: () {
+                      for (final indice in _seleccionados) {
+                        final Parte parte = boxPartes.getAt(indice);
+                        parte.enviado = true;
+                        boxPartes.putAt(indice, parte);
+                      }
+                      _salirModoSeleccion();
+                    },
+                    child: const Text('Marcar como enviado'),
+                  ),
+                ],
               ),
             ),
           ],
@@ -413,16 +521,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     _cambiarPaginaActual(Pagina.ajustes);
                   },
                 ),
-                ListTile(
-                  leading: const Icon(Icons.logout),
-                  title: const Text('Cerrar Sesión'),
-                  selected: _paginaActual == Pagina.cerrarSesion,
-                  selectedTileColor: PaletaColores.seleccionDrawer,
-                  onTap: () {
-                    AutenticacionUsuarios().cerrarSesionGoogle();
-                    // _cambiarPaginaActual(Pagina.cerrarSesion);
-                  },
-                ),
               ],
             ),
           ),
@@ -431,8 +529,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           Pagina.partes => listaPartes(),
           Pagina.clientes => listaClientes(),
           Pagina.perfil => perfil(),
-          Pagina.ajustes => const Scaffold(),
-          Pagina.cerrarSesion => const Scaffold(),
+          Pagina.ajustes => ajustes(),
         },
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         floatingActionButton: FloatingActionButtonCustom(
@@ -472,8 +569,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         itemCount: boxPartes.length,
-        itemBuilder: (context, index) {
-          int indiceInvertido = boxPartes.length - 1 - index;
+        itemBuilder: (context, indiceMalo) {
+          int indiceInvertido = boxPartes.length - 1 - indiceMalo;
           Parte parte = boxPartes.getAt(indiceInvertido);
           final slidableController = SlidableController(this);
           deslizablesABorrar[indiceInvertido] = slidableController;
@@ -533,7 +630,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                     TextButton(
                                       onPressed: () {
                                         Navigator.pop(context);
-                                        setState(() {});
+                                        slidableController.close();
                                       },
                                       child: const Text('NO'),
                                     ),
@@ -590,28 +687,53 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             final smtpServer = gmailSaslXoauth2(email!, accessToken!);
                             final mensaje = Message()
                               ..from = Address(email, usuario.displayName)
-                              ..recipients = ['trebok2@gmail.com']
+                              ..recipients = [LocalStorage.prefs.getString('emailDestino')]
                               ..subject =
                                   '${parte.cliente.nombre} - Parte de trabajo ${parte.number}/${parte.year}'
-                              ..text = ' This is a test email!';
+                              // ..text = ' This is a test email!'
+                              ..attachments = [
+                                FileAttachment(
+                                  await PDFHelper.createPDF(parte: parte),
+                                ),
+                              ];
 
                             try {
                               await send(mensaje, smtpServer);
+                              await slidableController.close();
+                              parte.enviado = true;
+                              setState(() {
+                                boxPartes.putAt(indiceInvertido, parte);
+                              });
+
                               ScaffoldMessenger.of(context)
                                 ..removeCurrentSnackBar()
-                                ..showSnackBar(
-                                    const SnackBar(content: Text('Sent email successfully!')));
+                                ..showSnackBar(SnackBar(
+                                  content: Text(
+                                      '¡Parte enviado a ${LocalStorage.prefs.get('emailDestino')}!'),
+                                  backgroundColor: Colors.green,
+                                ));
                             } on MailerException catch (e) {
-                              print(e);
+                              print(e.toString());
+                              ScaffoldMessenger.of(context)
+                                ..removeCurrentSnackBar()
+                                ..showSnackBar(const SnackBar(
+                                  content: Text(
+                                      'Error al enviar, asegurate de asignar un email en los ajustes.'),
+                                  backgroundColor: Color.fromARGB(255, 211, 0, 0),
+                                ));
                             }
                           } on FirebaseAuthException catch (error) {
                             print(error.message);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Ups... Algo salió mal')));
+                            ScaffoldMessenger.of(context)
+                              ..removeCurrentSnackBar()
+                              ..showSnackBar(
+                                  const SnackBar(content: Text('Ups... Algo salió mal.')));
                           } catch (error) {
                             print(error.toString());
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Ups... Algo salió mal')));
+                            ScaffoldMessenger.of(context)
+                              ..removeCurrentSnackBar()
+                              ..showSnackBar(
+                                  const SnackBar(content: Text('Ups... Algo salió mal.')));
                           }
                         },
                         backgroundColor: Colors.transparent,
@@ -652,25 +774,22 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             padding: const EdgeInsets.all(12),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       '${parte.number}/${parte.year}',
                                       style: const TextStyle(fontSize: 15.5),
                                     ),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.picture_as_pdf,
+                                    if (parte.enviado)
+                                      const Padding(
+                                        padding: EdgeInsets.only(left: 10),
+                                        child: Icon(
+                                          Icons.mark_email_read,
+                                          color: PaletaColores.primario,
+                                        ),
                                       ),
-                                      onPressed: () {
-                                        PDFHelper.createPDF(parte: parte);
-                                      },
-                                    ),
-                                    const SizedBox(
-                                      width: 50,
-                                    )
                                   ],
                                 ),
                                 const SizedBox(height: 20),
@@ -764,7 +883,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                       TextButton(
                                         onPressed: () {
                                           Navigator.pop(context);
-                                          setState(() {});
+                                          slidableController.close();
                                         },
                                         child: const Text('NO'),
                                       ),
@@ -882,7 +1001,70 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           const SizedBox(height: 8),
           Text(usuario.displayName!),
           Text(usuario.email!),
+          const SizedBox(height: 100),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.logout),
+            label: const Text('Cerrar sesión'),
+            onPressed: () {
+              AutenticacionUsuarios().cerrarSesionGoogle();
+            },
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget ajustes() {
+    final emailDestino = LocalStorage.prefs.getString('emailDestino');
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+    String? validarEmail(String? email) {
+      RegExp expRegEmail = RegExp(r'^[\w\.-]+@[\w-]+\.\w{2,3}(\.\w{2,3})?$');
+      final esValidoEmail = expRegEmail.hasMatch(email ?? '');
+      if (!esValidoEmail) {
+        return 'Introduce un email válido';
+      }
+      return null;
+    }
+
+    TextEditingController correoDestino = TextEditingController(text: emailDestino);
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 5, 20, 20),
+        child: Form(
+          key: formKey,
+          child: Column(
+            children: [
+              TextFormFieldCustom(
+                prefixIcon: const Icon(Icons.email),
+                labelText: 'Email destino',
+                controller: correoDestino,
+                textCapitalization: TextCapitalization.none,
+                keyboardType: TextInputType.emailAddress,
+                validator: validarEmail,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 25, bottom: 25),
+                child: BotonGradiente(
+                  nombre: 'GUARDAR',
+                  onTap: () {
+                    if (formKey.currentState!.validate()) {
+                      LocalStorage.prefs.setString('emailDestino', correoDestino.text);
+                      ScaffoldMessenger.of(context)
+                        ..removeCurrentSnackBar()
+                        ..showSnackBar(
+                          const SnackBar(
+                            content: Text('Guardado con éxito.'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

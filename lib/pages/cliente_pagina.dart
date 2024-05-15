@@ -31,7 +31,7 @@ class ClientePagina extends StatelessWidget {
       appBar: BarraNavegacion(nombre: titulo),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(15, 5, 20, 20),
+          padding: const EdgeInsets.fromLTRB(20, 5, 20, 20),
           child: Form(
             key: _formKey,
             child: Column(
