@@ -6,6 +6,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
 import 'package:partesdetrabajo/core/theme/theme.dart';
 import 'package:partesdetrabajo/firebase_options.dart';
@@ -202,6 +203,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           nombre: _modoSeleccion ? _tituloSeleccion() : titulo,
           leading: _modoSeleccion
               ? IconButton(
+                  tooltip: 'Salir del modo selección',
                   icon: const Icon(Icons.close_rounded),
                   color: Colors.white,
                   onPressed: () {
@@ -217,6 +219,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             Visibility(
               visible: _modoSeleccion,
               child: IconButton(
+                tooltip: 'Eliminar',
                 icon: const Icon(Icons.delete),
                 color: Colors.white,
                 onPressed: () {
@@ -332,7 +335,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   try {
                     showDialog(
                       barrierDismissible: false,
-                      barrierColor: Colors.transparent,
                       context: context,
                       builder: (context) {
                         return const PopScope(
@@ -367,44 +369,46 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
                       parte.enviado = true;
                       boxPartes.putAt(indice, parte);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context)
+                          ..removeCurrentSnackBar()
+                          ..showSnackBar(SnackBar(
+                            content: Text(
+                                '¡Parte enviado a ${LocalStorage.prefs.get('emailDestino')}!'),
+                            backgroundColor: Colors.green,
+                          ));
+                      }
+                    }
+                    await connection.close();
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
                       ScaffoldMessenger.of(context)
                         ..removeCurrentSnackBar()
                         ..showSnackBar(SnackBar(
                           content: Text(
-                              '¡Parte enviado a ${LocalStorage.prefs.get('emailDestino')}!'),
+                              '¡${_seleccionados.length} partes enviados a ${LocalStorage.prefs.get('emailDestino')}!'),
                           backgroundColor: Colors.green,
                         ));
                     }
-                    await connection.close();
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context)
-                      ..removeCurrentSnackBar()
-                      ..showSnackBar(SnackBar(
-                        content: Text(
-                            '¡${_seleccionados.length} partes enviados a ${LocalStorage.prefs.get('emailDestino')}!'),
-                        backgroundColor: Colors.green,
-                      ));
-                    Navigator.of(context).pop();
                     _salirModoSeleccion();
-                  } on MailerException catch (e) {
-                    print(e.toString());
-                    ScaffoldMessenger.of(context)
-                      ..removeCurrentSnackBar()
-                      ..showSnackBar(const SnackBar(
-                        content: Text(
-                            'Error al enviar, asegurate de asignar un email en los ajustes.'),
-                        backgroundColor: Color.fromARGB(255, 211, 0, 0),
-                      ));
-                  } on FirebaseAuthException catch (error) {
-                    print(error.message);
-                    ScaffoldMessenger.of(context)
-                      ..removeCurrentSnackBar()
-                      ..showSnackBar(const SnackBar(content: Text('Ups... Algo salió mal.')));
-                  } catch (error) {
-                    print(error.toString());
-                    ScaffoldMessenger.of(context)
-                      ..removeCurrentSnackBar()
-                      ..showSnackBar(const SnackBar(content: Text('Ups... Algo salió mal.')));
+                  } on MailerException catch (_) {
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context)
+                        ..removeCurrentSnackBar()
+                        ..showSnackBar(const SnackBar(
+                          content: Text(
+                              'Error al enviar, asegurate de asignar un email en los ajustes.'),
+                          backgroundColor: Color.fromARGB(255, 211, 0, 0),
+                        ));
+                    }
+                  } catch (_) {
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context)
+                        ..removeCurrentSnackBar()
+                        ..showSnackBar(const SnackBar(content: Text('Ups... Algo salió mal.')));
+                    }
                   }
                 },
               ),
@@ -412,6 +416,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             Visibility(
               visible: _modoSeleccion && _paginaActual == Pagina.partes,
               child: PopupMenuButton(
+                tooltip: 'Más opciones',
                 iconColor: Colors.white,
                 itemBuilder: (context) => [
                   PopupMenuItem(
@@ -532,31 +537,33 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           Pagina.ajustes => ajustes(),
         },
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        floatingActionButton: FloatingActionButtonCustom(
-          onPressed: () {
-            switch (_paginaActual) {
-              case Pagina.partes:
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const PartePagina()),
-                ).then((final parte) => setState(() {
-                      if (parte == null) return;
-                      boxPartes.add(parte);
-                    }));
-              case Pagina.clientes:
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ClientePagina()),
-                ).then((final cliente) => setState(() {
-                      if (cliente == null) return;
+        floatingActionButton: _paginaActual == Pagina.partes || _paginaActual == Pagina.clientes
+            ? FloatingActionButtonCustom(
+                onPressed: () {
+                  switch (_paginaActual) {
+                    case Pagina.partes:
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PartePagina()),
+                      ).then((final parte) => setState(() {
+                            if (parte == null) return;
+                            boxPartes.add(parte);
+                          }));
+                    case Pagina.clientes:
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ClientePagina()),
+                      ).then((final cliente) => setState(() {
+                            if (cliente == null) return;
 
-                      boxClientes.put('${cliente.nombre}${DateTime.now()}', cliente);
-                    }));
-              default:
-                throw UnimplementedError();
-            }
-          },
-        ),
+                            boxClientes.put('${cliente.nombre}${DateTime.now()}', cliente);
+                          }));
+                    default:
+                      throw UnimplementedError();
+                  }
+                },
+              )
+            : null,
       ),
     );
   }
@@ -682,6 +689,18 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         autoClose: false,
                         onPressed: (context) async {
                           try {
+                            showDialog(
+                              barrierDismissible: false,
+                              context: context,
+                              builder: (context) {
+                                return const PopScope(
+                                  canPop: false,
+                                  child: Center(
+                                    child: CircularProgressIndicator.adaptive(),
+                                  ),
+                                );
+                              },
+                            );
                             final email = usuario.email;
                             final accessToken = await AutenticacionUsuarios().getAccessToken();
                             final smtpServer = gmailSaslXoauth2(email!, accessToken!);
@@ -689,22 +708,22 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               ..from = Address(email, usuario.displayName)
                               ..recipients = [LocalStorage.prefs.getString('emailDestino')]
                               ..subject =
-                                  '${parte.cliente.nombre} - Parte de trabajo ${parte.number}/${parte.year}'
-                              // ..text = ' This is a test email!'
+                                  '${parte.cliente.nombre} - Parte Nº ${parte.number}/${parte.year}'
                               ..attachments = [
                                 FileAttachment(
                                   await PDFHelper.createPDF(parte: parte),
                                 ),
                               ];
 
-                            try {
-                              await send(mensaje, smtpServer);
-                              await slidableController.close();
-                              parte.enviado = true;
-                              setState(() {
-                                boxPartes.putAt(indiceInvertido, parte);
-                              });
+                            await send(mensaje, smtpServer);
+                            await slidableController.close();
+                            parte.enviado = true;
+                            setState(() {
+                              boxPartes.putAt(indiceInvertido, parte);
+                            });
 
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
                               ScaffoldMessenger.of(context)
                                 ..removeCurrentSnackBar()
                                 ..showSnackBar(SnackBar(
@@ -712,8 +731,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                       '¡Parte enviado a ${LocalStorage.prefs.get('emailDestino')}!'),
                                   backgroundColor: Colors.green,
                                 ));
-                            } on MailerException catch (e) {
-                              print(e.toString());
+                            }
+                          } on MailerException catch (_) {
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
                               ScaffoldMessenger.of(context)
                                 ..removeCurrentSnackBar()
                                 ..showSnackBar(const SnackBar(
@@ -722,18 +743,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                   backgroundColor: Color.fromARGB(255, 211, 0, 0),
                                 ));
                             }
-                          } on FirebaseAuthException catch (error) {
-                            print(error.message);
-                            ScaffoldMessenger.of(context)
-                              ..removeCurrentSnackBar()
-                              ..showSnackBar(
-                                  const SnackBar(content: Text('Ups... Algo salió mal.')));
-                          } catch (error) {
-                            print(error.toString());
-                            ScaffoldMessenger.of(context)
-                              ..removeCurrentSnackBar()
-                              ..showSnackBar(
-                                  const SnackBar(content: Text('Ups... Algo salió mal.')));
+                          } catch (_) {
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                              ScaffoldMessenger.of(context)
+                                ..removeCurrentSnackBar()
+                                ..showSnackBar(
+                                    const SnackBar(content: Text('Ups... Algo salió mal.')));
+                            }
                           }
                         },
                         backgroundColor: Colors.transparent,
@@ -777,31 +794,77 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      '${parte.number}/${parte.year}',
-                                      style: const TextStyle(fontSize: 15.5),
-                                    ),
-                                    if (parte.enviado)
-                                      const Padding(
-                                        padding: EdgeInsets.only(left: 10),
-                                        child: Icon(
-                                          Icons.mark_email_read,
-                                          color: PaletaColores.primario,
+                                    Row(
+                                      children: [
+                                        Text(
+                                          '${parte.fechaInicio}  ${parte.horaInicio}-${parte.horaFinal}',
+                                          style: const TextStyle(fontSize: 15),
                                         ),
+                                        parte.enviado
+                                            ? const Padding(
+                                                padding: EdgeInsets.only(left: 8),
+                                                child: Icon(
+                                                  Icons.mark_email_read,
+                                                  color: PaletaColores.primario,
+                                                ),
+                                              )
+                                            : const SizedBox(
+                                                height: 24,
+                                              ),
+                                      ],
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsets.only(right: _modoSeleccion ? 17 : 0),
+                                      child: Text(
+                                        '${parte.number}/${parte.year}',
+                                        style: const TextStyle(fontSize: 15),
                                       ),
+                                    ),
                                   ],
                                 ),
-                                const SizedBox(height: 20),
+                                const SizedBox(height: 10),
+                                const Divider(
+                                  height: 0,
+                                ),
                                 Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Icon(
-                                      size: 30,
-                                      color: Color(0xffbfbfbf),
-                                      Icons.person,
+                                    Flexible(
+                                      child: Row(
+                                        children: [
+                                          const Icon(
+                                            size: 30,
+                                            color: Color(0xffbfbfbf),
+                                            Icons.person,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Flexible(
+                                            child: Text(parte.cliente.nombre),
+                                          ),
+                                          if (parte.firma != null)
+                                            const Padding(
+                                              padding: EdgeInsets.only(left: 5),
+                                              child: Icon(
+                                                Icons.draw,
+                                                color: Color.fromARGB(255, 78, 78, 78),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
                                     ),
-                                    const SizedBox(width: 10.0),
-                                    Text(parte.cliente.nombre),
+                                    IconButton(
+                                      tooltip: 'Ver pdf',
+                                      icon: const Icon(
+                                        Icons.picture_as_pdf,
+                                        color: Color(0xFFea4335),
+                                      ),
+                                      onPressed: () async {
+                                        final file = await PDFHelper.createPDF(parte: parte);
+                                        OpenFilex.open(file.path);
+                                      },
+                                    ),
                                   ],
                                 ),
                               ],
@@ -810,7 +873,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           Visibility(
                             visible: _modoSeleccion,
                             child: Padding(
-                              padding: const EdgeInsets.all(10.0),
+                              padding: const EdgeInsets.only(right: 5, top: 12),
                               child: _seleccionados.contains(indiceInvertido)
                                   ? const Icon(
                                       color: PaletaColores.primario,
@@ -953,10 +1016,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               padding: const EdgeInsets.all(12),
                               child: Row(
                                 children: [
-                                  Text(
-                                    cliente.nombre,
-                                    style: const TextStyle(
-                                      fontSize: 15,
+                                  Expanded(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(right: _modoSeleccion ? 25 : 0),
+                                      child: Text(
+                                        cliente.nombre,
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],

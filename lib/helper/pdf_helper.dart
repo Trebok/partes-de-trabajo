@@ -235,11 +235,10 @@ class PDFHelper {
     );
 
     final dir = await getTemporaryDirectory();
-    final fileName = '${parte.cliente.nombre}.pdf';
+    final fileName = '${parte.cliente.nombre} - Parte Nº ${parte.number}_${parte.year}.pdf';
     final savePath = path.join(dir.path, fileName);
     final file = File(savePath);
     await file.writeAsBytes(await pdf.save());
     return file;
-    // OpenFilex.open(file.path);
   }
 }
