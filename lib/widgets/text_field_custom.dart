@@ -39,9 +39,6 @@ class TextFieldCustom extends StatelessWidget {
       textCapitalization: textCapitalization,
       readOnly: readOnly,
       onTap: onTap,
-      onTapOutside: ((event) {
-        FocusScope.of(context).unfocus();
-      }),
     );
   }
 }

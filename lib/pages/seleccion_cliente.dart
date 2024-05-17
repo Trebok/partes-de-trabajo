@@ -32,12 +32,10 @@ class _SeleccionClienteState extends State<SeleccionCliente> {
               child: Tarjeta(
                 child: Padding(
                   padding: const EdgeInsets.all(12),
-                  child: Center(
-                    child: Text(
-                      cliente.nombre,
-                      style: const TextStyle(
-                        fontSize: 15,
-                      ),
+                  child: Text(
+                    cliente.nombre,
+                    style: const TextStyle(
+                      fontSize: 15,
                     ),
                   ),
                 ),
@@ -49,7 +47,7 @@ class _SeleccionClienteState extends State<SeleccionCliente> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButtonCustom(
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => ClientePagina()))
+          Navigator.push(context, MaterialPageRoute(builder: (context) => const ClientePagina()))
               .then((final cliente) => setState(() {
                     if (cliente == null) return;
                     boxClientes.add(cliente);

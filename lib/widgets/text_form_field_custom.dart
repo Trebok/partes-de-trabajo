@@ -6,12 +6,14 @@ class TextFormFieldCustom extends StatelessWidget {
   final Widget? suffixIcon;
   final InputBorder? border;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final TextInputType? keyboardType;
   final TextCapitalization textCapitalization;
   final bool readOnly;
   final void Function()? onTap;
-  final AutovalidateMode? autovalidateMode;
+  final void Function(String?)? onSaved;
   final String? Function(String?)? validator;
+  final AutovalidateMode? autovalidateMode;
 
   const TextFormFieldCustom({
     super.key,
@@ -20,12 +22,14 @@ class TextFormFieldCustom extends StatelessWidget {
     this.suffixIcon,
     this.border,
     this.controller,
+    this.focusNode,
     this.keyboardType,
     this.textCapitalization = TextCapitalization.sentences,
     this.readOnly = false,
     this.onTap,
-    this.autovalidateMode,
+    this.onSaved,
     this.validator,
+    this.autovalidateMode,
   });
 
   @override
@@ -38,16 +42,15 @@ class TextFormFieldCustom extends StatelessWidget {
         border: border,
       ),
       controller: controller,
+      focusNode: focusNode,
       maxLines: null,
       keyboardType: keyboardType,
       textCapitalization: textCapitalization,
       readOnly: readOnly,
       onTap: onTap,
-      autovalidateMode: autovalidateMode,
+      onSaved: onSaved,
       validator: validator,
-      onTapOutside: ((event) {
-        FocusScope.of(context).unfocus();
-      }),
+      autovalidateMode: autovalidateMode,
     );
   }
 }

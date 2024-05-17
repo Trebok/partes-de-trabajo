@@ -55,6 +55,8 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
 
   @override
   void initState() {
+    super.initState();
+
     if (widget.parte == null) {
       titulo = 'NUEVO PARTE';
       _clienteController = TextEditingController();
@@ -103,8 +105,19 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
         int.parse(widget.parte!.fechaFinal.split('/')[0]),
       );
     }
+  }
 
-    super.initState();
+  @override
+  void dispose() {
+    _clienteController.dispose();
+    _horaInicioController.dispose();
+    _fechaInicioController.dispose();
+    _horaFinalController.dispose();
+    _fechaFinalController.dispose();
+    _otrosTrabajadoresController.dispose();
+    _observacionesController.dispose();
+    _trabajoPendienteController.dispose();
+    super.dispose();
   }
 
   @override
@@ -116,693 +129,705 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
           _salirModoSeleccion();
         }
       },
-      child: Scaffold(
-        appBar: BarraNavegacion(
-          nombre: _modoSeleccion ? _tituloSeleccion() : titulo,
-          leading: _modoSeleccion
-              ? IconButton(
-                  icon: const Icon(Icons.close_rounded),
+      child: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Scaffold(
+          appBar: BarraNavegacion(
+            nombre: _modoSeleccion ? _tituloSeleccion() : titulo,
+            leading: _modoSeleccion
+                ? IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    color: Colors.white,
+                    onPressed: () {
+                      _salirModoSeleccion();
+                    },
+                  )
+                : null,
+            actions: [
+              Visibility(
+                visible: _modoSeleccion,
+                child: IconButton(
+                  icon: const Icon(Icons.delete),
                   color: Colors.white,
                   onPressed: () {
-                    _salirModoSeleccion();
-                  },
-                )
-              : null,
-          actions: [
-            Visibility(
-              visible: _modoSeleccion,
-              child: IconButton(
-                icon: const Icon(Icons.delete),
-                color: Colors.white,
-                onPressed: () {
-                  showAdaptiveDialog(
-                    context: context,
-                    builder: (context) => SimpleDialog(
-                      title: Center(
-                        child: Text(
-                            '¿Eliminar ${_seleccionados.length} ${_seleccionados.length > 1 ? 'trabajos?' : 'trabajo?'}'),
-                      ),
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text('NO'),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                Navigator.pop(context);
-                                _seleccionados.sort((a, b) => b.compareTo(a));
-                                for (var indice in _seleccionados) {
-                                  deslizablesABorrar[indice]!.openStartActionPane();
-                                  deslizablesABorrar[indice]!.dismiss(
-                                    ResizeRequest(
-                                      const Duration(milliseconds: 100),
-                                      () {
-                                        setState(() {
-                                          _trabajos.removeAt(indice);
-                                          for (var i = indice; i < _trabajos.length; i++) {
-                                            _trabajos[i].numero--;
-                                          }
-                                        });
-                                      },
-                                    ),
-                                  );
-                                }
-                                await Future.delayed(const Duration(milliseconds: 450));
-                                _salirModoSeleccion();
-                              },
-                              child: const Text('SI'),
-                            )
-                          ],
+                    showAdaptiveDialog(
+                      context: context,
+                      builder: (context) => SimpleDialog(
+                        title: Center(
+                          child: Text(
+                              '¿Eliminar ${_seleccionados.length} ${_seleccionados.length > 1 ? 'trabajos?' : 'trabajo?'}'),
                         ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          physics: const ScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-            child: Form(
-              key: _formKeyGeneral,
-              child: Column(
-                children: [
-                  FocusScope(
-                    child: Focus(
-                      onFocusChange: (hasFocus) {
-                        if (hasFocus) {
-                          FocusScope.of(context).unfocus();
-                        }
-                      },
-                      child: TextFormFieldCustom(
-                        prefixIcon: const Icon(Icons.person),
-                        labelText: 'Cliente',
-                        suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
-                        controller: _clienteController,
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        readOnly: true,
-                        onTap: () async {
-                          final cliente = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SeleccionCliente(),
-                            ),
-                          );
-                          if (cliente == null) return;
-                          setState(() {
-                            _clienteController.text = cliente.nombre;
-                            _cliente = cliente;
-                          });
-                        },
-                        validator: (String? value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Este campo es obligatorio.';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ),
-                  Form(
-                    key: _formKeyFechas,
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormFieldCustom(
-                                prefixIcon: const Icon(Icons.watch_later_outlined),
-                                labelText: 'Hora inicio',
-                                controller: _horaInicioController,
-                                autovalidateMode: AutovalidateMode.onUserInteraction,
-                                readOnly: true,
-                                onTap: () async {
-                                  TimeOfDay? seleccionado = await showTimePicker(
-                                    context: context,
-                                    initialTime: TimeOfDay(
-                                      hour: _horaInicio ~/ 60,
-                                      minute: _horaInicio % 60,
-                                    ),
-                                  );
-                                  if (seleccionado == null) return;
-                                  String horas =
-                                      seleccionado.toString().split(':')[0].split('(')[1];
-                                  String minutos =
-                                      seleccionado.toString().split(':')[1].split(')')[0];
-                                  setState(() {
-                                    _horaInicioController.text = '$horas:$minutos';
-                                  });
-                                  _horaInicio = seleccionado.hour * 60 + seleccionado.minute;
-                                  _formKeyFechas.currentState!.validate();
-                                },
-                                validator: (_) {
-                                  if (!_fechaValida()) {
-                                    return 'Debe ser anterior';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextFormFieldCustom(
-                                prefixIcon: const Icon(Icons.calendar_today_outlined),
-                                labelText: 'Fecha inicio',
-                                controller: _fechaInicioController,
-                                autovalidateMode: AutovalidateMode.onUserInteraction,
-                                readOnly: true,
-                                onTap: () async {
-                                  DateTime? seleccionado = await showDatePicker(
-                                    context: context,
-                                    initialDate: _fechaInicio,
-                                    firstDate: DateTime(2000),
-                                    lastDate: DateTime(2100),
-                                  );
-                                  if (seleccionado == null) return;
-                                  setState(() {
-                                    _fechaInicioController.text = Utils.formatDate(seleccionado);
-                                  });
-                                  _fechaInicio = seleccionado;
-                                  _formKeyFechas.currentState!.validate();
-                                },
-                                validator: (_) {
-                                  if (!_fechaValida()) {
-                                    return '';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormFieldCustom(
-                                prefixIcon: const Icon(Icons.watch_later),
-                                labelText: 'Hora final',
-                                controller: _horaFinalController,
-                                autovalidateMode: AutovalidateMode.onUserInteraction,
-                                readOnly: true,
-                                onTap: () async {
-                                  TimeOfDay? seleccionado = await showTimePicker(
-                                    context: context,
-                                    initialTime: TimeOfDay(
-                                      hour: _horaFinal ~/ 60,
-                                      minute: _horaFinal % 60,
-                                    ),
-                                  );
-                                  if (seleccionado == null) return;
-                                  String horas =
-                                      seleccionado.toString().split(':')[0].split('(')[1];
-                                  String minutos =
-                                      seleccionado.toString().split(':')[1].split(')')[0];
-                                  setState(() {
-                                    _horaFinalController.text = '$horas:$minutos';
-                                  });
-                                  _horaFinal = seleccionado.hour * 60 + seleccionado.minute;
-                                  _formKeyFechas.currentState!.validate();
-                                },
-                                validator: (_) {
-                                  if (!_fechaValida()) {
-                                    return 'Debe ser posterior';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextFormFieldCustom(
-                                prefixIcon: const Icon(Icons.calendar_today),
-                                labelText: 'Fecha final',
-                                controller: _fechaFinalController,
-                                autovalidateMode: AutovalidateMode.onUserInteraction,
-                                readOnly: true,
-                                onTap: () async {
-                                  DateTime? seleccionado = await showDatePicker(
-                                    context: context,
-                                    initialDate: _fechaFinal,
-                                    firstDate: DateTime(2000),
-                                    lastDate: DateTime(2100),
-                                  );
-                                  if (seleccionado == null) return;
-                                  setState(() {
-                                    _fechaFinalController.text = Utils.formatDate(seleccionado);
-                                  });
-                                  _fechaFinal = seleccionado;
-                                  _formKeyFechas.currentState!.validate();
-                                },
-                                validator: (_) {
-                                  if (!_fechaValida()) {
-                                    return '';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  TextFieldCustom(
-                    prefixIcon: const Icon(Icons.engineering),
-                    labelText: 'Otros trabajadores',
-                    controller: _otrosTrabajadoresController,
-                  ),
-                  TextFieldCustom(
-                    prefixIcon: const Icon(Icons.search),
-                    labelText: 'Observaciones',
-                    controller: _observacionesController,
-                  ),
-                  FocusScope(
-                    child: Focus(
-                      onFocusChange: (hasFocus) {
-                        if (hasFocus) {
-                          FocusScope.of(context).unfocus();
-                        }
-                      },
-                      child: TextFormField(
-                        //NO CAMBIAR A CUSTOM
-                        key: _textFormFieldKeyTrabajos,
-                        decoration: const InputDecoration(
-                          prefixIcon: Icon(Icons.handyman_outlined),
-                          labelText: 'Trabajos realizados',
-                          suffixIcon: Icon(Icons.add_rounded),
-                          border: InputBorder.none,
-                        ),
-                        readOnly: true,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => TrabajoPagina(numero: _trabajos.length + 1),
-                            ),
-                          ).then((final trabajo) {
-                            if (trabajo == null) return;
-
-                            setState(() {
-                              _trabajos.add(trabajo);
-                              _textFormFieldKeyTrabajos.currentState!.validate();
-                            });
-                          });
-                        },
-                        validator: (_) {
-                          if (_trabajos.isEmpty) {
-                            return 'Este campo es obligatorio.';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ),
-                  SlidableAutoCloseBehavior(
-                    closeWhenOpened: !_modoSeleccion,
-                    child: ListView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: _trabajos.length,
-                      itemBuilder: (context, indice) {
-                        final slidableController = SlidableController(this);
-                        deslizablesABorrar[indice] = slidableController;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Stack(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              Positioned.fill(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: PaletaColores.eliminarDeslizable,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('NO'),
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  Navigator.pop(context);
+                                  _seleccionados.sort((a, b) => b.compareTo(a));
+                                  for (var indice in _seleccionados) {
+                                    deslizablesABorrar[indice]!.openStartActionPane();
+                                    deslizablesABorrar[indice]!.dismiss(
+                                      ResizeRequest(
+                                        const Duration(milliseconds: 100),
+                                        () {
+                                          setState(() {
+                                            _trabajos.removeAt(indice);
+                                            for (var i = indice; i < _trabajos.length; i++) {
+                                              _trabajos[i].numero--;
+                                            }
+                                          });
+                                        },
+                                      ),
+                                    );
+                                  }
+                                  await Future.delayed(const Duration(milliseconds: 450));
+                                  _salirModoSeleccion();
+                                },
+                                child: const Text('SI'),
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            physics: const ScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+              child: Form(
+                key: _formKeyGeneral,
+                child: Column(
+                  children: [
+                    FocusScope(
+                      child: Focus(
+                        onFocusChange: (hasFocus) {
+                          if (hasFocus) {
+                            FocusScope.of(context).unfocus();
+                          }
+                        },
+                        child: TextFormFieldCustom(
+                          prefixIcon: const Icon(Icons.person),
+                          labelText: 'Cliente',
+                          suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
+                          controller: _clienteController,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          readOnly: true,
+                          onTap: () async {
+                            final cliente = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SeleccionCliente(),
+                              ),
+                            );
+                            if (cliente == null) return;
+                            setState(() {
+                              _clienteController.text = cliente.nombre;
+                              _cliente = cliente;
+                            });
+                          },
+                          validator: (String? value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Este campo es obligatorio.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ),
+                    Form(
+                      key: _formKeyFechas,
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormFieldCustom(
+                                  prefixIcon: const Icon(Icons.watch_later_outlined),
+                                  labelText: 'Hora inicio',
+                                  controller: _horaInicioController,
+                                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                                  readOnly: true,
+                                  onTap: () async {
+                                    TimeOfDay? seleccionado = await showTimePicker(
+                                      context: context,
+                                      initialTime: TimeOfDay(
+                                        hour: _horaInicio ~/ 60,
+                                        minute: _horaInicio % 60,
+                                      ),
+                                    );
+                                    if (seleccionado == null) return;
+                                    String horas =
+                                        seleccionado.toString().split(':')[0].split('(')[1];
+                                    String minutos =
+                                        seleccionado.toString().split(':')[1].split(')')[0];
+                                    setState(() {
+                                      _horaInicioController.text = '$horas:$minutos';
+                                    });
+                                    _horaInicio = seleccionado.hour * 60 + seleccionado.minute;
+                                    _formKeyFechas.currentState!.validate();
+                                  },
+                                  validator: (_) {
+                                    if (!_fechaValida()) {
+                                      return 'Debe ser anterior';
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ),
-                              Slidable(
-                                controller: slidableController,
-                                enabled: !_modoSeleccion,
-                                key: UniqueKey(),
-                                startActionPane: ActionPane(
-                                  extentRatio: 0.3,
-                                  motion: const BehindMotion(),
-                                  children: [
-                                    SlidableAction(
-                                      padding: EdgeInsets.zero,
-                                      autoClose: false,
-                                      onPressed: (context) {
-                                        showAdaptiveDialog(
-                                          context: context,
-                                          builder: (context) => SimpleDialog(
-                                            title: const Center(
-                                              child: Text('¿Eliminar trabajo?'),
-                                            ),
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                                children: [
-                                                  TextButton(
-                                                    onPressed: () {
-                                                      Navigator.pop(context);
-                                                      slidableController.close();
-                                                    },
-                                                    child: const Text('NO'),
-                                                  ),
-                                                  TextButton(
-                                                    onPressed: () {
-                                                      Navigator.pop(context);
-
-                                                      slidableController.dismiss(
-                                                        ResizeRequest(
-                                                          const Duration(milliseconds: 100),
-                                                          () {
-                                                            setState(() {
-                                                              _trabajos.removeAt(indice);
-                                                              for (var i = indice;
-                                                                  i < _trabajos.length;
-                                                                  i++) {
-                                                                _trabajos[i].numero--;
-                                                              }
-                                                            });
-                                                          },
-                                                        ),
-                                                      );
-                                                    },
-                                                    child: const Text('SI'),
-                                                  )
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                      backgroundColor: Colors.transparent,
-                                      foregroundColor: Colors.white,
-                                      icon: Icons.delete,
-                                    ),
-                                  ],
-                                ),
-                                child: Tarjeta(
-                                  color: _seleccionados.contains(indice)
-                                      ? PaletaColores.tarjetaSeleccionada
-                                      : null,
-                                  colorBorde: _seleccionados.contains(indice)
-                                      ? PaletaColores.primario
-                                      : null,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(12),
-                                    onTap: () {
-                                      if (_modoSeleccion) {
-                                        _seleccionar(indice);
-                                      } else {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => TrabajoPagina(
-                                              numero: indice + 1,
-                                              trabajo: _trabajos[indice],
-                                            ),
-                                          ),
-                                        ).then((final trabajo) {
-                                          if (trabajo == null) return;
-                                          setState(() {
-                                            _trabajos[indice] = trabajo;
-                                          });
-                                        });
-                                      }
-                                    },
-                                    onLongPress: () {
-                                      _modoSeleccion = true;
-                                      _seleccionar(indice);
-                                    },
-                                    child: Stack(
-                                      alignment: Alignment.topRight,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.fromLTRB(12, 9, 10, 12),
-                                          child: Column(
-                                            children: [
-                                              Table(
-                                                columnWidths: const {0: FixedColumnWidth(100)},
-                                                children: [
-                                                  TableRow(
-                                                    children: [
-                                                      const Text('Nº:'),
-                                                      Text('${indice + 1}'),
-                                                    ],
-                                                  ),
-                                                  rowSpacer,
-                                                  TableRow(
-                                                    children: [
-                                                      const Text('Descripción:'),
-                                                      Text(_trabajos[indice].descripcion),
-                                                    ],
-                                                  ),
-                                                  rowSpacer,
-                                                  TableRow(
-                                                    children: [
-                                                      const Text('Material:'),
-                                                      Text(_trabajos[indice].material!),
-                                                    ],
-                                                  ),
-                                                  if (_trabajos[indice].imagenes.isNotEmpty)
-                                                    rowSpacer,
-                                                  if (_trabajos[indice].imagenes.isNotEmpty)
-                                                    TableRow(
-                                                      children: [
-                                                        const Text('Imágenes:'),
-                                                        GridView.builder(
-                                                          physics:
-                                                              const NeverScrollableScrollPhysics(),
-                                                          shrinkWrap: true,
-                                                          gridDelegate:
-                                                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                                                  crossAxisCount: 2),
-                                                          itemCount:
-                                                              _trabajos[indice].imagenes.length,
-                                                          itemBuilder: (context, index2) {
-                                                            return Image.memory(_trabajos[indice]
-                                                                .imagenes[index2]);
-                                                          },
-                                                        ),
-                                                      ],
-                                                    ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Visibility(
-                                          visible: _modoSeleccion,
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(10.0),
-                                            child: _seleccionados.contains(indice)
-                                                ? const Icon(
-                                                    color: PaletaColores.primario,
-                                                    Icons.check_box,
-                                                  )
-                                                : const Icon(
-                                                    color: PaletaColores.grisBordes,
-                                                    Icons.check_box_outline_blank,
-                                                  ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: TextFormFieldCustom(
+                                  prefixIcon: const Icon(Icons.calendar_today_outlined),
+                                  labelText: 'Fecha inicio',
+                                  controller: _fechaInicioController,
+                                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                                  readOnly: true,
+                                  onTap: () async {
+                                    DateTime? seleccionado = await showDatePicker(
+                                      context: context,
+                                      initialDate: _fechaInicio,
+                                      firstDate: DateTime(2000),
+                                      lastDate: DateTime(2100),
+                                    );
+                                    if (seleccionado == null) return;
+                                    setState(() {
+                                      _fechaInicioController.text =
+                                          Utils.formatDate(seleccionado);
+                                    });
+                                    _fechaInicio = seleccionado;
+                                    _formKeyFechas.currentState!.validate();
+                                  },
+                                  validator: (_) {
+                                    if (!_fechaValida()) {
+                                      return '';
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ),
                             ],
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                  if (_trabajos.isNotEmpty) const SizedBox(height: 5),
-                  const Divider(
-                    height: 0,
-                    color: PaletaColores.grisBordes,
-                  ),
-                  FocusScope(
-                    child: Focus(
-                      onFocusChange: (hasFocus) {
-                        if (hasFocus) {
-                          FocusScope.of(context).unfocus();
-                        }
-                      },
-                      child: TextFieldCustom(
-                        prefixIcon: const Icon(Icons.fact_check_outlined),
-                        labelText: 'Trabajo finalizado',
-                        suffixIcon: Switch.adaptive(
-                          activeTrackColor: PaletaColores.primario,
-                          value: _trabajoFinalizado,
-                          onChanged: (bool value) {
-                            setState(() {
-                              _trabajoFinalizado = value;
-                            });
-                          },
-                        ),
-                        readOnly: true,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormFieldCustom(
+                                  prefixIcon: const Icon(Icons.watch_later),
+                                  labelText: 'Hora final',
+                                  controller: _horaFinalController,
+                                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                                  readOnly: true,
+                                  onTap: () async {
+                                    TimeOfDay? seleccionado = await showTimePicker(
+                                      context: context,
+                                      initialTime: TimeOfDay(
+                                        hour: _horaFinal ~/ 60,
+                                        minute: _horaFinal % 60,
+                                      ),
+                                    );
+                                    if (seleccionado == null) return;
+                                    String horas =
+                                        seleccionado.toString().split(':')[0].split('(')[1];
+                                    String minutos =
+                                        seleccionado.toString().split(':')[1].split(')')[0];
+                                    setState(() {
+                                      _horaFinalController.text = '$horas:$minutos';
+                                    });
+                                    _horaFinal = seleccionado.hour * 60 + seleccionado.minute;
+                                    _formKeyFechas.currentState!.validate();
+                                  },
+                                  validator: (_) {
+                                    if (!_fechaValida()) {
+                                      return 'Debe ser posterior';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: TextFormFieldCustom(
+                                  prefixIcon: const Icon(Icons.calendar_today),
+                                  labelText: 'Fecha final',
+                                  controller: _fechaFinalController,
+                                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                                  readOnly: true,
+                                  onTap: () async {
+                                    DateTime? seleccionado = await showDatePicker(
+                                      context: context,
+                                      initialDate: _fechaFinal,
+                                      firstDate: DateTime(2000),
+                                      lastDate: DateTime(2100),
+                                    );
+                                    if (seleccionado == null) return;
+                                    setState(() {
+                                      _fechaFinalController.text =
+                                          Utils.formatDate(seleccionado);
+                                    });
+                                    _fechaFinal = seleccionado;
+                                    _formKeyFechas.currentState!.validate();
+                                  },
+                                  validator: (_) {
+                                    if (!_fechaValida()) {
+                                      return '';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  if (!_trabajoFinalizado)
                     TextFieldCustom(
-                      prefixIcon: const Icon(Icons.build_outlined),
-                      labelText: 'Trabajo pendiente',
-                      controller: _trabajoPendienteController,
+                      prefixIcon: const Icon(Icons.engineering),
+                      labelText: 'Otros trabajadores',
+                      controller: _otrosTrabajadoresController,
                     ),
-                  FocusScope(
-                    child: Focus(
-                      onFocusChange: (hasFocus) {
-                        if (hasFocus) {
-                          FocusScope.of(context).unfocus();
-                        }
-                      },
-                      child: TextFieldCustom(
-                        prefixIcon: const Icon(Icons.border_color_outlined),
-                        labelText: 'Firma',
-                        suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
-                        border: InputBorder.none,
-                        readOnly: true,
-                        onTap: () async {
-                          if (_firma == null) {
+                    TextFieldCustom(
+                      prefixIcon: const Icon(Icons.search),
+                      labelText: 'Observaciones',
+                      controller: _observacionesController,
+                    ),
+                    FocusScope(
+                      child: Focus(
+                        onFocusChange: (hasFocus) {
+                          if (hasFocus) {
+                            FocusScope.of(context).unfocus();
+                          }
+                        },
+                        child: TextFormField(
+                          //NO CAMBIAR A CUSTOM
+                          key: _textFormFieldKeyTrabajos,
+                          decoration: const InputDecoration(
+                            prefixIcon: Icon(Icons.handyman_outlined),
+                            labelText: 'Trabajos realizados',
+                            suffixIcon: Icon(Icons.add_rounded),
+                            border: InputBorder.none,
+                          ),
+                          readOnly: true,
+                          onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: ((context) => const FirmaPagina())),
-                            ).then((final firma) {
-                              if (firma == null) return;
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    TrabajoPagina(numero: _trabajos.length + 1),
+                              ),
+                            ).then((final trabajo) {
+                              if (trabajo == null) return;
 
                               setState(() {
-                                _firma = firma;
+                                _trabajos.add(trabajo);
+                                _textFormFieldKeyTrabajos.currentState!.validate();
                               });
                             });
-                          } else {
-                            showAdaptiveDialog(
-                              context: context,
-                              builder: (context) => SimpleDialog(
-                                title: const Center(
-                                  child: Text(
-                                      'Si sigue adelante eliminará la firma actual. ¿Desea continuar?'),
-                                ),
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                    children: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text('NO'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
+                          },
+                          validator: (_) {
+                            if (_trabajos.isEmpty) {
+                              return 'Este campo es obligatorio.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ),
+                    SlidableAutoCloseBehavior(
+                      closeWhenOpened: !_modoSeleccion,
+                      child: ListView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: _trabajos.length,
+                        itemBuilder: (context, indice) {
+                          final slidableController = SlidableController(this);
+                          deslizablesABorrar[indice] = slidableController;
 
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Stack(
+                              children: [
+                                Positioned.fill(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: PaletaColores.eliminarDeslizable,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                                Slidable(
+                                  controller: slidableController,
+                                  enabled: !_modoSeleccion,
+                                  key: UniqueKey(),
+                                  startActionPane: ActionPane(
+                                    extentRatio: 0.3,
+                                    motion: const BehindMotion(),
+                                    children: [
+                                      SlidableAction(
+                                        padding: EdgeInsets.zero,
+                                        autoClose: false,
+                                        onPressed: (context) {
+                                          showAdaptiveDialog(
+                                            context: context,
+                                            builder: (context) => SimpleDialog(
+                                              title: const Center(
+                                                child: Text('¿Eliminar trabajo?'),
+                                              ),
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.spaceAround,
+                                                  children: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                        slidableController.close();
+                                                      },
+                                                      child: const Text('NO'),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+
+                                                        slidableController.dismiss(
+                                                          ResizeRequest(
+                                                            const Duration(milliseconds: 100),
+                                                            () {
+                                                              setState(() {
+                                                                _trabajos.removeAt(indice);
+                                                                for (var i = indice;
+                                                                    i < _trabajos.length;
+                                                                    i++) {
+                                                                  _trabajos[i].numero--;
+                                                                }
+                                                              });
+                                                            },
+                                                          ),
+                                                        );
+                                                      },
+                                                      child: const Text('SI'),
+                                                    )
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                        backgroundColor: Colors.transparent,
+                                        foregroundColor: Colors.white,
+                                        icon: Icons.delete,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Tarjeta(
+                                    color: _seleccionados.contains(indice)
+                                        ? PaletaColores.tarjetaSeleccionada
+                                        : null,
+                                    colorBorde: _seleccionados.contains(indice)
+                                        ? PaletaColores.primario
+                                        : null,
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(12),
+                                      onTap: () {
+                                        if (_modoSeleccion) {
+                                          _seleccionar(indice);
+                                        } else {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                                builder: ((context) => const FirmaPagina())),
-                                          ).then((final firma) {
+                                              builder: (context) => TrabajoPagina(
+                                                numero: indice + 1,
+                                                trabajo: _trabajos[indice],
+                                              ),
+                                            ),
+                                          ).then((final trabajo) {
+                                            if (trabajo == null) return;
                                             setState(() {
-                                              _firma = firma;
+                                              _trabajos[indice] = trabajo;
                                             });
                                           });
-                                        },
-                                        child: const Text('SI'),
-                                      )
-                                    ],
+                                        }
+                                      },
+                                      onLongPress: () {
+                                        _modoSeleccion = true;
+                                        _seleccionar(indice);
+                                      },
+                                      child: Stack(
+                                        alignment: Alignment.topRight,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(12, 9, 10, 12),
+                                            child: Column(
+                                              children: [
+                                                Table(
+                                                  columnWidths: const {0: FixedColumnWidth(100)},
+                                                  children: [
+                                                    TableRow(
+                                                      children: [
+                                                        const Text('Nº:'),
+                                                        Text('${indice + 1}'),
+                                                      ],
+                                                    ),
+                                                    rowSpacer,
+                                                    TableRow(
+                                                      children: [
+                                                        const Text('Descripción:'),
+                                                        Text(_trabajos[indice].descripcion),
+                                                      ],
+                                                    ),
+                                                    rowSpacer,
+                                                    TableRow(
+                                                      children: [
+                                                        const Text('Material:'),
+                                                        Text(_trabajos[indice].material!),
+                                                      ],
+                                                    ),
+                                                    if (_trabajos[indice].imagenes.isNotEmpty)
+                                                      rowSpacer,
+                                                    if (_trabajos[indice].imagenes.isNotEmpty)
+                                                      TableRow(
+                                                        children: [
+                                                          const Text('Imágenes:'),
+                                                          GridView.builder(
+                                                            physics:
+                                                                const NeverScrollableScrollPhysics(),
+                                                            shrinkWrap: true,
+                                                            gridDelegate:
+                                                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                                                    crossAxisCount: 2),
+                                                            itemCount: _trabajos[indice]
+                                                                .imagenes
+                                                                .length,
+                                                            itemBuilder: (context, index2) {
+                                                              return Image.memory(
+                                                                  _trabajos[indice]
+                                                                      .imagenes[index2]);
+                                                            },
+                                                          ),
+                                                        ],
+                                                      ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Visibility(
+                                            visible: _modoSeleccion,
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(10.0),
+                                              child: _seleccionados.contains(indice)
+                                                  ? const Icon(
+                                                      color: PaletaColores.primario,
+                                                      Icons.check_box,
+                                                    )
+                                                  : const Icon(
+                                                      color: PaletaColores.grisBordes,
+                                                      Icons.check_box_outline_blank,
+                                                    ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
-                                ],
-                              ),
-                            );
-                          }
+                                ),
+                              ],
+                            ),
+                          );
                         },
                       ),
                     ),
-                  ),
-                  if (_firma != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 15),
-                      child: Tarjeta(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: Column(
-                              children: [
-                                Text(_firma!.nombre),
-                                if (_firma!.dni!.isNotEmpty) Text(_firma!.dni!),
-                                Image.memory(_firma!.dibujo),
-                              ],
+                    if (_trabajos.isNotEmpty) const SizedBox(height: 5),
+                    const Divider(
+                      height: 0,
+                      color: PaletaColores.grisBordes,
+                    ),
+                    FocusScope(
+                      child: Focus(
+                        onFocusChange: (hasFocus) {
+                          if (hasFocus) {
+                            FocusScope.of(context).unfocus();
+                          }
+                        },
+                        child: TextFieldCustom(
+                          prefixIcon: const Icon(Icons.fact_check_outlined),
+                          labelText: 'Trabajo finalizado',
+                          suffixIcon: Switch.adaptive(
+                            activeTrackColor: PaletaColores.primario,
+                            value: _trabajoFinalizado,
+                            onChanged: (bool value) {
+                              setState(() {
+                                _trabajoFinalizado = value;
+                              });
+                            },
+                          ),
+                          readOnly: true,
+                        ),
+                      ),
+                    ),
+                    if (!_trabajoFinalizado)
+                      TextFieldCustom(
+                        prefixIcon: const Icon(Icons.build_outlined),
+                        labelText: 'Trabajo pendiente',
+                        controller: _trabajoPendienteController,
+                      ),
+                    FocusScope(
+                      child: Focus(
+                        onFocusChange: (hasFocus) {
+                          if (hasFocus) {
+                            FocusScope.of(context).unfocus();
+                          }
+                        },
+                        child: TextFieldCustom(
+                          prefixIcon: const Icon(Icons.border_color_outlined),
+                          labelText: 'Firma',
+                          suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
+                          border: InputBorder.none,
+                          readOnly: true,
+                          onTap: () async {
+                            if (_firma == null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: ((context) => const FirmaPagina())),
+                              ).then((final firma) {
+                                if (firma == null) return;
+
+                                setState(() {
+                                  _firma = firma;
+                                });
+                              });
+                            } else {
+                              showAdaptiveDialog(
+                                context: context,
+                                builder: (context) => SimpleDialog(
+                                  title: const Center(
+                                    child: Text(
+                                        'Si sigue adelante eliminará la firma actual. ¿Desea continuar?'),
+                                  ),
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                      children: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('NO'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: ((context) => const FirmaPagina())),
+                                            ).then((final firma) {
+                                              setState(() {
+                                                _firma = firma;
+                                              });
+                                            });
+                                          },
+                                          child: const Text('SI'),
+                                        )
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    if (_firma != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 15),
+                        child: Tarjeta(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: Column(
+                                children: [
+                                  Text(_firma!.nombre),
+                                  if (_firma!.dni!.isNotEmpty) Text(_firma!.dni!),
+                                  Image.memory(_firma!.dibujo),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
+                    const Divider(
+                      height: 0,
+                      color: PaletaColores.grisBordes,
                     ),
-                  const Divider(
-                    height: 0,
-                    color: PaletaColores.grisBordes,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 25, bottom: 25),
-                    child: BotonGradiente(
-                      nombre: 'GUARDAR PARTE',
-                      onTap: () {
-                        _formKeyFechas.currentState!.validate();
-                        if (_formKeyGeneral.currentState!.validate() &&
-                            _formKeyFechas.currentState!.validate()) {
-                          final int number;
-                          if (widget.parte == null) {
-                            if (boxPartes.length == 0) {
-                              number = 1;
-                            } else {
-                              final ultimoParte = boxPartes.values.last;
-                              if (ultimoParte.year != DateTime.now().year) {
+                    Padding(
+                      padding: const EdgeInsets.only(top: 25, bottom: 25),
+                      child: BotonGradiente(
+                        nombre: 'GUARDAR PARTE',
+                        onTap: () {
+                          _formKeyFechas.currentState!.validate();
+                          if (_formKeyGeneral.currentState!.validate() &&
+                              _formKeyFechas.currentState!.validate()) {
+                            final int number;
+                            if (widget.parte == null) {
+                              if (boxPartes.length == 0) {
                                 number = 1;
                               } else {
-                                number = ultimoParte.number + 1;
+                                final ultimoParte = boxPartes.values.last;
+                                if (ultimoParte.year != DateTime.now().year) {
+                                  number = 1;
+                                } else {
+                                  number = ultimoParte.number + 1;
+                                }
                               }
+                            } else {
+                              number = -1;
                             }
-                          } else {
-                            number = -1;
+
+                            final comienzo = _fechaInicio.copyWith(minute: _horaInicio);
+                            final fin = _fechaFinal.copyWith(minute: _horaFinal);
+                            final diferencia = fin.difference(comienzo);
+                            final horasTotales =
+                                '${diferencia.toString().split(':')[0]}:${diferencia.toString().split(':')[1]}h';
+
+                            final parte = Parte(
+                              cliente: _cliente,
+                              horaInicio: _horaInicioController.text,
+                              fechaInicio: _fechaInicioController.text,
+                              horaFinal: _horaFinalController.text,
+                              fechaFinal: _fechaFinalController.text,
+                              otrosTrabajadores: _otrosTrabajadoresController.text,
+                              observaciones: _observacionesController.text,
+                              trabajos: _trabajos,
+                              trabajoFinalizado: _trabajoFinalizado,
+                              trabajoPendiente: _trabajoPendienteController.text,
+                              number: widget.parte == null ? number : widget.parte!.number,
+                              horasTotales: horasTotales,
+                              firma: _firma,
+                            );
+
+                            Navigator.pop(context, parte);
                           }
-
-                          final comienzo = _fechaInicio.copyWith(minute: _horaInicio);
-                          final fin = _fechaFinal.copyWith(minute: _horaFinal);
-                          final diferencia = fin.difference(comienzo);
-                          final horasTotales =
-                              '${diferencia.toString().split(':')[0]}:${diferencia.toString().split(':')[1]}h';
-
-                          final parte = Parte(
-                            cliente: _cliente,
-                            horaInicio: _horaInicioController.text,
-                            fechaInicio: _fechaInicioController.text,
-                            horaFinal: _horaFinalController.text,
-                            fechaFinal: _fechaFinalController.text,
-                            otrosTrabajadores: _otrosTrabajadoresController.text,
-                            observaciones: _observacionesController.text,
-                            trabajos: _trabajos,
-                            trabajoFinalizado: _trabajoFinalizado,
-                            trabajoPendiente: _trabajoPendienteController.text,
-                            number: widget.parte == null ? number : widget.parte!.number,
-                            horasTotales: horasTotales,
-                            firma: _firma,
-                          );
-
-                          Navigator.pop(context, parte);
-                        }
-                      },
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -836,14 +861,15 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
   }
 
   void _seleccionar(final int indice) {
-    if (_seleccionados.remove(indice)) {
-      if (_seleccionados.isEmpty) {
-        _modoSeleccion = false;
+    setState(() {
+      if (_seleccionados.remove(indice)) {
+        if (_seleccionados.isEmpty) {
+          _modoSeleccion = false;
+        }
+      } else {
+        _seleccionados.add(indice);
       }
-    } else {
-      _seleccionados.add(indice);
-    }
-    setState(() {});
+    });
   }
 
   void _salirModoSeleccion() {

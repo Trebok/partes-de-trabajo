@@ -171,14 +171,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   }
 
   void _seleccionar(final int indice) {
-    if (_seleccionados.remove(indice)) {
-      if (_seleccionados.isEmpty) {
-        _modoSeleccion = false;
+    setState(() {
+      if (_seleccionados.remove(indice)) {
+        if (_seleccionados.isEmpty) {
+          _modoSeleccion = false;
+        }
+      } else {
+        _seleccionados.add(indice);
       }
-    } else {
-      _seleccionados.add(indice);
-    }
-    setState(() {});
+    });
   }
 
   void _salirModoSeleccion() {
@@ -333,7 +334,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 color: Colors.white,
                 onPressed: () async {
                   try {
-                    showDialog(
+                    showAdaptiveDialog(
                       barrierDismissible: false,
                       context: context,
                       builder: (context) {
@@ -386,7 +387,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         ..removeCurrentSnackBar()
                         ..showSnackBar(SnackBar(
                           content: Text(
-                              '¡${_seleccionados.length} partes enviados a ${LocalStorage.prefs.get('emailDestino')}!'),
+                              '¡${_seleccionados.length} ${_seleccionados.length > 1 ? 'partes enviados' : 'parte enviado'} a ${LocalStorage.prefs.get('emailDestino')}!'),
                           backgroundColor: Colors.green,
                         ));
                     }
@@ -534,7 +535,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           Pagina.partes => listaPartes(),
           Pagina.clientes => listaClientes(),
           Pagina.perfil => perfil(),
-          Pagina.ajustes => ajustes(),
+          Pagina.ajustes => const Ajustes(),
         },
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         floatingActionButton: _paginaActual == Pagina.partes || _paginaActual == Pagina.clientes
@@ -552,7 +553,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     case Pagina.clientes:
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => ClientePagina()),
+                        MaterialPageRoute(builder: (context) => const ClientePagina()),
                       ).then((final cliente) => setState(() {
                             if (cliente == null) return;
 
@@ -689,7 +690,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         autoClose: false,
                         onPressed: (context) async {
                           try {
-                            showDialog(
+                            showAdaptiveDialog(
                               barrierDismissible: false,
                               context: context,
                               builder: (context) {
@@ -1014,20 +1015,17 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           children: [
                             Padding(
                               padding: const EdgeInsets.all(12),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Padding(
-                                      padding: EdgeInsets.only(right: _modoSeleccion ? 25 : 0),
-                                      child: Text(
-                                        cliente.nombre,
-                                        style: const TextStyle(
-                                          fontSize: 15,
-                                        ),
-                                      ),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: Padding(
+                                  padding: EdgeInsets.only(right: _modoSeleccion ? 25 : 0),
+                                  child: Text(
+                                    cliente.nombre,
+                                    style: const TextStyle(
+                                      fontSize: 15,
                                     ),
                                   ),
-                                ],
+                                ),
                               ),
                             ),
                             Visibility(
@@ -1081,31 +1079,45 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       ),
     );
   }
+}
 
-  Widget ajustes() {
-    final emailDestino = LocalStorage.prefs.getString('emailDestino');
-    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-    String? validarEmail(String? email) {
-      RegExp expRegEmail = RegExp(r'^[\w\.-]+@[\w-]+\.\w{2,3}(\.\w{2,3})?$');
-      final esValidoEmail = expRegEmail.hasMatch(email ?? '');
-      if (!esValidoEmail) {
-        return 'Introduce un email válido';
-      }
-      return null;
-    }
+class Ajustes extends StatefulWidget {
+  const Ajustes({super.key});
 
-    TextEditingController correoDestino = TextEditingController(text: emailDestino);
+  @override
+  State<Ajustes> createState() => _AjustesState();
+}
+
+class _AjustesState extends State<Ajustes> {
+  final _emailDestino = LocalStorage.prefs.getString('emailDestino');
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  late final TextEditingController _correoDestino;
+
+  @override
+  void initState() {
+    super.initState();
+    _correoDestino = TextEditingController(text: _emailDestino);
+  }
+
+  @override
+  void dispose() {
+    _correoDestino.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 5, 20, 20),
         child: Form(
-          key: formKey,
+          key: _formKey,
           child: Column(
             children: [
               TextFormFieldCustom(
                 prefixIcon: const Icon(Icons.email),
                 labelText: 'Email destino',
-                controller: correoDestino,
+                controller: _correoDestino,
                 textCapitalization: TextCapitalization.none,
                 keyboardType: TextInputType.emailAddress,
                 validator: validarEmail,
@@ -1116,8 +1128,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 child: BotonGradiente(
                   nombre: 'GUARDAR',
                   onTap: () {
-                    if (formKey.currentState!.validate()) {
-                      LocalStorage.prefs.setString('emailDestino', correoDestino.text);
+                    if (_formKey.currentState!.validate()) {
+                      LocalStorage.prefs.setString('emailDestino', _correoDestino.text);
                       ScaffoldMessenger.of(context)
                         ..removeCurrentSnackBar()
                         ..showSnackBar(
@@ -1135,5 +1147,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         ),
       ),
     );
+  }
+
+  String? validarEmail(String? email) {
+    RegExp expRegEmail = RegExp(r'^[\w\.-]+@[\w-]+\.\w{2,3}(\.\w{2,3})?$');
+    final esValidoEmail = expRegEmail.hasMatch(email ?? '');
+    if (!esValidoEmail) {
+      return 'Introduce un email válido';
+    }
+    return null;
   }
 }

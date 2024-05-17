@@ -19,154 +19,399 @@ class TrabajoPagina extends StatefulWidget {
 }
 
 class _TrabajoPaginaState extends State<TrabajoPagina> {
-  late String titulo;
+  //TODO
+  final data = [
+    '',
+  ];
+
+  late String _titulo;
   final _formKey = GlobalKey<FormState>();
 
-  late final TextEditingController _descripcion;
+  late String _descripcion;
   late final TextEditingController _material;
   late final List<Uint8List> _imagenes;
 
+  bool _modoSeleccion = false;
+  final List<int> _seleccionados = [];
+  bool _hayCambios = false;
+
   @override
   void initState() {
+    super.initState();
     if (widget.trabajo == null) {
-      titulo = 'NUEVO TRABAJO';
-      _descripcion = TextEditingController();
+      _titulo = 'NUEVO TRABAJO';
+      _descripcion = '';
       _material = TextEditingController();
       _imagenes = [];
     } else {
-      titulo = 'EDITAR TRABAJO';
-      _descripcion = TextEditingController(text: widget.trabajo!.descripcion);
+      _titulo = 'EDITAR TRABAJO';
+      _descripcion = widget.trabajo!.descripcion;
       _material = TextEditingController(text: widget.trabajo!.material);
       _imagenes = List.from(widget.trabajo!.imagenes);
     }
+  }
 
-    super.initState();
+  @override
+  void dispose() {
+    _material.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: BarraNavegacion(nombre: titulo),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                FocusScope(
-                  child: Focus(
-                    onFocusChange: (hasFocus) {
-                      if (hasFocus) {
-                        FocusScope.of(context).unfocus();
+    return PopScope(
+      canPop: !_hayCambios,
+      onPopInvoked: (didPop) async {
+        if (!didPop) {
+          await _salirConCambios();
+        }
+      },
+      child: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Scaffold(
+          appBar: BarraNavegacion(
+            nombre: _modoSeleccion ? _tituloSeleccion() : _titulo,
+            leading: _modoSeleccion
+                ? IconButton(
+                    tooltip: 'Salir del modo selección',
+                    icon: const Icon(Icons.close_rounded),
+                    color: Colors.white,
+                    onPressed: () {
+                      _salirModoSeleccion();
+                    },
+                  )
+                : BackButton(
+                    color: Colors.white,
+                    onPressed: () async {
+                      if (_hayCambios) {
+                        await _salirConCambios();
+                      } else if (context.mounted) {
+                        Navigator.of(context).pop();
                       }
                     },
-                    child: TextFieldCustom(
-                      prefixIcon: const Icon(Icons.numbers),
-                      labelText: 'Nº ${widget.numero}',
-                      readOnly: true,
-                    ),
                   ),
-                ),
-                TextFormFieldCustom(
-                  prefixIcon: const Icon(Icons.description),
-                  labelText: 'Descripción',
-                  controller: _descripcion,
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Este campo es obligatorio.';
-                    }
-                    return null;
-                  },
-                ),
-                TextFieldCustom(
-                  prefixIcon: const Icon(Icons.home_repair_service),
-                  labelText: 'Material',
-                  controller: _material,
-                ),
-                FocusScope(
-                  child: Focus(
-                    onFocusChange: (hasFocus) {
-                      if (hasFocus) {
-                        FocusScope.of(context).unfocus();
-                      }
-                    },
-                    child: TextFormFieldCustom(
-                      prefixIcon: const Icon(Icons.image),
-                      labelText: 'Imágenes',
-                      suffixIcon: const Icon(Icons.add_rounded),
-                      border: InputBorder.none,
-                      readOnly: true,
-                      onTap: () async {
-                        try {
-                          final imagen =
-                              await ImagePicker().pickImage(source: ImageSource.gallery);
-                          if (imagen == null) return;
+            actions: [
+              Visibility(
+                visible: _modoSeleccion,
+                child: IconButton(
+                  tooltip: 'Eliminar',
+                  icon: const Icon(Icons.delete),
+                  color: Colors.white,
+                  onPressed: () {
+                    showAdaptiveDialog(
+                      context: context,
+                      builder: (context) => SimpleDialog(
+                        title: Center(
+                          child: Text(
+                              '¿Eliminar ${_seleccionados.length} ${_seleccionados.length > 1 ? 'imágenes?' : 'imagen?'}'),
+                        ),
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('NO'),
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  Navigator.pop(context);
 
-                          final imagenBytes = await imagen.readAsBytes();
-
-                          setState(() {
-                            _imagenes.add(imagenBytes);
-                          });
-                        } on PlatformException catch (e) {
-                          debugPrint('Error al elegir imagen $e');
-                        }
-                      },
-                    ),
-                  ),
-                ),
-                GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
-                  itemCount: _imagenes.length,
-                  itemBuilder: (context, index) {
-                    final imagen = _imagenes[index];
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ImagenFullScreen(imagen: imagen),
+                                  _seleccionados.sort((a, b) => b.compareTo(a));
+                                  for (final indice in _seleccionados) {
+                                    _imagenes.removeAt(indice);
+                                  }
+                                  _hayCambios = true;
+                                  _salirModoSeleccion();
+                                },
+                                child: const Text('SI'),
+                              )
+                            ],
                           ),
-                        );
-                      },
-                      child: Hero(
-                        tag: imagen,
-                        child: Image.memory(imagen),
+                        ],
                       ),
                     );
                   },
                 ),
-                if (_imagenes.isNotEmpty) const SizedBox(height: 10),
-                const Divider(
-                  height: 0,
-                  color: PaletaColores.grisBordes,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 25, bottom: 25),
-                  child: BotonGradiente(
-                    nombre: 'GUARDAR',
-                    onTap: () {
-                      if (_formKey.currentState!.validate()) {
-                        Navigator.pop(
-                          context,
-                          Trabajo(
-                            numero: widget.numero,
-                            descripcion: _descripcion.text,
-                            material: _material.text,
-                            imagenes: _imagenes,
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+              child: Form(
+                key: _formKey,
+                onChanged: () {
+                  setState(() {
+                    _hayCambios = true;
+                  });
+                },
+                child: Column(
+                  children: [
+                    FocusScope(
+                      child: Focus(
+                        onFocusChange: (hasFocus) {
+                          if (hasFocus) {
+                            FocusScope.of(context).unfocus();
+                          }
+                        },
+                        child: TextFieldCustom(
+                          prefixIcon: const Icon(Icons.numbers),
+                          labelText: 'Nº ${widget.numero}',
+                          readOnly: true,
+                        ),
+                      ),
+                    ),
+                    Autocomplete<String>(
+                      initialValue: TextEditingValue(text: _descripcion),
+                      optionsBuilder: (textEditingValue) {
+                        if (textEditingValue.text.isEmpty) {
+                          return const Iterable<String>.empty();
+                        }
+                        return data.where(
+                          (entry) => entry.contains(
+                            textEditingValue.text,
                           ),
                         );
-                      }
-                    },
-                  ),
+                      },
+                      fieldViewBuilder:
+                          (context, textEditingController, focusNode, onFieldSubmitted) {
+                        return TextFormFieldCustom(
+                          prefixIcon: const Icon(Icons.description),
+                          labelText: 'Descripción',
+                          controller: textEditingController,
+                          focusNode: focusNode,
+                          validator: (String? value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Este campo es obligatorio.';
+                            }
+                            return null;
+                          },
+                          onSaved: (newValue) {
+                            _descripcion = newValue!;
+                          },
+                        );
+                      },
+                    ),
+                    TextFormFieldCustom(
+                      prefixIcon: const Icon(Icons.home_repair_service),
+                      labelText: 'Material',
+                      controller: _material,
+                    ),
+                    FocusScope(
+                      child: Focus(
+                        onFocusChange: (hasFocus) {
+                          if (hasFocus) {
+                            FocusScope.of(context).unfocus();
+                          }
+                        },
+                        child: TextFormFieldCustom(
+                          prefixIcon: const Icon(Icons.image),
+                          labelText: 'Imágenes',
+                          suffixIcon: const Icon(Icons.add_rounded),
+                          border: InputBorder.none,
+                          readOnly: true,
+                          onTap: () async {
+                            await showAdaptiveDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text('Seleccionar imagen'),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      ListTile(
+                                        leading: const Icon(Icons.photo_library),
+                                        title: const Text('Elegir desde la galería'),
+                                        onTap: () async {
+                                          Navigator.of(context).pop();
+                                          final imagen = await ImagePicker()
+                                              .pickImage(source: ImageSource.gallery);
+                                          if (imagen != null) {
+                                            final imagenBytes = await imagen.readAsBytes();
+                                            setState(() {
+                                              _imagenes.add(imagenBytes);
+                                              _hayCambios = true;
+                                            });
+                                          }
+                                        },
+                                      ),
+                                      ListTile(
+                                        leading: const Icon(Icons.camera_alt),
+                                        title: const Text('Tomar una foto'),
+                                        onTap: () async {
+                                          Navigator.of(context).pop();
+                                          final imagen = await ImagePicker()
+                                              .pickImage(source: ImageSource.camera);
+                                          if (imagen != null) {
+                                            final imagenBytes = await imagen.readAsBytes();
+                                            setState(() {
+                                              _imagenes.add(imagenBytes);
+                                              _hayCambios = true;
+                                            });
+                                          }
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+                      itemCount: _imagenes.length,
+                      itemBuilder: (context, indice) {
+                        final imagen = _imagenes[indice];
+                        return GestureDetector(
+                          onTap: () {
+                            _modoSeleccion
+                                ? _seleccionar(indice)
+                                : Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ImagenFullScreen(imagen: imagen),
+                                    ),
+                                  );
+                          },
+                          onLongPress: () {
+                            _modoSeleccion = true;
+                            _seleccionar(indice);
+                          },
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: Hero(
+                                  tag: imagen,
+                                  child: Image.memory(
+                                    imagen,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: _seleccionados.contains(indice)
+                                        ? PaletaColores.primario
+                                        : Colors.transparent,
+                                    width: 3,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    if (_imagenes.isNotEmpty) const SizedBox(height: 10),
+                    const Divider(
+                      height: 0,
+                      color: PaletaColores.grisBordes,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 25, bottom: 25),
+                      child: BotonGradiente(
+                        nombre: 'GUARDAR',
+                        onTap: () {
+                          if (_formKey.currentState!.validate()) {
+                            _formKey.currentState!.save();
+                            Navigator.pop(
+                              context,
+                              Trabajo(
+                                numero: widget.numero,
+                                descripcion: _descripcion,
+                                material: _material.text,
+                                imagenes: _imagenes,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  String _tituloSeleccion() {
+    return _seleccionados.length > 1
+        ? '${_seleccionados.length} seleccionados'
+        : '1 seleccionado';
+  }
+
+  void _seleccionar(final int indice) {
+    setState(() {
+      if (_seleccionados.remove(indice)) {
+        if (_seleccionados.isEmpty) {
+          _modoSeleccion = false;
+        }
+      } else {
+        _seleccionados.add(indice);
+      }
+    });
+  }
+
+  void _salirModoSeleccion() {
+    setState(() {
+      _seleccionados.clear();
+      _modoSeleccion = false;
+    });
+  }
+
+  Future _salirConCambios() async {
+    await showAdaptiveDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar salida'),
+        content: const Text('Tienes cambios sin guardar.\n¿Quieres guardar antes de salir?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
+            child: const Text('Descartar'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                _formKey.currentState!.save();
+                Navigator.of(context).pop();
+                Navigator.pop(
+                  context,
+                  Trabajo(
+                    numero: widget.numero,
+                    descripcion: _descripcion,
+                    material: _material.text,
+                    imagenes: _imagenes,
+                  ),
+                );
+              }
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
       ),
     );
   }

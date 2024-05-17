@@ -28,103 +28,110 @@ class _FirmaPaginaState extends State<FirmaPagina> {
 
   @override
   void dispose() {
+    _nombre.dispose();
+    _dni.dispose();
     _controladorFirma.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const BarraNavegacion(nombre: 'Firmar'),
-      body: SingleChildScrollView(
-        physics: const ScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKeyGeneral,
-            child: Column(
-              children: [
-                Container(
-                  decoration: BoxDecoration(border: Border.all()),
-                  child: Signature(
-                    controller: _controladorFirma,
-                    height: 250,
-                    width: MediaQuery.sizeOf(context).width - 42,
-                    backgroundColor: PaletaColores.fondoFirma,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8a8a8a),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        appBar: const BarraNavegacion(nombre: 'Firmar'),
+        body: SingleChildScrollView(
+          physics: const ScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Form(
+              key: _formKeyGeneral,
+              child: Column(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(border: Border.all()),
+                    child: Signature(
+                      controller: _controladorFirma,
+                      height: 250,
+                      width: MediaQuery.sizeOf(context).width - 42,
+                      backgroundColor: PaletaColores.fondoFirma,
                     ),
                   ),
-                  onPressed: () {
-                    _controladorFirma.clear();
-                  },
-                  child: Text(
-                    'BORRAR FIRMA',
-                    style: GoogleFonts.montserrat(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF8a8a8a),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                    onPressed: () {
+                      _controladorFirma.clear();
+                    },
+                    child: Text(
+                      'BORRAR FIRMA',
+                      style: GoogleFonts.montserrat(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 50),
-                TextFormFieldCustom(
-                  prefixIcon: const Icon(Icons.person),
-                  labelText: 'Persona firmante',
-                  controller: _nombre,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  validator: (String? value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Este campo es obligatorio.';
-                    }
-                    return null;
-                  },
-                ),
-                TextFieldCustom(
-                  prefixIcon: const Icon(Icons.credit_card),
-                  labelText: 'DNI',
-                  controller: _dni,
-                ),
-                const SizedBox(
-                  height: 30,
-                ),
-                BotonGradiente(
-                  nombre: "GUARDAR",
-                  onTap: () async {
-                    if (_formKeyGeneral.currentState!.validate()) {
-                      if (_controladorFirma.isEmpty) {
-                        ScaffoldMessenger.of(context)
-                          ..removeCurrentSnackBar()
-                          ..showSnackBar(
-                            const SnackBar(
-                              content: Text('Firma vacía'),
-                            ),
-                          );
-                        return;
+                  const SizedBox(height: 50),
+                  TextFormFieldCustom(
+                    prefixIcon: const Icon(Icons.person),
+                    labelText: 'Persona firmante',
+                    controller: _nombre,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: (String? value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Este campo es obligatorio.';
                       }
+                      return null;
+                    },
+                  ),
+                  TextFieldCustom(
+                    prefixIcon: const Icon(Icons.credit_card),
+                    labelText: 'DNI',
+                    controller: _dni,
+                  ),
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  BotonGradiente(
+                    nombre: "GUARDAR",
+                    onTap: () async {
+                      if (_formKeyGeneral.currentState!.validate()) {
+                        if (_controladorFirma.isEmpty) {
+                          ScaffoldMessenger.of(context)
+                            ..removeCurrentSnackBar()
+                            ..showSnackBar(
+                              const SnackBar(
+                                content: Text('Firma vacía'),
+                              ),
+                            );
+                          return;
+                        }
 
-                      final Uint8List? dibujo = await _controladorFirma.toPngBytes();
-                      if (dibujo == null) return;
+                        final Uint8List? dibujo = await _controladorFirma.toPngBytes();
+                        if (dibujo == null) return;
 
-                      if (!context.mounted) return;
+                        if (!context.mounted) return;
 
-                      Navigator.pop(
-                        context,
-                        Firma(
-                          dibujo: dibujo,
-                          nombre: _nombre.text,
-                          dni: _dni.text,
-                        ),
-                      );
-                    }
-                  },
-                ),
-              ],
+                        Navigator.pop(
+                          context,
+                          Firma(
+                            dibujo: dibujo,
+                            nombre: _nombre.text,
+                            dni: _dni.text,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
