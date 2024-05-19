@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:partesdetrabajo/ajustes.dart';
 import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
 import 'package:partesdetrabajo/core/theme/theme.dart';
 import 'package:partesdetrabajo/firebase_options.dart';
@@ -21,10 +22,8 @@ import 'package:partesdetrabajo/model/trabajo.dart';
 import 'package:partesdetrabajo/pages/cliente_pagina.dart';
 import 'package:partesdetrabajo/pages/parte_pagina.dart';
 import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
-import 'package:partesdetrabajo/widgets/boton_gradiente.dart';
 import 'package:partesdetrabajo/widgets/floating_action_button_custom.dart';
 import 'package:partesdetrabajo/widgets/tarjeta.dart';
-import 'package:partesdetrabajo/widgets/text_form_field_custom.dart';
 import 'package:sign_in_button/sign_in_button.dart';
 
 void main() async {
@@ -70,6 +69,7 @@ class _MyAppState extends State<MyApp> {
       supportedLocales: const [
         Locale('es'),
       ],
+      // theme: ThemeData(platform: TargetPlatform.iOS),
       theme: AppTheme.lightThemeMode,
       darkTheme: AppTheme.darkThemeMode,
       home: StreamBuilder<User?>(
@@ -399,7 +399,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         ..removeCurrentSnackBar()
                         ..showSnackBar(const SnackBar(
                           content: Text(
-                              'Error al enviar, asegurate de asignar un email en los ajustes.'),
+                              'Error al enviar, asegurate de asignar un email válido en los ajustes.'),
                           backgroundColor: Color.fromARGB(255, 211, 0, 0),
                         ));
                     }
@@ -546,19 +546,22 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const PartePagina()),
-                      ).then((final parte) => setState(() {
-                            if (parte == null) return;
-                            boxPartes.add(parte);
-                          }));
+                      ).then((final parte) {
+                        if (parte == null) return;
+                        setState(() {
+                          boxPartes.add(parte);
+                        });
+                      });
                     case Pagina.clientes:
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const ClientePagina()),
-                      ).then((final cliente) => setState(() {
-                            if (cliente == null) return;
-
-                            boxClientes.put('${cliente.nombre}${DateTime.now()}', cliente);
-                          }));
+                      ).then((final cliente) {
+                        if (cliente == null) return;
+                        setState(() {
+                          boxClientes.put('${cliente.nombre}${DateTime.now()}', cliente);
+                        });
+                      });
                     default:
                       throw UnimplementedError();
                   }
@@ -594,7 +597,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   right: borrando ? 0 : MediaQuery.sizeOf(context).width / 2 - 20,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: PaletaColores.eliminarDeslizable,
+                      color: PaletaColores.eliminar,
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
@@ -740,7 +743,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                 ..removeCurrentSnackBar()
                                 ..showSnackBar(const SnackBar(
                                   content: Text(
-                                      'Error al enviar, asegurate de asignar un email en los ajustes.'),
+                                      'Error al enviar, asegurate de asignar un email válido en los ajustes.'),
                                   backgroundColor: Color.fromARGB(255, 211, 0, 0),
                                 ));
                             }
@@ -775,10 +778,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => PartePagina(parte: parte)),
-                          ).then((final parteEditado) => setState(() {
-                                if (parteEditado == null) return;
-                                boxPartes.putAt(indiceInvertido, parteEditado);
-                              }));
+                          ).then((final parteEditado) {
+                            if (parteEditado == null) return;
+                            setState(() {
+                              boxPartes.putAt(indiceInvertido, parteEditado);
+                            });
+                          });
                         }
                       },
                       onLongPress: () {
@@ -917,7 +922,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: PaletaColores.eliminarDeslizable,
+                        color: PaletaColores.eliminar,
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
@@ -994,16 +999,18 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               MaterialPageRoute(
                                 builder: (context) => ClientePagina(cliente: cliente),
                               ),
-                            ).then((final clienteEditado) => setState(() {
-                                  if (clienteEditado == null) return;
-                                  if (cliente.nombre != clienteEditado.nombre) {
-                                    boxClientes.deleteAt(indice);
-                                    boxClientes.put('${clienteEditado.nombre}${DateTime.now()}',
-                                        clienteEditado);
-                                  } else {
-                                    boxClientes.putAt(indice, clienteEditado);
-                                  }
-                                }));
+                            ).then((final clienteEditado) {
+                              if (clienteEditado == null) return;
+                              setState(() {
+                                if (cliente.nombre != clienteEditado.nombre) {
+                                  boxClientes.deleteAt(indice);
+                                  boxClientes.put('${clienteEditado.nombre}${DateTime.now()}',
+                                      clienteEditado);
+                                } else {
+                                  boxClientes.putAt(indice, clienteEditado);
+                                }
+                              });
+                            });
                           }
                         },
                         onLongPress: () {
@@ -1078,83 +1085,5 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         ],
       ),
     );
-  }
-}
-
-class Ajustes extends StatefulWidget {
-  const Ajustes({super.key});
-
-  @override
-  State<Ajustes> createState() => _AjustesState();
-}
-
-class _AjustesState extends State<Ajustes> {
-  final _emailDestino = LocalStorage.prefs.getString('emailDestino');
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  late final TextEditingController _correoDestino;
-
-  @override
-  void initState() {
-    super.initState();
-    _correoDestino = TextEditingController(text: _emailDestino);
-  }
-
-  @override
-  void dispose() {
-    _correoDestino.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 5, 20, 20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormFieldCustom(
-                prefixIcon: const Icon(Icons.email),
-                labelText: 'Email destino',
-                controller: _correoDestino,
-                textCapitalization: TextCapitalization.none,
-                keyboardType: TextInputType.emailAddress,
-                validator: validarEmail,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 25, bottom: 25),
-                child: BotonGradiente(
-                  nombre: 'GUARDAR',
-                  onTap: () {
-                    if (_formKey.currentState!.validate()) {
-                      LocalStorage.prefs.setString('emailDestino', _correoDestino.text);
-                      ScaffoldMessenger.of(context)
-                        ..removeCurrentSnackBar()
-                        ..showSnackBar(
-                          const SnackBar(
-                            content: Text('Guardado con éxito.'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  String? validarEmail(String? email) {
-    RegExp expRegEmail = RegExp(r'^[\w\.-]+@[\w-]+\.\w{2,3}(\.\w{2,3})?$');
-    final esValidoEmail = expRegEmail.hasMatch(email ?? '');
-    if (!esValidoEmail) {
-      return 'Introduce un email válido';
-    }
-    return null;
   }
 }

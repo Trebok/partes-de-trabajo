@@ -8,7 +8,7 @@ class PaletaColores {
   static const Color tarjetaSeleccionada = Color(0xFFD7D7DA);
   static const Color tarjetaBordes = Color(0xFFB4B4B8);
   static const Color grisBordes = Color(0xFF838385);
-  static const Color eliminarDeslizable = Color(0xFFFE4A49);
+  static const Color eliminar = Color(0xFFFE4A49);
   static const Color firma = Color(0xFF004D99);
   static const Color fondoFirma = Color(0xFFDFDFDF);
 }

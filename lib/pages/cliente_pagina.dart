@@ -3,7 +3,6 @@ import 'package:partesdetrabajo/model/cliente.dart';
 import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
 import 'package:partesdetrabajo/widgets/boton_gradiente.dart';
 import 'package:partesdetrabajo/widgets/text_field_custom.dart';
-import 'package:partesdetrabajo/widgets/text_form_field_custom.dart';
 
 class ClientePagina extends StatefulWidget {
   final Cliente? cliente;
@@ -69,7 +68,7 @@ class _ClientePaginaState extends State<ClientePagina> {
               key: _formKey,
               child: Column(
                 children: [
-                  TextFormFieldCustom(
+                  TextFieldCustom(
                     prefixIcon: const Icon(Icons.person),
                     labelText: 'Nombre',
                     controller: _nombre,

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
+import 'package:partesdetrabajo/helper/adaptive_action.dart';
+import 'package:partesdetrabajo/helper/local_storage.dart';
 import 'package:partesdetrabajo/model/trabajo.dart';
 import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
 import 'package:partesdetrabajo/widgets/boton_gradiente.dart';
 import 'package:partesdetrabajo/widgets/text_field_custom.dart';
-import 'package:partesdetrabajo/widgets/text_form_field_custom.dart';
 import 'package:photo_view/photo_view.dart';
 
 class TrabajoPagina extends StatefulWidget {
@@ -19,10 +21,7 @@ class TrabajoPagina extends StatefulWidget {
 }
 
 class _TrabajoPaginaState extends State<TrabajoPagina> {
-  //TODO
-  final data = [
-    '',
-  ];
+  late final List<String> trabajosPredefinidos;
 
   late String _titulo;
   final _formKey = GlobalKey<FormState>();
@@ -38,6 +37,12 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
   @override
   void initState() {
     super.initState();
+
+    if (LocalStorage.prefs.getStringList('trabajosPredefinidos') != null) {
+      trabajosPredefinidos = LocalStorage.prefs.getStringList('trabajosPredefinidos')!;
+    } else {
+      trabajosPredefinidos = [];
+    }
     if (widget.trabajo == null) {
       _titulo = 'NUEVO TRABAJO';
       _descripcion = '';
@@ -101,7 +106,7 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                   color: Colors.white,
                   onPressed: () {
                     showAdaptiveDialog(
-                      context: context,
+                      context: context, //TODO ADAPTATIVE ALERTDIALOG en todos los sitios
                       builder: (context) => SimpleDialog(
                         title: Center(
                           child: Text(
@@ -172,15 +177,15 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                         if (textEditingValue.text.isEmpty) {
                           return const Iterable<String>.empty();
                         }
-                        return data.where(
-                          (entry) => entry.contains(
-                            textEditingValue.text,
-                          ),
+                        return trabajosPredefinidos.where(
+                          (entry) => entry.toLowerCase().contains(
+                                textEditingValue.text.toLowerCase(),
+                              ),
                         );
                       },
                       fieldViewBuilder:
                           (context, textEditingController, focusNode, onFieldSubmitted) {
-                        return TextFormFieldCustom(
+                        return TextFieldCustom(
                           prefixIcon: const Icon(Icons.description),
                           labelText: 'Descripción',
                           controller: textEditingController,
@@ -196,8 +201,51 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                           },
                         );
                       },
+                      optionsViewBuilder: (context, onSelected, options) {
+                        return Align(
+                          alignment: Alignment.topLeft,
+                          child: Material(
+                            elevation: 4.0,
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxHeight: 200.0,
+                                maxWidth: MediaQuery.of(context).size.width - 40,
+                              ),
+                              child: ListView.builder(
+                                padding: EdgeInsets.zero,
+                                shrinkWrap: true,
+                                itemCount: options.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  final option = options.elementAt(index);
+                                  return InkWell(
+                                    onTap: () {
+                                      onSelected(option);
+                                    },
+                                    child: Builder(builder: (BuildContext context) {
+                                      final bool highlight =
+                                          AutocompleteHighlightedOption.of(context) == index;
+                                      if (highlight) {
+                                        SchedulerBinding.instance.addPostFrameCallback(
+                                            (Duration timeStamp) {
+                                          Scrollable.ensureVisible(context, alignment: 0.5);
+                                        }, debugLabel: 'AutocompleteOptions.ensureVisible');
+                                      }
+                                      return Container(
+                                        color: highlight ? Theme.of(context).focusColor : null,
+                                        padding: const EdgeInsets.all(16.0),
+                                        child:
+                                            Text(RawAutocomplete.defaultStringForOption(option)),
+                                      );
+                                    }),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                    TextFormFieldCustom(
+                    TextFieldCustom(
                       prefixIcon: const Icon(Icons.home_repair_service),
                       labelText: 'Material',
                       controller: _material,
@@ -209,7 +257,7 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                             FocusScope.of(context).unfocus();
                           }
                         },
-                        child: TextFormFieldCustom(
+                        child: TextFieldCustom(
                           prefixIcon: const Icon(Icons.image),
                           labelText: 'Imágenes',
                           suffixIcon: const Icon(Icons.add_rounded),
@@ -219,7 +267,7 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                             await showAdaptiveDialog(
                               context: context,
                               builder: (context) {
-                                return AlertDialog(
+                                return AlertDialog.adaptive(
                                   title: const Text('Seleccionar imagen'),
                                   content: Column(
                                     mainAxisSize: MainAxisSize.min,
@@ -376,24 +424,21 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
   Future _salirConCambios() async {
     await showAdaptiveDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => AlertDialog.adaptive(
         title: const Text('Confirmar salida'),
         content: const Text('Tienes cambios sin guardar.\n¿Quieres guardar antes de salir?'),
+        actionsAlignment: MainAxisAlignment.spaceBetween,
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
+          adaptiveAction(
+            context: context,
             onPressed: () {
               Navigator.of(context).pop();
               Navigator.of(context).pop();
             },
             child: const Text('Descartar'),
           ),
-          TextButton(
+          adaptiveAction(
+            context: context,
             onPressed: () {
               if (_formKey.currentState!.validate()) {
                 _formKey.currentState!.save();

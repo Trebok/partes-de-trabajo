@@ -7,7 +7,6 @@ import 'package:partesdetrabajo/model/firma.dart';
 import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
 import 'package:partesdetrabajo/widgets/boton_gradiente.dart';
 import 'package:partesdetrabajo/widgets/text_field_custom.dart';
-import 'package:partesdetrabajo/widgets/text_form_field_custom.dart';
 import 'package:signature/signature.dart';
 
 class FirmaPagina extends StatefulWidget {
@@ -79,7 +78,7 @@ class _FirmaPaginaState extends State<FirmaPagina> {
                     ),
                   ),
                   const SizedBox(height: 50),
-                  TextFormFieldCustom(
+                  TextFieldCustom(
                     prefixIcon: const Icon(Icons.person),
                     labelText: 'Persona firmante',
                     controller: _nombre,

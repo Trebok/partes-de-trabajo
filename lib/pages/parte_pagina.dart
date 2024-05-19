@@ -14,7 +14,6 @@ import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
 import 'package:partesdetrabajo/widgets/boton_gradiente.dart';
 import 'package:partesdetrabajo/widgets/tarjeta.dart';
 import 'package:partesdetrabajo/widgets/text_field_custom.dart';
-import 'package:partesdetrabajo/widgets/text_form_field_custom.dart';
 
 class PartePagina extends StatefulWidget {
   final Parte? parte;
@@ -29,6 +28,14 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
   final _formKeyGeneral = GlobalKey<FormState>();
   final _formKeyFechas = GlobalKey<FormState>();
   final _textFormFieldKeyTrabajos = GlobalKey<FormFieldState<String>>();
+  final _focusInstantaneo = FocusNode();
+  final _focusHoraInicio = FocusNode();
+  final _focusFechaInicio = FocusNode();
+  final _focusHoraFinal = FocusNode();
+  final _focusFechaFinal = FocusNode();
+  final _focusOtrosTrabajadores = FocusNode();
+  final _focusObservaciones = FocusNode();
+  final _focusTrabajoPendiente = FocusNode();
 
   late Cliente _cliente;
   late final TextEditingController _clienteController;
@@ -51,11 +58,21 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
 
   bool _modoSeleccion = false;
   final List<int> _seleccionados = [];
-  Map<int, SlidableController> deslizablesABorrar = {};
+  final Map<int, SlidableController> _deslizables = {};
 
   @override
   void initState() {
     super.initState();
+    _focusInstantaneo.addListener(() {
+      if (_focusInstantaneo.hasFocus) {
+        Future.microtask(() {
+          _focusInstantaneo.unfocus();
+          _deslizables.forEach((key, value) {
+            value.close();
+          });
+        });
+      }
+    });
 
     if (widget.parte == null) {
       titulo = 'NUEVO PARTE';
@@ -109,6 +126,14 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
 
   @override
   void dispose() {
+    _focusInstantaneo.dispose();
+    _focusHoraInicio.dispose();
+    _focusFechaInicio.dispose();
+    _focusHoraFinal.dispose();
+    _focusFechaFinal.dispose();
+    _focusOtrosTrabajadores.dispose();
+    _focusObservaciones.dispose();
+    _focusTrabajoPendiente.dispose();
     _clienteController.dispose();
     _horaInicioController.dispose();
     _fechaInicioController.dispose();
@@ -131,7 +156,9 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
       },
       child: GestureDetector(
         onTap: () {
-          FocusScope.of(context).unfocus();
+          _deslizables.forEach((key, value) {
+            value.close();
+          });
         },
         child: Scaffold(
           appBar: BarraNavegacion(
@@ -174,8 +201,8 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                                   Navigator.pop(context);
                                   _seleccionados.sort((a, b) => b.compareTo(a));
                                   for (var indice in _seleccionados) {
-                                    deslizablesABorrar[indice]!.openStartActionPane();
-                                    deslizablesABorrar[indice]!.dismiss(
+                                    _deslizables[indice]!.openStartActionPane();
+                                    _deslizables[indice]!.dismiss(
                                       ResizeRequest(
                                         const Duration(milliseconds: 100),
                                         () {
@@ -212,41 +239,33 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                 key: _formKeyGeneral,
                 child: Column(
                   children: [
-                    FocusScope(
-                      child: Focus(
-                        onFocusChange: (hasFocus) {
-                          if (hasFocus) {
-                            FocusScope.of(context).unfocus();
-                          }
-                        },
-                        child: TextFormFieldCustom(
-                          prefixIcon: const Icon(Icons.person),
-                          labelText: 'Cliente',
-                          suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
-                          controller: _clienteController,
-                          autovalidateMode: AutovalidateMode.onUserInteraction,
-                          readOnly: true,
-                          onTap: () async {
-                            final cliente = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SeleccionCliente(),
-                              ),
-                            );
-                            if (cliente == null) return;
-                            setState(() {
-                              _clienteController.text = cliente.nombre;
-                              _cliente = cliente;
-                            });
-                          },
-                          validator: (String? value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Este campo es obligatorio.';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
+                    TextFieldCustom(
+                      prefixIcon: const Icon(Icons.person),
+                      labelText: 'Cliente',
+                      suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
+                      controller: _clienteController,
+                      focusNode: _focusInstantaneo,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      readOnly: true,
+                      onTap: () async {
+                        final cliente = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SeleccionCliente(),
+                          ),
+                        );
+                        if (cliente == null) return;
+                        setState(() {
+                          _clienteController.text = cliente.nombre;
+                          _cliente = cliente;
+                        });
+                      },
+                      validator: (String? value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Este campo es obligatorio.';
+                        }
+                        return null;
+                      },
                     ),
                     Form(
                       key: _formKeyFechas,
@@ -255,13 +274,17 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                           Row(
                             children: [
                               Expanded(
-                                child: TextFormFieldCustom(
+                                child: TextFieldCustom(
                                   prefixIcon: const Icon(Icons.watch_later_outlined),
                                   labelText: 'Hora inicio',
                                   controller: _horaInicioController,
+                                  focusNode: _focusHoraInicio,
                                   autovalidateMode: AutovalidateMode.onUserInteraction,
                                   readOnly: true,
                                   onTap: () async {
+                                    _deslizables.forEach((key, value) {
+                                      value.close();
+                                    });
                                     TimeOfDay? seleccionado = await showTimePicker(
                                       context: context,
                                       initialTime: TimeOfDay(
@@ -280,6 +303,9 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                                     _horaInicio = seleccionado.hour * 60 + seleccionado.minute;
                                     _formKeyFechas.currentState!.validate();
                                   },
+                                  onTapOutside: (event) {
+                                    _focusHoraInicio.unfocus();
+                                  },
                                   validator: (_) {
                                     if (!_fechaValida()) {
                                       return 'Debe ser anterior';
@@ -290,13 +316,17 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                               ),
                               const SizedBox(width: 8),
                               Expanded(
-                                child: TextFormFieldCustom(
+                                child: TextFieldCustom(
                                   prefixIcon: const Icon(Icons.calendar_today_outlined),
                                   labelText: 'Fecha inicio',
                                   controller: _fechaInicioController,
+                                  focusNode: _focusFechaInicio,
                                   autovalidateMode: AutovalidateMode.onUserInteraction,
                                   readOnly: true,
                                   onTap: () async {
+                                    _deslizables.forEach((key, value) {
+                                      value.close();
+                                    });
                                     DateTime? seleccionado = await showDatePicker(
                                       context: context,
                                       initialDate: _fechaInicio,
@@ -311,6 +341,9 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                                     _fechaInicio = seleccionado;
                                     _formKeyFechas.currentState!.validate();
                                   },
+                                  onTapOutside: (event) {
+                                    _focusFechaInicio.unfocus();
+                                  },
                                   validator: (_) {
                                     if (!_fechaValida()) {
                                       return '';
@@ -324,13 +357,17 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                           Row(
                             children: [
                               Expanded(
-                                child: TextFormFieldCustom(
+                                child: TextFieldCustom(
                                   prefixIcon: const Icon(Icons.watch_later),
                                   labelText: 'Hora final',
                                   controller: _horaFinalController,
+                                  focusNode: _focusHoraFinal,
                                   autovalidateMode: AutovalidateMode.onUserInteraction,
                                   readOnly: true,
                                   onTap: () async {
+                                    _deslizables.forEach((key, value) {
+                                      value.close();
+                                    });
                                     TimeOfDay? seleccionado = await showTimePicker(
                                       context: context,
                                       initialTime: TimeOfDay(
@@ -349,6 +386,9 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                                     _horaFinal = seleccionado.hour * 60 + seleccionado.minute;
                                     _formKeyFechas.currentState!.validate();
                                   },
+                                  onTapOutside: (event) {
+                                    _focusHoraFinal.unfocus();
+                                  },
                                   validator: (_) {
                                     if (!_fechaValida()) {
                                       return 'Debe ser posterior';
@@ -359,13 +399,17 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                               ),
                               const SizedBox(width: 8),
                               Expanded(
-                                child: TextFormFieldCustom(
+                                child: TextFieldCustom(
                                   prefixIcon: const Icon(Icons.calendar_today),
                                   labelText: 'Fecha final',
                                   controller: _fechaFinalController,
+                                  focusNode: _focusFechaFinal,
                                   autovalidateMode: AutovalidateMode.onUserInteraction,
                                   readOnly: true,
                                   onTap: () async {
+                                    _deslizables.forEach((key, value) {
+                                      value.close();
+                                    });
                                     DateTime? seleccionado = await showDatePicker(
                                       context: context,
                                       initialDate: _fechaFinal,
@@ -380,6 +424,9 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                                     _fechaFinal = seleccionado;
                                     _formKeyFechas.currentState!.validate();
                                   },
+                                  onTapOutside: (event) {
+                                    _focusFechaFinal.unfocus();
+                                  },
                                   validator: (_) {
                                     if (!_fechaValida()) {
                                       return '';
@@ -393,57 +440,69 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                         ],
                       ),
                     ),
-                    TextFieldCustom(
-                      prefixIcon: const Icon(Icons.engineering),
-                      labelText: 'Otros trabajadores',
-                      controller: _otrosTrabajadoresController,
+                    FocusScope(
+                      child: TextFieldCustom(
+                        prefixIcon: const Icon(Icons.engineering),
+                        labelText: 'Otros trabajadores',
+                        controller: _otrosTrabajadoresController,
+                        focusNode: _focusOtrosTrabajadores,
+                        onTap: () {
+                          _deslizables.forEach((key, value) {
+                            value.close();
+                          });
+                        },
+                        onTapOutside: (event) {
+                          _focusOtrosTrabajadores.unfocus();
+                        },
+                      ),
                     ),
                     TextFieldCustom(
                       prefixIcon: const Icon(Icons.search),
                       labelText: 'Observaciones',
                       controller: _observacionesController,
+                      focusNode: _focusObservaciones,
+                      onTap: () {
+                        _deslizables.forEach((key, value) {
+                          value.close();
+                        });
+                      },
+                      onTapOutside: (event) {
+                        _focusObservaciones.unfocus();
+                      },
                     ),
-                    FocusScope(
-                      child: Focus(
-                        onFocusChange: (hasFocus) {
-                          if (hasFocus) {
-                            FocusScope.of(context).unfocus();
-                          }
-                        },
-                        child: TextFormField(
-                          //NO CAMBIAR A CUSTOM
-                          key: _textFormFieldKeyTrabajos,
-                          decoration: const InputDecoration(
-                            prefixIcon: Icon(Icons.handyman_outlined),
-                            labelText: 'Trabajos realizados',
-                            suffixIcon: Icon(Icons.add_rounded),
-                            border: InputBorder.none,
-                          ),
-                          readOnly: true,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    TrabajoPagina(numero: _trabajos.length + 1),
-                              ),
-                            ).then((final trabajo) {
-                              if (trabajo == null) return;
-
-                              setState(() {
-                                _trabajos.add(trabajo);
-                                _textFormFieldKeyTrabajos.currentState!.validate();
-                              });
-                            });
-                          },
-                          validator: (_) {
-                            if (_trabajos.isEmpty) {
-                              return 'Este campo es obligatorio.';
-                            }
-                            return null;
-                          },
-                        ),
+                    TextFormField(
+                      //NO CAMBIAR A CUSTOM
+                      key: _textFormFieldKeyTrabajos,
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.handyman_outlined),
+                        labelText: 'Trabajos realizados',
+                        suffixIcon: Icon(Icons.add_rounded),
+                        border: InputBorder.none,
                       ),
+                      controller: TextEditingController(),
+                      focusNode: _focusInstantaneo,
+                      readOnly: true,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TrabajoPagina(numero: _trabajos.length + 1),
+                          ),
+                        ).then((final trabajo) {
+                          if (trabajo == null) return;
+
+                          setState(() {
+                            _trabajos.add(trabajo);
+                            _textFormFieldKeyTrabajos.currentState!.validate();
+                          });
+                        });
+                      },
+                      validator: (_) {
+                        if (_trabajos.isEmpty) {
+                          return 'Este campo es obligatorio.';
+                        }
+                        return null;
+                      },
                     ),
                     SlidableAutoCloseBehavior(
                       closeWhenOpened: !_modoSeleccion,
@@ -453,8 +512,7 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                         itemCount: _trabajos.length,
                         itemBuilder: (context, indice) {
                           final slidableController = SlidableController(this);
-                          deslizablesABorrar[indice] = slidableController;
-
+                          _deslizables[indice] = slidableController;
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 10),
                             child: Stack(
@@ -462,7 +520,7 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                                 Positioned.fill(
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: PaletaColores.eliminarDeslizable,
+                                      color: PaletaColores.eliminar,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
@@ -654,103 +712,98 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                       height: 0,
                       color: PaletaColores.grisBordes,
                     ),
-                    FocusScope(
-                      child: Focus(
-                        onFocusChange: (hasFocus) {
-                          if (hasFocus) {
-                            FocusScope.of(context).unfocus();
-                          }
+                    TextFieldCustom(
+                      prefixIcon: const Icon(Icons.fact_check_outlined),
+                      labelText: 'Trabajo finalizado',
+                      suffixIcon: Switch.adaptive(
+                        activeTrackColor: PaletaColores.primario,
+                        value: _trabajoFinalizado,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _trabajoFinalizado = value;
+                          });
                         },
-                        child: TextFieldCustom(
-                          prefixIcon: const Icon(Icons.fact_check_outlined),
-                          labelText: 'Trabajo finalizado',
-                          suffixIcon: Switch.adaptive(
-                            activeTrackColor: PaletaColores.primario,
-                            value: _trabajoFinalizado,
-                            onChanged: (bool value) {
-                              setState(() {
-                                _trabajoFinalizado = value;
-                              });
-                            },
-                          ),
-                          readOnly: true,
-                        ),
                       ),
+                      controller: TextEditingController(),
+                      focusNode: _focusInstantaneo,
+                      readOnly: true,
                     ),
                     if (!_trabajoFinalizado)
                       TextFieldCustom(
                         prefixIcon: const Icon(Icons.build_outlined),
                         labelText: 'Trabajo pendiente',
                         controller: _trabajoPendienteController,
-                      ),
-                    FocusScope(
-                      child: Focus(
-                        onFocusChange: (hasFocus) {
-                          if (hasFocus) {
-                            FocusScope.of(context).unfocus();
-                          }
+                        focusNode: _focusTrabajoPendiente,
+                        onTap: () {
+                          _deslizables.forEach((key, value) {
+                            value.close();
+                          });
                         },
-                        child: TextFieldCustom(
-                          prefixIcon: const Icon(Icons.border_color_outlined),
-                          labelText: 'Firma',
-                          suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
-                          border: InputBorder.none,
-                          readOnly: true,
-                          onTap: () async {
-                            if (_firma == null) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: ((context) => const FirmaPagina())),
-                              ).then((final firma) {
-                                if (firma == null) return;
+                        onTapOutside: (event) {
+                          _focusTrabajoPendiente.unfocus();
+                        },
+                      ),
+                    TextFieldCustom(
+                      prefixIcon: const Icon(Icons.border_color_outlined),
+                      labelText: 'Firma',
+                      suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
+                      border: InputBorder.none,
+                      controller: TextEditingController(),
+                      focusNode: _focusInstantaneo,
+                      readOnly: true,
+                      onTap: () async {
+                        if (_firma == null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: ((context) => const FirmaPagina())),
+                          ).then((final firma) {
+                            if (firma == null) return;
 
-                                setState(() {
-                                  _firma = firma;
-                                });
-                              });
-                            } else {
-                              showAdaptiveDialog(
-                                context: context,
-                                builder: (context) => SimpleDialog(
-                                  title: const Center(
-                                    child: Text(
-                                        'Si sigue adelante eliminará la firma actual. ¿Desea continuar?'),
-                                  ),
+                            setState(() {
+                              _firma = firma;
+                            });
+                          });
+                        } else {
+                          showAdaptiveDialog(
+                            context: context,
+                            builder: (context) => SimpleDialog(
+                              title: const Center(
+                                child: Text(
+                                    'Si sigue adelante eliminará la firma actual. ¿Desea continuar?'),
+                              ),
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                                   children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                      children: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          child: const Text('NO'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: ((context) => const FirmaPagina())),
-                                            ).then((final firma) {
-                                              setState(() {
-                                                _firma = firma;
-                                              });
-                                            });
-                                          },
-                                          child: const Text('SI'),
-                                        )
-                                      ],
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text('NO'),
                                     ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: ((context) => const FirmaPagina())),
+                                        ).then((final firma) {
+                                          setState(() {
+                                            _firma = firma;
+                                          });
+                                        });
+                                      },
+                                      child: const Text('SI'),
+                                    )
                                   ],
                                 ),
-                              );
-                            }
-                          },
-                        ),
-                      ),
+                              ],
+                            ),
+                          );
+                        }
+                      },
                     ),
                     if (_firma != null)
                       Padding(
