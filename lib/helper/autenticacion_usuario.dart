@@ -4,7 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 class AutenticacionUsuarios {
   final _gooogleSignIn = GoogleSignIn(scopes: ['https://mail.google.com/']);
 
-  Future inicioSesionGoogle() async {
+  Future<void> inicioSesionGoogle() async {
     try {
       final usuarioGoogle = await _gooogleSignIn.signIn();
       if (usuarioGoogle == null) return;
@@ -31,7 +31,7 @@ class AutenticacionUsuarios {
     return null;
   }
 
-  Future cerrarSesionGoogle() async {
+  Future<void> cerrarSesionGoogle() async {
     await _gooogleSignIn.signOut();
     await FirebaseAuth.instance.signOut();
   }

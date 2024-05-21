@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
 import 'package:partesdetrabajo/helper/adaptive_action.dart';
 import 'package:partesdetrabajo/helper/local_storage.dart';
+import 'package:partesdetrabajo/helper/modal_bottom_sheet_horizontal.dart';
 import 'package:partesdetrabajo/model/trabajo.dart';
 import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
 import 'package:partesdetrabajo/widgets/boton_gradiente.dart';
@@ -105,40 +106,28 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                   icon: const Icon(Icons.delete),
                   color: Colors.white,
                   onPressed: () {
-                    showAdaptiveDialog(
-                      context: context, //TODO ADAPTATIVE ALERTDIALOG en todos los sitios
-                      builder: (context) => SimpleDialog(
-                        title: Center(
-                          child: Text(
-                              '¿Eliminar ${_seleccionados.length} ${_seleccionados.length > 1 ? 'imágenes?' : 'imagen?'}'),
-                        ),
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: const Text('NO'),
-                              ),
-                              TextButton(
-                                onPressed: () async {
-                                  Navigator.pop(context);
+                    mostrarModalBottomSheetHorizontal(
+                      context,
+                      titulo: 'Eliminar imagen',
+                      cuerpo:
+                          '¿Eliminar ${_seleccionados.length} ${_seleccionados.length > 1 ? 'imágenes?' : 'imagen?'}',
+                      textoIzquierda: 'Cancelar',
+                      textoDerecha: 'Eliminar',
+                      colorTextoIzquierda: Colors.black,
+                      colorTextoDerecha: PaletaColores.eliminar,
+                      onPressedIzquierda: () {
+                        Navigator.pop(context);
+                      },
+                      onPressedDerecha: () async {
+                        Navigator.pop(context);
 
-                                  _seleccionados.sort((a, b) => b.compareTo(a));
-                                  for (final indice in _seleccionados) {
-                                    _imagenes.removeAt(indice);
-                                  }
-                                  _hayCambios = true;
-                                  _salirModoSeleccion();
-                                },
-                                child: const Text('SI'),
-                              )
-                            ],
-                          ),
-                        ],
-                      ),
+                        _seleccionados.sort((a, b) => b.compareTo(a));
+                        for (final indice in _seleccionados) {
+                          _imagenes.removeAt(indice);
+                        }
+                        _hayCambios = true;
+                        _salirModoSeleccion();
+                      },
                     );
                   },
                 ),
@@ -265,6 +254,7 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                           readOnly: true,
                           onTap: () async {
                             await showAdaptiveDialog(
+                              //TODO
                               context: context,
                               builder: (context) {
                                 return AlertDialog.adaptive(
@@ -423,6 +413,7 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
 
   Future _salirConCambios() async {
     await showAdaptiveDialog(
+      //TODO
       context: context,
       builder: (context) => AlertDialog.adaptive(
         title: const Text('Confirmar salida'),

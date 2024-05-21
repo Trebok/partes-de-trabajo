@@ -5,14 +5,15 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server/gmail.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:partesdetrabajo/ajustes.dart';
 import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
 import 'package:partesdetrabajo/core/theme/theme.dart';
 import 'package:partesdetrabajo/firebase_options.dart';
 import 'package:partesdetrabajo/helper/autenticacion_usuario.dart';
+import 'package:partesdetrabajo/helper/enviar_partes_email.dart';
 import 'package:partesdetrabajo/helper/local_storage.dart';
+import 'package:partesdetrabajo/helper/modal_bottom_sheet_horizontal.dart';
 import 'package:partesdetrabajo/helper/pdf_helper.dart';
 import 'package:partesdetrabajo/model/boxes.dart';
 import 'package:partesdetrabajo/model/cliente.dart';
@@ -225,192 +226,177 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 color: Colors.white,
                 onPressed: () {
                   if (_paginaActual == Pagina.partes) {
-                    showAdaptiveDialog(
-                      context: context,
-                      builder: (context) => SimpleDialog(
-                        title: Center(
-                          child: Text(
-                              '¿Eliminar ${_seleccionados.length} ${_seleccionados.length > 1 ? 'partes?' : 'parte?'}'),
-                        ),
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: const Text('NO'),
-                              ),
-                              TextButton(
-                                onPressed: () async {
-                                  setState(() {
-                                    borrando = true;
-                                  });
-                                  Navigator.pop(context);
+                    mostrarModalBottomSheetHorizontal(
+                      context,
+                      titulo: 'Eliminar parte',
+                      cuerpo:
+                          '¿Eliminar ${_seleccionados.length} ${_seleccionados.length > 1 ? 'partes?' : 'parte?'}',
+                      textoIzquierda: 'Cancelar',
+                      textoDerecha: 'Eliminar',
+                      colorTextoIzquierda: Colors.black,
+                      colorTextoDerecha: PaletaColores.eliminar,
+                      onPressedIzquierda: () {
+                        Navigator.pop(context);
+                      },
+                      onPressedDerecha: () async {
+                        setState(() {
+                          borrando = true;
+                        });
+                        Navigator.pop(context);
 
-                                  _seleccionados.sort((a, b) => b.compareTo(a));
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                    for (final indice in _seleccionados) {
-                                      deslizablesABorrar[indice]!.openStartActionPane();
-                                      deslizablesABorrar[indice]!.dismiss(
-                                        ResizeRequest(
-                                          const Duration(milliseconds: 100),
-                                          () {
-                                            setState(() {
-                                              boxPartes.deleteAt(indice);
-                                            });
-                                          },
-                                        ),
-                                      );
-                                    }
+                        _seleccionados.sort((a, b) => b.compareTo(a));
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          for (final indice in _seleccionados) {
+                            deslizablesABorrar[indice]!.openStartActionPane();
+                            deslizablesABorrar[indice]!.dismiss(
+                              ResizeRequest(
+                                const Duration(milliseconds: 100),
+                                () {
+                                  setState(() {
+                                    boxPartes.deleteAt(indice);
                                   });
-                                  await Future.delayed(const Duration(milliseconds: 450));
-                                  borrando = false;
-                                  _salirModoSeleccion();
                                 },
-                                child: const Text('SI'),
-                              )
-                            ],
-                          ),
-                        ],
-                      ),
+                              ),
+                            );
+                          }
+                        });
+                        await Future.delayed(const Duration(milliseconds: 450));
+                        borrando = false;
+                        _salirModoSeleccion();
+                      },
                     );
                   } else if (_paginaActual == Pagina.clientes) {
-                    showAdaptiveDialog(
-                      context: context,
-                      builder: (context) => SimpleDialog(
-                        title: Center(
-                          child: Text(
-                              '¿Eliminar ${_seleccionados.length} ${_seleccionados.length > 1 ? 'clientes?' : 'cliente?'}'),
-                        ),
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: const Text('NO'),
-                              ),
-                              TextButton(
-                                onPressed: () async {
-                                  Navigator.pop(context);
+                    mostrarModalBottomSheetHorizontal(
+                      context,
+                      titulo: 'Eliminar cliente',
+                      cuerpo:
+                          '¿Eliminar ${_seleccionados.length} ${_seleccionados.length > 1 ? 'clientes?' : 'cliente?'}',
+                      textoIzquierda: 'Cancelar',
+                      textoDerecha: 'Eliminar',
+                      colorTextoIzquierda: Colors.black,
+                      colorTextoDerecha: PaletaColores.eliminar,
+                      onPressedIzquierda: () {
+                        Navigator.pop(context);
+                      },
+                      onPressedDerecha: () async {
+                        Navigator.pop(context);
 
-                                  _seleccionados.sort((a, b) => b.compareTo(a));
-                                  for (final indice in _seleccionados) {
-                                    deslizablesABorrar[indice]!.openStartActionPane();
-                                    deslizablesABorrar[indice]!.dismiss(
-                                      ResizeRequest(
-                                        const Duration(milliseconds: 100),
-                                        () {
-                                          setState(() {
-                                            boxClientes.deleteAt(indice);
-                                          });
-                                        },
-                                      ),
-                                    );
-                                  }
-                                  await Future.delayed(const Duration(milliseconds: 450));
-                                  _salirModoSeleccion();
-                                },
-                                child: const Text('SI'),
-                              )
-                            ],
-                          ),
-                        ],
-                      ),
+                        _seleccionados.sort((a, b) => b.compareTo(a));
+                        for (final indice in _seleccionados) {
+                          deslizablesABorrar[indice]!.openStartActionPane();
+                          deslizablesABorrar[indice]!.dismiss(
+                            ResizeRequest(
+                              const Duration(milliseconds: 100),
+                              () {
+                                setState(() {
+                                  boxClientes.deleteAt(indice);
+                                });
+                              },
+                            ),
+                          );
+                        }
+                        await Future.delayed(const Duration(milliseconds: 450));
+                        _salirModoSeleccion();
+                      },
                     );
                   }
                 },
               ),
             ),
             Visibility(
-              visible: _modoSeleccion,
+              visible: _modoSeleccion && _paginaActual == Pagina.partes,
               child: IconButton(
                 tooltip: 'Enviar por correo',
                 icon: const Icon(Icons.mail),
                 color: Colors.white,
                 onPressed: () async {
-                  try {
-                    showAdaptiveDialog(
-                      barrierDismissible: false,
-                      context: context,
-                      builder: (context) {
-                        return const PopScope(
-                          canPop: false,
-                          child: Center(
-                            child: CircularProgressIndicator.adaptive(),
-                          ),
-                        );
-                      },
-                    );
-                    final email = usuario.email;
-                    final accessToken = await AutenticacionUsuarios().getAccessToken();
-                    final smtpServer = gmailSaslXoauth2(email!, accessToken!);
-                    final connection = PersistentConnection(smtpServer);
-
-                    _seleccionados.sort((a, b) => b.compareTo(b));
-                    for (final indice in _seleccionados) {
-                      final parte = boxPartes.getAt(indice);
-
-                      final mensaje = Message()
-                        ..from = Address(email, usuario.displayName)
-                        ..recipients = [LocalStorage.prefs.getString('emailDestino')]
-                        ..subject =
-                            '${parte.cliente.nombre} - Parte de trabajo ${parte.number}/${parte.year}'
-                        // ..text = ' This is a test email!'
-                        ..attachments = [
-                          FileAttachment(
-                            await PDFHelper.createPDF(parte: parte),
-                          ),
-                        ];
-                      await connection.send(mensaje);
-
-                      parte.enviado = true;
-                      boxPartes.putAt(indice, parte);
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context)
-                          ..removeCurrentSnackBar()
-                          ..showSnackBar(SnackBar(
-                            content: Text(
-                                '¡Parte enviado a ${LocalStorage.prefs.get('emailDestino')}!'),
-                            backgroundColor: Colors.green,
-                          ));
-                      }
-                    }
-                    await connection.close();
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context)
-                        ..removeCurrentSnackBar()
-                        ..showSnackBar(SnackBar(
-                          content: Text(
-                              '¡${_seleccionados.length} ${_seleccionados.length > 1 ? 'partes enviados' : 'parte enviado'} a ${LocalStorage.prefs.get('emailDestino')}!'),
-                          backgroundColor: Colors.green,
-                        ));
-                    }
-                    _salirModoSeleccion();
-                  } on MailerException catch (_) {
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context)
-                        ..removeCurrentSnackBar()
-                        ..showSnackBar(const SnackBar(
-                          content: Text(
-                              'Error al enviar, asegurate de asignar un email válido en los ajustes.'),
-                          backgroundColor: Color.fromARGB(255, 211, 0, 0),
-                        ));
-                    }
-                  } catch (_) {
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                      ScaffoldMessenger.of(context)
-                        ..removeCurrentSnackBar()
-                        ..showSnackBar(const SnackBar(content: Text('Ups... Algo salió mal.')));
-                    }
+                  final String? emailDestino = LocalStorage.prefs.getString('emailDestino');
+                  if (emailDestino == null) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context)
+                      ..removeCurrentSnackBar()
+                      ..showSnackBar(const SnackBar(
+                        content: Text(
+                            'Error al enviar, asegurate de asignar un email válido en los ajustes.'),
+                        backgroundColor: Color.fromARGB(255, 211, 0, 0),
+                      ));
+                    return;
                   }
+                  mostrarModalBottomSheetHorizontal(
+                    context,
+                    titulo: 'Enviar parte',
+                    cuerpo:
+                        '¿Enviar ${_seleccionados.length} ${_seleccionados.length > 1 ? 'partes' : 'parte'} a $emailDestino?',
+                    textoIzquierda: 'Cancelar',
+                    textoDerecha: 'Enviar',
+                    colorTextoIzquierda: Colors.black,
+                    colorTextoDerecha: PaletaColores.primario,
+                    onPressedIzquierda: () {
+                      Navigator.pop(context);
+                    },
+                    onPressedDerecha: () async {
+                      Navigator.pop(context);
+                      try {
+                        showAdaptiveDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (context) {
+                            return const PopScope(
+                              canPop: false,
+                              child: Center(
+                                child: CircularProgressIndicator.adaptive(),
+                              ),
+                            );
+                          },
+                        );
+
+                        final List<Parte> partesAEnviar = [];
+                        for (final indice in _seleccionados) {
+                          final Parte parte = boxPartes.getAt(indice);
+                          partesAEnviar.add(parte);
+                          parte.enviado = true;
+                          boxPartes.putAt(indice, parte);
+                        }
+
+                        await enviarPartesEmail(
+                          context,
+                          emailDestino: emailDestino,
+                          partes: partesAEnviar,
+                          usuario: usuario,
+                        );
+
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context)
+                            ..removeCurrentSnackBar()
+                            ..showSnackBar(SnackBar(
+                              content: Text(
+                                  '¡${_seleccionados.length} ${_seleccionados.length > 1 ? 'partes enviados' : 'parte enviado'} a $emailDestino!'),
+                              backgroundColor: Colors.green,
+                            ));
+                        }
+                        _salirModoSeleccion();
+                      } on MailerException catch (_) {
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context)
+                            ..removeCurrentSnackBar()
+                            ..showSnackBar(const SnackBar(
+                              content: Text('Error al enviar.'),
+                              backgroundColor: Color.fromARGB(255, 211, 0, 0),
+                            ));
+                        }
+                      } catch (_) {
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context)
+                            ..removeCurrentSnackBar()
+                            ..showSnackBar(
+                                const SnackBar(content: Text('Ups... Algo salió mal.')));
+                        }
+                      }
+                    },
+                  );
                 },
               ),
             ),
@@ -429,18 +415,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       }
                       _salirModoSeleccion();
                     },
-                    child: const Text('Marcar como NO enviado'),
-                  ),
-                  PopupMenuItem(
-                    onTap: () {
-                      for (final indice in _seleccionados) {
-                        final Parte parte = boxPartes.getAt(indice);
-                        parte.enviado = true;
-                        boxPartes.putAt(indice, parte);
-                      }
-                      _salirModoSeleccion();
-                    },
-                    child: const Text('Marcar como enviado'),
+                    child: const Text('Marcar como no enviado'),
                   ),
                 ],
               ),
@@ -628,54 +603,44 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         padding: EdgeInsets.zero,
                         autoClose: false,
                         onPressed: (context) {
-                          showAdaptiveDialog(
-                            context: context,
-                            builder: (context) => SimpleDialog(
-                              title: const Center(
-                                child: Text('¿Eliminar parte?'),
-                              ),
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        slidableController.close();
-                                      },
-                                      child: const Text('NO'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () async {
-                                        Navigator.pop(context);
-                                        setState(() {
-                                          borrando = true;
-                                        });
-                                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                                          deslizablesABorrar[indiceInvertido]!
-                                              .openStartActionPane();
-                                          deslizablesABorrar[indiceInvertido]!.dismiss(
-                                            ResizeRequest(
-                                              const Duration(milliseconds: 100),
-                                              () {
-                                                setState(() {
-                                                  boxPartes.deleteAt(indiceInvertido);
-                                                });
-                                              },
-                                            ),
-                                          );
-                                        });
-                                        await Future.delayed(const Duration(milliseconds: 450));
-                                        setState(() {
-                                          borrando = false;
-                                        });
-                                      },
-                                      child: const Text('SI'),
-                                    )
-                                  ],
-                                ),
-                              ],
-                            ),
+                          mostrarModalBottomSheetHorizontal(
+                            context,
+                            titulo: 'Eliminar parte',
+                            cuerpo: '¿Eliminar 1 parte?',
+                            textoIzquierda: 'Cancelar',
+                            textoDerecha: 'Eliminar',
+                            colorTextoIzquierda: Colors.black,
+                            colorTextoDerecha: PaletaColores.eliminar,
+                            onPopInvoked: (_) {
+                              slidableController.close();
+                            },
+                            onPressedIzquierda: () {
+                              Navigator.pop(context);
+                              slidableController.close();
+                            },
+                            onPressedDerecha: () async {
+                              Navigator.pop(context);
+                              setState(() {
+                                borrando = true;
+                              });
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                deslizablesABorrar[indiceInvertido]!.openStartActionPane();
+                                deslizablesABorrar[indiceInvertido]!.dismiss(
+                                  ResizeRequest(
+                                    const Duration(milliseconds: 100),
+                                    () {
+                                      setState(() {
+                                        boxPartes.deleteAt(indiceInvertido);
+                                      });
+                                    },
+                                  ),
+                                );
+                              });
+                              await Future.delayed(const Duration(milliseconds: 450));
+                              setState(() {
+                                borrando = false;
+                              });
+                            },
                           );
                         },
                         backgroundColor: Colors.transparent,
@@ -692,70 +657,81 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         padding: EdgeInsets.zero,
                         autoClose: false,
                         onPressed: (context) async {
-                          try {
-                            showAdaptiveDialog(
-                              barrierDismissible: false,
-                              context: context,
-                              builder: (context) {
-                                return const PopScope(
-                                  canPop: false,
-                                  child: Center(
-                                    child: CircularProgressIndicator.adaptive(),
-                                  ),
-                                );
-                              },
-                            );
-                            final email = usuario.email;
-                            final accessToken = await AutenticacionUsuarios().getAccessToken();
-                            final smtpServer = gmailSaslXoauth2(email!, accessToken!);
-                            final mensaje = Message()
-                              ..from = Address(email, usuario.displayName)
-                              ..recipients = [LocalStorage.prefs.getString('emailDestino')]
-                              ..subject =
-                                  '${parte.cliente.nombre} - Parte Nº ${parte.number}/${parte.year}'
-                              ..attachments = [
-                                FileAttachment(
-                                  await PDFHelper.createPDF(parte: parte),
-                                ),
-                              ];
-
-                            await send(mensaje, smtpServer);
-                            await slidableController.close();
-                            parte.enviado = true;
-                            setState(() {
-                              boxPartes.putAt(indiceInvertido, parte);
-                            });
-
-                            if (context.mounted) {
-                              Navigator.of(context).pop();
-                              ScaffoldMessenger.of(context)
-                                ..removeCurrentSnackBar()
-                                ..showSnackBar(SnackBar(
-                                  content: Text(
-                                      '¡Parte enviado a ${LocalStorage.prefs.get('emailDestino')}!'),
-                                  backgroundColor: Colors.green,
-                                ));
-                            }
-                          } on MailerException catch (_) {
-                            if (context.mounted) {
-                              Navigator.of(context).pop();
-                              ScaffoldMessenger.of(context)
-                                ..removeCurrentSnackBar()
-                                ..showSnackBar(const SnackBar(
-                                  content: Text(
-                                      'Error al enviar, asegurate de asignar un email válido en los ajustes.'),
-                                  backgroundColor: Color.fromARGB(255, 211, 0, 0),
-                                ));
-                            }
-                          } catch (_) {
-                            if (context.mounted) {
-                              Navigator.of(context).pop();
-                              ScaffoldMessenger.of(context)
-                                ..removeCurrentSnackBar()
-                                ..showSnackBar(
-                                    const SnackBar(content: Text('Ups... Algo salió mal.')));
-                            }
+                          final String? emailDestino =
+                              LocalStorage.prefs.getString('emailDestino');
+                          if (emailDestino == null) {
+                            Navigator.of(context).pop();
+                            ScaffoldMessenger.of(context)
+                              ..removeCurrentSnackBar()
+                              ..showSnackBar(const SnackBar(
+                                content: Text(
+                                    'Error al enviar, asegurate de asignar un email válido en los ajustes.'),
+                                backgroundColor: Color.fromARGB(255, 211, 0, 0),
+                              ));
+                            return;
                           }
+                          mostrarModalBottomSheetHorizontal(
+                            context,
+                            titulo: 'Enviar parte',
+                            cuerpo: '¿Enviar 1 parte a $emailDestino?',
+                            textoIzquierda: 'Cancelar',
+                            textoDerecha: 'Enviar',
+                            colorTextoIzquierda: Colors.black,
+                            colorTextoDerecha: PaletaColores.primario,
+                            onPopInvoked: (_) {
+                              slidableController.close();
+                            },
+                            onPressedIzquierda: () {
+                              Navigator.pop(context);
+                              slidableController.close();
+                            },
+                            onPressedDerecha: () async {
+                              Navigator.pop(context);
+                              try {
+                                showAdaptiveDialog(
+                                  barrierDismissible: false,
+                                  context: context,
+                                  builder: (context) {
+                                    return const PopScope(
+                                      canPop: false,
+                                      child: Center(
+                                        child: CircularProgressIndicator.adaptive(),
+                                      ),
+                                    );
+                                  },
+                                );
+                                await enviarPartesEmail(
+                                  context,
+                                  usuario: usuario,
+                                  emailDestino: emailDestino,
+                                  partes: [parte],
+                                );
+                                await slidableController.close();
+                                parte.enviado = true;
+                                setState(() {
+                                  boxPartes.putAt(indiceInvertido, parte);
+                                });
+                              } on MailerException catch (_) {
+                                if (context.mounted) {
+                                  Navigator.of(context).pop();
+                                  ScaffoldMessenger.of(context)
+                                    ..removeCurrentSnackBar()
+                                    ..showSnackBar(const SnackBar(
+                                      content: Text('Error al enviar.'),
+                                      backgroundColor: Color.fromARGB(255, 211, 0, 0),
+                                    ));
+                                }
+                              } catch (_) {
+                                if (context.mounted) {
+                                  Navigator.of(context).pop();
+                                  ScaffoldMessenger.of(context)
+                                    ..removeCurrentSnackBar()
+                                    ..showSnackBar(
+                                        const SnackBar(content: Text('Ups... Algo salió mal.')));
+                                }
+                              }
+                            },
+                          );
                         },
                         backgroundColor: Colors.transparent,
                         foregroundColor: Colors.white,
@@ -864,7 +840,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                       tooltip: 'Ver pdf',
                                       icon: const Icon(
                                         Icons.picture_as_pdf,
-                                        color: Color(0xFFea4335),
+                                        color: PaletaColores.pdf,
                                       ),
                                       onPressed: () async {
                                         final file = await PDFHelper.createPDF(parte: parte);
@@ -939,41 +915,32 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           padding: EdgeInsets.zero,
                           autoClose: false,
                           onPressed: (context) {
-                            showAdaptiveDialog(
-                              context: context,
-                              builder: (context) => SimpleDialog(
-                                title: const Center(
-                                  child: Text('¿Eliminar cliente?'),
-                                ),
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                    children: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          slidableController.close();
-                                        },
-                                        child: const Text('NO'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          slidableController.dismiss(ResizeRequest(
-                                            const Duration(milliseconds: 100),
-                                            () {
-                                              setState(() {
-                                                boxClientes.deleteAt(indice);
-                                              });
-                                            },
-                                          ));
-                                        },
-                                        child: const Text('SI'),
-                                      )
-                                    ],
-                                  ),
-                                ],
-                              ),
+                            mostrarModalBottomSheetHorizontal(
+                              context,
+                              titulo: 'Eliminar cliente',
+                              cuerpo: '¿Eliminar 1 cliente?',
+                              textoIzquierda: 'Cancelar',
+                              textoDerecha: 'Eliminar',
+                              colorTextoIzquierda: Colors.black,
+                              colorTextoDerecha: PaletaColores.eliminar,
+                              onPopInvoked: (_) {
+                                slidableController.close();
+                              },
+                              onPressedIzquierda: () {
+                                Navigator.pop(context);
+                                slidableController.close();
+                              },
+                              onPressedDerecha: () async {
+                                Navigator.pop(context);
+                                slidableController.dismiss(ResizeRequest(
+                                  const Duration(milliseconds: 100),
+                                  () {
+                                    setState(() {
+                                      boxClientes.deleteAt(indice);
+                                    });
+                                  },
+                                ));
+                              },
                             );
                           },
                           backgroundColor: Colors.transparent,

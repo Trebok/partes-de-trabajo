@@ -18,6 +18,7 @@ class _TrabajosPredefinidosState extends State<TrabajosPredefinidos> {
   final TextEditingController _controller = TextEditingController();
 
   void _mostrarInfo() {
+    //TODO CAMBIAR ESTILO?
     showAdaptiveDialog(
       context: context,
       builder: (BuildContext context) {

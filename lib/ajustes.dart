@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
 import 'package:partesdetrabajo/helper/local_storage.dart';
 import 'package:partesdetrabajo/pages/trabajos_predefinidos_pagina.dart';
 import 'package:partesdetrabajo/widgets/text_field_custom.dart';
@@ -13,14 +14,15 @@ class Ajustes extends StatefulWidget {
 class _AjustesState extends State<Ajustes> {
   final _emailDestino = LocalStorage.prefs.getString('emailDestino');
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  late final TextEditingController _correoDestino;
+  late final TextEditingController _correoDestinoController;
+  late final TextEditingController _correoDestinoControllerTemporal;
   final _focusInstantaneo = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    _correoDestino = TextEditingController(text: _emailDestino);
-
+    _correoDestinoController = TextEditingController(text: _emailDestino);
+    _correoDestinoControllerTemporal = TextEditingController(text: _emailDestino);
     _focusInstantaneo.addListener(() {
       if (_focusInstantaneo.hasFocus) {
         Future.microtask(() {
@@ -32,7 +34,7 @@ class _AjustesState extends State<Ajustes> {
 
   @override
   void dispose() {
-    _correoDestino.dispose();
+    _correoDestinoController.dispose();
     super.dispose();
   }
 
@@ -48,11 +50,130 @@ class _AjustesState extends State<Ajustes> {
               TextFieldCustom(
                 prefixIcon: const Icon(Icons.email),
                 labelText: 'Email destino',
-                controller: _correoDestino,
-                textCapitalization: TextCapitalization.none,
-                keyboardType: TextInputType.emailAddress,
-                onChanged: (p0) {
-                  LocalStorage.prefs.setString('emailDestino', _correoDestino.text);
+                suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
+                controller: _correoDestinoController,
+                focusNode: _focusInstantaneo,
+                readOnly: true,
+                onTap: () {
+                  _correoDestinoControllerTemporal.text = _correoDestinoController.text;
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return Dialog(
+                        insetPadding: const EdgeInsets.all(16),
+                        elevation: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 26, 24, 25),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Center(
+                                child: Text(
+                                  'Email destino',
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              TextField(
+                                keyboardType: TextInputType.emailAddress,
+                                controller: _correoDestinoControllerTemporal,
+                                cursorColor: PaletaColores.primario,
+                                decoration: const InputDecoration(
+                                  hintText: 'Escribe un email',
+                                  contentPadding:
+                                      EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                                    borderSide: BorderSide(
+                                      color: PaletaColores.primario,
+                                      width: 2.0,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                                    borderSide: BorderSide(
+                                      color: PaletaColores.primario,
+                                      width: 2.0,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextButton(
+                                      style: ButtonStyle(
+                                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                          RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(15.0),
+                                          ),
+                                        ),
+                                        backgroundColor:
+                                            MaterialStatePropertyAll<Color>(Colors.grey[200]!),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Padding(
+                                        padding: EdgeInsets.symmetric(vertical: 5),
+                                        child: Text(
+                                          'Cancelar',
+                                          style: TextStyle(
+                                            fontSize: 16.0,
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10.0),
+                                  Expanded(
+                                    child: TextButton(
+                                      style: ButtonStyle(
+                                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                          RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(15.0),
+                                          ),
+                                        ),
+                                        backgroundColor: const MaterialStatePropertyAll<Color>(
+                                            PaletaColores.primario),
+                                      ),
+                                      onPressed: () {
+                                        LocalStorage.prefs.setString('emailDestino',
+                                            _correoDestinoControllerTemporal.text);
+                                        _correoDestinoController.text =
+                                            _correoDestinoControllerTemporal.text;
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Padding(
+                                        padding: EdgeInsets.symmetric(vertical: 5),
+                                        child: Text(
+                                          'Aceptar',
+                                          style: TextStyle(
+                                            fontSize: 16.0,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
                 },
               ),
               TextFieldCustom(
