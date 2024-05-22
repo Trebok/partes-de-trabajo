@@ -313,8 +313,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 color: Colors.white,
                 onPressed: () async {
                   final String? emailDestino = LocalStorage.prefs.getString('emailDestino');
-                  if (emailDestino == null) {
-                    Navigator.of(context).pop();
+                  if (emailDestino == null || emailDestino.isEmpty) {
                     ScaffoldMessenger.of(context)
                       ..removeCurrentSnackBar()
                       ..showSnackBar(const SnackBar(
@@ -322,6 +321,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             'Error al enviar, asegurate de asignar un email válido en los ajustes.'),
                         backgroundColor: Color.fromARGB(255, 211, 0, 0),
                       ));
+                    _salirModoSeleccion();
                     return;
                   }
                   mostrarModalBottomSheetHorizontal(
@@ -662,7 +662,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           final String? emailDestino =
                               LocalStorage.prefs.getString('emailDestino');
 
-                          if (emailDestino == null) {
+                          if (emailDestino == null || emailDestino.isEmpty) {
                             ScaffoldMessenger.of(context)
                               ..removeCurrentSnackBar()
                               ..showSnackBar(const SnackBar(
