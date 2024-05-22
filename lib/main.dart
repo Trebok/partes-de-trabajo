@@ -195,8 +195,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     return PopScope(
       canPop: !_modoSeleccion,
       onPopInvoked: (didPop) {
-        if (_modoSeleccion) {
-          _salirModoSeleccion();
+        if (!didPop) {
+          if (_modoSeleccion) {
+            _salirModoSeleccion();
+          }
         }
       },
       child: Scaffold(
@@ -659,8 +661,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         onPressed: (context) async {
                           final String? emailDestino =
                               LocalStorage.prefs.getString('emailDestino');
+
                           if (emailDestino == null) {
-                            Navigator.of(context).pop();
                             ScaffoldMessenger.of(context)
                               ..removeCurrentSnackBar()
                               ..showSnackBar(const SnackBar(
@@ -668,8 +670,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                     'Error al enviar, asegurate de asignar un email válido en los ajustes.'),
                                 backgroundColor: Color.fromARGB(255, 211, 0, 0),
                               ));
+                            slidableController.close();
                             return;
                           }
+
                           mostrarModalBottomSheetHorizontal(
                             context,
                             titulo: 'Enviar parte',

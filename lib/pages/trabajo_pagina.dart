@@ -66,10 +66,14 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !_hayCambios,
+      canPop: !_hayCambios && !_modoSeleccion,
       onPopInvoked: (didPop) async {
         if (!didPop) {
-          await _salirConCambios();
+          if (_modoSeleccion) {
+            _salirModoSeleccion();
+          } else {
+            _salirConCambios();
+          }
         }
       },
       child: GestureDetector(

@@ -43,27 +43,27 @@ class _AjustesState extends State<Ajustes> {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 5, 20, 20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFieldCustom(
-                prefixIcon: const Icon(Icons.email),
-                labelText: 'Email destino',
-                suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
-                controller: _correoDestinoController,
-                focusNode: _focusInstantaneo,
-                readOnly: true,
-                onTap: () {
-                  _correoDestinoControllerTemporal.text = _correoDestinoController.text;
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return Dialog(
-                        insetPadding: const EdgeInsets.all(16),
-                        elevation: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 26, 24, 25),
+        child: Column(
+          children: [
+            TextFieldCustom(
+              prefixIcon: const Icon(Icons.email),
+              labelText: 'Email destino',
+              suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
+              controller: _correoDestinoController,
+              focusNode: _focusInstantaneo,
+              readOnly: true,
+              onTap: () {
+                _correoDestinoControllerTemporal.text = _correoDestinoController.text;
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return Dialog(
+                      insetPadding: const EdgeInsets.all(16),
+                      elevation: 0,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 26, 24, 25),
+                        child: Form(
+                          key: _formKey,
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -77,7 +77,7 @@ class _AjustesState extends State<Ajustes> {
                                 ),
                               ),
                               const SizedBox(height: 15),
-                              TextField(
+                              TextFormField(
                                 keyboardType: TextInputType.emailAddress,
                                 controller: _correoDestinoControllerTemporal,
                                 cursorColor: PaletaColores.primario,
@@ -103,6 +103,8 @@ class _AjustesState extends State<Ajustes> {
                                     ),
                                   ),
                                 ),
+                                validator: _validarEmail,
+                                autovalidateMode: AutovalidateMode.onUserInteraction,
                               ),
                               const SizedBox(height: 15),
                               Row(
@@ -144,14 +146,17 @@ class _AjustesState extends State<Ajustes> {
                                           ),
                                         ),
                                         backgroundColor: const MaterialStatePropertyAll<Color>(
-                                            PaletaColores.primario),
+                                          PaletaColores.primario,
+                                        ),
                                       ),
                                       onPressed: () {
-                                        LocalStorage.prefs.setString('emailDestino',
-                                            _correoDestinoControllerTemporal.text);
-                                        _correoDestinoController.text =
-                                            _correoDestinoControllerTemporal.text;
-                                        Navigator.of(context).pop();
+                                        if (_formKey.currentState!.validate()) {
+                                          LocalStorage.prefs.setString('emailDestino',
+                                              _correoDestinoControllerTemporal.text);
+                                          _correoDestinoController.text =
+                                              _correoDestinoControllerTemporal.text;
+                                          Navigator.of(context).pop();
+                                        }
                                       },
                                       child: const Padding(
                                         padding: EdgeInsets.symmetric(vertical: 5),
@@ -171,31 +176,40 @@ class _AjustesState extends State<Ajustes> {
                             ],
                           ),
                         ),
-                      );
-                    },
-                  );
-                },
-              ),
-              TextFieldCustom(
-                prefixIcon: const Icon(Icons.keyboard),
-                labelText: 'Trabajos predefinidos',
-                suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
-                controller: TextEditingController(),
-                focusNode: _focusInstantaneo,
-                readOnly: true,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const TrabajosPredefinidos(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+            TextFieldCustom(
+              prefixIcon: const Icon(Icons.keyboard),
+              labelText: 'Trabajos predefinidos',
+              suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
+              controller: TextEditingController(),
+              focusNode: _focusInstantaneo,
+              readOnly: true,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TrabajosPredefinidos(),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  String? _validarEmail(String? email) {
+    RegExp expRegEmail = RegExp(r'^[\w\.-]+@[\w-]+\.\w{2,3}(\.\w{2,3})?$');
+    final esValidoEmail = expRegEmail.hasMatch(email ?? '');
+    if (!esValidoEmail) {
+      return 'Introduce un email válido';
+    }
+    return null;
   }
 }

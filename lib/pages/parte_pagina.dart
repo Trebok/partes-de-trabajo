@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
+import 'package:partesdetrabajo/helper/modal_bottom_sheet_horizontal.dart';
 import 'package:partesdetrabajo/model/boxes.dart';
 import 'package:partesdetrabajo/model/cliente.dart';
 import 'package:partesdetrabajo/model/firma.dart';
@@ -150,8 +151,10 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
     return PopScope(
       canPop: !_modoSeleccion,
       onPopInvoked: (didPop) {
-        if (_modoSeleccion) {
-          _salirModoSeleccion();
+        if (!didPop) {
+          if (_modoSeleccion) {
+            _salirModoSeleccion();
+          }
         }
       },
       child: GestureDetector(
@@ -179,52 +182,40 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                   icon: const Icon(Icons.delete),
                   color: Colors.white,
                   onPressed: () {
-                    showAdaptiveDialog(
-                      context: context,
-                      builder: (context) => SimpleDialog(
-                        title: Center(
-                          child: Text(
-                              '¿Eliminar ${_seleccionados.length} ${_seleccionados.length > 1 ? 'trabajos?' : 'trabajo?'}'),
-                        ),
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                                child: const Text('NO'),
-                              ),
-                              TextButton(
-                                onPressed: () async {
-                                  Navigator.pop(context);
-                                  _seleccionados.sort((a, b) => b.compareTo(a));
-                                  for (var indice in _seleccionados) {
-                                    _deslizables[indice]!.openStartActionPane();
-                                    _deslizables[indice]!.dismiss(
-                                      ResizeRequest(
-                                        const Duration(milliseconds: 100),
-                                        () {
-                                          setState(() {
-                                            _trabajos.removeAt(indice);
-                                            for (var i = indice; i < _trabajos.length; i++) {
-                                              _trabajos[i].numero--;
-                                            }
-                                          });
-                                        },
-                                      ),
-                                    );
+                    mostrarModalBottomSheetHorizontal(
+                      context,
+                      titulo: 'Eliminar trabajo',
+                      cuerpo:
+                          '¿Eliminar ${_seleccionados.length} ${_seleccionados.length > 1 ? 'trabajos?' : 'trabajo?'}',
+                      textoIzquierda: 'Cancelar',
+                      textoDerecha: 'Eliminar',
+                      colorTextoIzquierda: Colors.black,
+                      colorTextoDerecha: PaletaColores.eliminar,
+                      onPressedIzquierda: () {
+                        Navigator.pop(context);
+                      },
+                      onPressedDerecha: () async {
+                        Navigator.pop(context);
+                        _seleccionados.sort((a, b) => b.compareTo(a));
+                        for (var indice in _seleccionados) {
+                          _deslizables[indice]!.openStartActionPane();
+                          _deslizables[indice]!.dismiss(
+                            ResizeRequest(
+                              const Duration(milliseconds: 100),
+                              () {
+                                setState(() {
+                                  _trabajos.removeAt(indice);
+                                  for (var i = indice; i < _trabajos.length; i++) {
+                                    _trabajos[i].numero--;
                                   }
-                                  await Future.delayed(const Duration(milliseconds: 450));
-                                  _salirModoSeleccion();
-                                },
-                                child: const Text('SI'),
-                              )
-                            ],
-                          ),
-                        ],
-                      ),
+                                });
+                              },
+                            ),
+                          );
+                        }
+                        await Future.delayed(const Duration(milliseconds: 450));
+                        _salirModoSeleccion();
+                      },
                     );
                   },
                 ),
@@ -537,50 +528,40 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                                         padding: EdgeInsets.zero,
                                         autoClose: false,
                                         onPressed: (context) {
-                                          showAdaptiveDialog(
-                                            context: context,
-                                            builder: (context) => SimpleDialog(
-                                              title: const Center(
-                                                child: Text('¿Eliminar trabajo?'),
-                                              ),
-                                              children: [
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.spaceAround,
-                                                  children: [
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.pop(context);
-                                                        slidableController.close();
-                                                      },
-                                                      child: const Text('NO'),
-                                                    ),
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.pop(context);
+                                          mostrarModalBottomSheetHorizontal(
+                                            context,
+                                            titulo: 'Eliminar trabajo',
+                                            cuerpo: '¿Eliminar 1 parte?',
+                                            textoIzquierda: 'Cancelar',
+                                            textoDerecha: 'Eliminar',
+                                            colorTextoIzquierda: Colors.black,
+                                            colorTextoDerecha: PaletaColores.eliminar,
+                                            onPopInvoked: (_) {
+                                              slidableController.close();
+                                            },
+                                            onPressedIzquierda: () {
+                                              Navigator.pop(context);
+                                              slidableController.close();
+                                            },
+                                            onPressedDerecha: () async {
+                                              Navigator.pop(context);
 
-                                                        slidableController.dismiss(
-                                                          ResizeRequest(
-                                                            const Duration(milliseconds: 100),
-                                                            () {
-                                                              setState(() {
-                                                                _trabajos.removeAt(indice);
-                                                                for (var i = indice;
-                                                                    i < _trabajos.length;
-                                                                    i++) {
-                                                                  _trabajos[i].numero--;
-                                                                }
-                                                              });
-                                                            },
-                                                          ),
-                                                        );
-                                                      },
-                                                      child: const Text('SI'),
-                                                    )
-                                                  ],
+                                              slidableController.dismiss(
+                                                ResizeRequest(
+                                                  const Duration(milliseconds: 100),
+                                                  () {
+                                                    setState(() {
+                                                      _trabajos.removeAt(indice);
+                                                      for (var i = indice;
+                                                          i < _trabajos.length;
+                                                          i++) {
+                                                        _trabajos[i].numero--;
+                                                      }
+                                                    });
+                                                  },
                                                 ),
-                                              ],
-                                            ),
+                                              );
+                                            },
                                           );
                                         },
                                         backgroundColor: Colors.transparent,
@@ -765,6 +746,7 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                           });
                         } else {
                           showAdaptiveDialog(
+                            //TODO cambiar?
                             context: context,
                             builder: (context) => SimpleDialog(
                               title: const Center(
