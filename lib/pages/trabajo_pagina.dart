@@ -149,18 +149,15 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                   });
                 },
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    FocusScope(
-                      child: Focus(
-                        onFocusChange: (hasFocus) {
-                          if (hasFocus) {
-                            FocusScope.of(context).unfocus();
-                          }
-                        },
-                        child: TextFieldCustom(
-                          prefixIcon: const Icon(Icons.numbers),
-                          labelText: 'Nº ${widget.numero}',
-                          readOnly: true,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 15, bottom: 10),
+                      child: Text(
+                        'Nº ${widget.numero}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
                         ),
                       ),
                     ),
@@ -360,24 +357,26 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                       height: 0,
                       color: PaletaColores.grisBordes,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 25, bottom: 25),
-                      child: BotonGradiente(
-                        nombre: 'GUARDAR',
-                        onTap: () {
-                          if (_formKey.currentState!.validate()) {
-                            _formKey.currentState!.save();
-                            Navigator.pop(
-                              context,
-                              Trabajo(
-                                numero: widget.numero,
-                                descripcion: _descripcion,
-                                material: _material.text,
-                                imagenes: _imagenes,
-                              ),
-                            );
-                          }
-                        },
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 25, bottom: 25),
+                        child: BotonGradiente(
+                          nombre: 'GUARDAR',
+                          onTap: () {
+                            if (_formKey.currentState!.validate()) {
+                              _formKey.currentState!.save();
+                              Navigator.pop(
+                                context,
+                                Trabajo(
+                                  numero: widget.numero,
+                                  descripcion: _descripcion,
+                                  material: _material.text,
+                                  imagenes: _imagenes,
+                                ),
+                              );
+                            }
+                          },
+                        ),
                       ),
                     ),
                   ],

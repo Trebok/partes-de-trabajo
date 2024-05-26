@@ -67,7 +67,18 @@ class _ClientePaginaState extends State<ClientePagina> {
             child: Form(
               key: _formKey,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 15, bottom: 10),
+                    child: Text(
+                      'Datos cliente',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
                   TextFieldCustom(
                     prefixIcon: const Icon(Icons.person),
                     labelText: 'Nombre',
@@ -104,24 +115,26 @@ class _ClientePaginaState extends State<ClientePagina> {
                     controller: _direccion,
                     textCapitalization: TextCapitalization.words,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 25, bottom: 25),
-                    child: BotonGradiente(
-                      nombre: 'GUARDAR CLIENTE',
-                      onTap: () {
-                        if (_formKey.currentState!.validate()) {
-                          Navigator.pop(
-                            context,
-                            Cliente(
-                              nombre: _nombre.text,
-                              email: _email.text,
-                              dni: _dni.text,
-                              telefono: _telefono.text,
-                              direccion: _direccion.text,
-                            ),
-                          );
-                        }
-                      },
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 25, bottom: 25),
+                      child: BotonGradiente(
+                        nombre: 'GUARDAR CLIENTE',
+                        onTap: () {
+                          if (_formKey.currentState!.validate()) {
+                            Navigator.pop(
+                              context,
+                              Cliente(
+                                nombre: _nombre.text,
+                                email: _email.text,
+                                dni: _dni.text,
+                                telefono: _telefono.text,
+                                direccion: _direccion.text,
+                              ),
+                            );
+                          }
+                        },
+                      ),
                     ),
                   ),
                 ],

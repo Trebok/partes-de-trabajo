@@ -356,8 +356,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         for (final indice in _seleccionados) {
                           final Parte parte = boxPartes.getAt(indice);
                           partesAEnviar.add(parte);
-                          parte.enviado = true;
-                          boxPartes.putAt(indice, parte);
+                          if (!parte.enviado) {
+                            parte.enviado = true;
+                            boxPartes.putAt(indice, parte);
+                          }
                         }
 
                         await enviarPartesEmail(
@@ -604,7 +606,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       SlidableAction(
                         padding: EdgeInsets.zero,
                         autoClose: false,
-                        onPressed: (context) {
+                        onPressed: (_) {
                           mostrarModalBottomSheetHorizontal(
                             context,
                             titulo: 'Eliminar parte',
@@ -618,7 +620,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             },
                             onPressedIzquierda: () {
                               Navigator.pop(context);
-                              slidableController.close();
                             },
                             onPressedDerecha: () async {
                               Navigator.pop(context);
@@ -658,7 +659,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       SlidableAction(
                         padding: EdgeInsets.zero,
                         autoClose: false,
-                        onPressed: (context) async {
+                        onPressed: (_) async {
                           final String? emailDestino =
                               LocalStorage.prefs.getString('emailDestino');
 
@@ -687,7 +688,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             },
                             onPressedIzquierda: () {
                               Navigator.pop(context);
-                              slidableController.close();
                             },
                             onPressedDerecha: () async {
                               Navigator.pop(context);
@@ -710,11 +710,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                   emailDestino: emailDestino,
                                   partes: [parte],
                                 );
-                                await slidableController.close();
-                                parte.enviado = true;
-                                setState(() {
-                                  boxPartes.putAt(indiceInvertido, parte);
-                                });
+                                if (context.mounted) {
+                                  Navigator.of(context).pop();
+                                }
+                                if (!parte.enviado) {
+                                  setState(() {
+                                    parte.enviado = true;
+                                    boxPartes.putAt(indiceInvertido, parte);
+                                  });
+                                }
                               } on MailerException catch (_) {
                                 if (context.mounted) {
                                   Navigator.of(context).pop();
@@ -918,7 +922,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         SlidableAction(
                           padding: EdgeInsets.zero,
                           autoClose: false,
-                          onPressed: (context) {
+                          onPressed: (_) {
                             mostrarModalBottomSheetHorizontal(
                               context,
                               titulo: 'Eliminar cliente',
@@ -932,7 +936,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               },
                               onPressedIzquierda: () {
                                 Navigator.pop(context);
-                                slidableController.close();
                               },
                               onPressedDerecha: () async {
                                 Navigator.pop(context);

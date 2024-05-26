@@ -57,6 +57,9 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
   late int _horaFinal;
   late DateTime _fechaFinal;
 
+  late final int number;
+  late final int year;
+
   bool _modoSeleccion = false;
   final List<int> _seleccionados = [];
   final Map<int, SlidableController> _deslizables = {};
@@ -92,6 +95,18 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
       _fechaInicio = DateTime(_ahora.year, _ahora.month, _ahora.day);
       _horaFinal = _ahora.hour * 60 + _ahora.minute;
       _fechaFinal = DateTime(_ahora.year, _ahora.month, _ahora.day);
+
+      if (boxPartes.length == 0) {
+        number = 1;
+      } else {
+        final ultimoParte = boxPartes.values.last;
+        if (ultimoParte.year != DateTime.now().year) {
+          number = 1;
+        } else {
+          number = ultimoParte.number + 1;
+        }
+      }
+      year = DateTime.now().year;
     } else {
       titulo = 'EDITAR PARTE';
       _cliente = widget.parte!.cliente;
@@ -122,6 +137,8 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
         int.parse(widget.parte!.fechaFinal.split('/')[1]),
         int.parse(widget.parte!.fechaFinal.split('/')[0]),
       );
+      number = widget.parte!.number;
+      year = widget.parte!.year;
     }
   }
 
@@ -229,7 +246,18 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
               child: Form(
                 key: _formKeyGeneral,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 15, bottom: 10),
+                      child: Text(
+                        'Parte Nº $number/$year',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
                     TextFieldCustom(
                       prefixIcon: const Icon(Icons.person),
                       labelText: 'Cliente',
@@ -527,7 +555,7 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                                       SlidableAction(
                                         padding: EdgeInsets.zero,
                                         autoClose: false,
-                                        onPressed: (context) {
+                                        onPressed: (_) {
                                           mostrarModalBottomSheetHorizontal(
                                             context,
                                             titulo: 'Eliminar trabajo',
@@ -810,55 +838,41 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                       height: 0,
                       color: PaletaColores.grisBordes,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 25, bottom: 25),
-                      child: BotonGradiente(
-                        nombre: 'GUARDAR PARTE',
-                        onTap: () {
-                          _formKeyFechas.currentState!.validate();
-                          if (_formKeyGeneral.currentState!.validate() &&
-                              _formKeyFechas.currentState!.validate()) {
-                            final int number;
-                            if (widget.parte == null) {
-                              if (boxPartes.length == 0) {
-                                number = 1;
-                              } else {
-                                final ultimoParte = boxPartes.values.last;
-                                if (ultimoParte.year != DateTime.now().year) {
-                                  number = 1;
-                                } else {
-                                  number = ultimoParte.number + 1;
-                                }
-                              }
-                            } else {
-                              number = -1;
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 25, bottom: 25),
+                        child: BotonGradiente(
+                          nombre: 'GUARDAR PARTE',
+                          onTap: () {
+                            _formKeyFechas.currentState!.validate();
+                            if (_formKeyGeneral.currentState!.validate() &&
+                                _formKeyFechas.currentState!.validate()) {
+                              final comienzo = _fechaInicio.copyWith(minute: _horaInicio);
+                              final fin = _fechaFinal.copyWith(minute: _horaFinal);
+                              final diferencia = fin.difference(comienzo);
+                              final horasTotales =
+                                  '${diferencia.toString().split(':')[0]}:${diferencia.toString().split(':')[1]}h';
+
+                              final parte = Parte(
+                                cliente: _cliente,
+                                horaInicio: _horaInicioController.text,
+                                fechaInicio: _fechaInicioController.text,
+                                horaFinal: _horaFinalController.text,
+                                fechaFinal: _fechaFinalController.text,
+                                otrosTrabajadores: _otrosTrabajadoresController.text,
+                                observaciones: _observacionesController.text,
+                                trabajos: _trabajos,
+                                trabajoFinalizado: _trabajoFinalizado,
+                                trabajoPendiente: _trabajoPendienteController.text,
+                                number: number,
+                                horasTotales: horasTotales,
+                                firma: _firma,
+                              );
+
+                              Navigator.pop(context, parte);
                             }
-
-                            final comienzo = _fechaInicio.copyWith(minute: _horaInicio);
-                            final fin = _fechaFinal.copyWith(minute: _horaFinal);
-                            final diferencia = fin.difference(comienzo);
-                            final horasTotales =
-                                '${diferencia.toString().split(':')[0]}:${diferencia.toString().split(':')[1]}h';
-
-                            final parte = Parte(
-                              cliente: _cliente,
-                              horaInicio: _horaInicioController.text,
-                              fechaInicio: _fechaInicioController.text,
-                              horaFinal: _horaFinalController.text,
-                              fechaFinal: _fechaFinalController.text,
-                              otrosTrabajadores: _otrosTrabajadoresController.text,
-                              observaciones: _observacionesController.text,
-                              trabajos: _trabajos,
-                              trabajoFinalizado: _trabajoFinalizado,
-                              trabajoPendiente: _trabajoPendienteController.text,
-                              number: widget.parte == null ? number : widget.parte!.number,
-                              horasTotales: horasTotales,
-                              firma: _firma,
-                            );
-
-                            Navigator.pop(context, parte);
-                          }
-                        },
+                          },
+                        ),
                       ),
                     ),
                   ],
