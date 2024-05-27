@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
 import 'package:partesdetrabajo/helper/modal_bottom_sheet_horizontal.dart';
 import 'package:partesdetrabajo/model/boxes.dart';
@@ -259,7 +260,13 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                       ),
                     ),
                     TextFieldCustom(
-                      prefixIcon: const Icon(Icons.person),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                        child: SvgPicture.asset(
+                          'images/iconos/persona.svg',
+                          width: 1,
+                        ),
+                      ),
                       labelText: 'Cliente',
                       suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
                       controller: _clienteController,
@@ -294,7 +301,13 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                             children: [
                               Expanded(
                                 child: TextFieldCustom(
-                                  prefixIcon: const Icon(Icons.watch_later_outlined),
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                                    child: SvgPicture.asset(
+                                      'images/iconos/reloj.svg',
+                                      width: 1,
+                                    ),
+                                  ),
                                   labelText: 'Hora inicio',
                                   controller: _horaInicioController,
                                   focusNode: _focusHoraInicio,
@@ -336,7 +349,13 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                               const SizedBox(width: 8),
                               Expanded(
                                 child: TextFieldCustom(
-                                  prefixIcon: const Icon(Icons.calendar_today_outlined),
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                                    child: SvgPicture.asset(
+                                      'images/iconos/calendario.svg',
+                                      width: 1,
+                                    ),
+                                  ),
                                   labelText: 'Fecha inicio',
                                   controller: _fechaInicioController,
                                   focusNode: _focusFechaInicio,
@@ -377,7 +396,13 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                             children: [
                               Expanded(
                                 child: TextFieldCustom(
-                                  prefixIcon: const Icon(Icons.watch_later),
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                                    child: SvgPicture.asset(
+                                      'images/iconos/reloj.svg',
+                                      width: 1,
+                                    ),
+                                  ),
                                   labelText: 'Hora final',
                                   controller: _horaFinalController,
                                   focusNode: _focusHoraFinal,
@@ -419,7 +444,13 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                               const SizedBox(width: 8),
                               Expanded(
                                 child: TextFieldCustom(
-                                  prefixIcon: const Icon(Icons.calendar_today),
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                                    child: SvgPicture.asset(
+                                      'images/iconos/calendario.svg',
+                                      width: 1,
+                                    ),
+                                  ),
                                   labelText: 'Fecha final',
                                   controller: _fechaFinalController,
                                   focusNode: _focusFechaFinal,
@@ -461,7 +492,13 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                     ),
                     FocusScope(
                       child: TextFieldCustom(
-                        prefixIcon: const Icon(Icons.engineering),
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                          child: SvgPicture.asset(
+                            'images/iconos/trabajadores.svg',
+                            width: 1,
+                          ),
+                        ),
                         labelText: 'Otros trabajadores',
                         controller: _otrosTrabajadoresController,
                         focusNode: _focusOtrosTrabajadores,
@@ -476,7 +513,13 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                       ),
                     ),
                     TextFieldCustom(
-                      prefixIcon: const Icon(Icons.search),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                        child: SvgPicture.asset(
+                          'images/iconos/observaciones.svg',
+                          width: 1,
+                        ),
+                      ),
                       labelText: 'Observaciones',
                       controller: _observacionesController,
                       focusNode: _focusObservaciones,
@@ -492,10 +535,16 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                     TextFormField(
                       //NO CAMBIAR A CUSTOM
                       key: _textFormFieldKeyTrabajos,
-                      decoration: const InputDecoration(
-                        prefixIcon: Icon(Icons.handyman_outlined),
+                      decoration: InputDecoration(
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                          child: SvgPicture.asset(
+                            'images/iconos/trabajos-realizados.svg',
+                            width: 1,
+                          ),
+                        ),
                         labelText: 'Trabajos realizados',
-                        suffixIcon: Icon(Icons.add_rounded),
+                        suffixIcon: const Icon(Icons.add_rounded),
                         border: InputBorder.none,
                       ),
                       controller: TextEditingController(),
@@ -722,7 +771,13 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                       color: PaletaColores.grisBordes,
                     ),
                     TextFieldCustom(
-                      prefixIcon: const Icon(Icons.fact_check_outlined),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                        child: SvgPicture.asset(
+                          'images/iconos/trabajo-finalizado.svg',
+                          width: 1,
+                        ),
+                      ),
                       labelText: 'Trabajo finalizado',
                       suffixIcon: Switch.adaptive(
                         activeTrackColor: PaletaColores.primario,
@@ -739,7 +794,13 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                     ),
                     if (!_trabajoFinalizado)
                       TextFieldCustom(
-                        prefixIcon: const Icon(Icons.build_outlined),
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                          child: SvgPicture.asset(
+                            'images/iconos/trabajo-pendiente.svg',
+                            width: 1,
+                          ),
+                        ),
                         labelText: 'Trabajo pendiente',
                         controller: _trabajoPendienteController,
                         focusNode: _focusTrabajoPendiente,
@@ -753,7 +814,13 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                         },
                       ),
                     TextFieldCustom(
-                      prefixIcon: const Icon(Icons.border_color_outlined),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                        child: SvgPicture.asset(
+                          'images/iconos/firma.svg',
+                          width: 1,
+                        ),
+                      ),
                       labelText: 'Firma',
                       suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
                       border: InputBorder.none,

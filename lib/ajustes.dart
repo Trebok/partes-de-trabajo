@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
 import 'package:partesdetrabajo/helper/local_storage.dart';
 import 'package:partesdetrabajo/pages/trabajos_predefinidos_pagina.dart';
@@ -46,8 +47,14 @@ class _AjustesState extends State<Ajustes> {
         child: Column(
           children: [
             TextFieldCustom(
-              prefixIcon: const Icon(Icons.email),
-              labelText: 'Email destino',
+              prefixIcon: Padding(
+                padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                child: SvgPicture.asset(
+                  'images/iconos/email.svg',
+                  width: 1,
+                ),
+              ),
+              labelText: 'Email destinatario',
               suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
               controller: _correoDestinoController,
               focusNode: _focusInstantaneo,
@@ -69,7 +76,7 @@ class _AjustesState extends State<Ajustes> {
                             children: [
                               const Center(
                                 child: Text(
-                                  'Email destino',
+                                  'Email destinatario',
                                   style: TextStyle(
                                     fontSize: 16.0,
                                     fontWeight: FontWeight.bold,
@@ -183,7 +190,13 @@ class _AjustesState extends State<Ajustes> {
               },
             ),
             TextFieldCustom(
-              prefixIcon: const Icon(Icons.keyboard),
+              prefixIcon: Padding(
+                padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                child: SvgPicture.asset(
+                  'images/iconos/trabajos-predefinidos.svg',
+                  width: 1,
+                ),
+              ),
               labelText: 'Trabajos predefinidos',
               suffixIcon: const Icon(Icons.keyboard_arrow_right_rounded),
               controller: TextEditingController(),

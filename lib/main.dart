@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:mailer/mailer.dart';
 import 'package:open_filex/open_filex.dart';
@@ -43,9 +47,26 @@ void main() async {
   // Hive.deleteBoxFromDisk('parteBox');
   boxClientes = await Hive.openBox<Cliente>('clienteBox');
   boxPartes = await Hive.openBox<Parte>('parteBox');
-  // boxClientes.put('${clienteEjemplo.nombre}${DateTime.now()}', clienteEjemplo);
+  // boxClientes.put('${clienteEjemplo.nombre.toLowerCase()}${DateTime.now()}', clienteEjemplo);
   // boxPartes.add(parteEjemplo);
 
+  final manifestJson = await rootBundle.loadString('AssetManifest.json');
+  List svgsPaths = (json
+              .decode(manifestJson)
+              .keys
+              .where((String key) => key.startsWith('images/iconos/') && key.endsWith('.svg'))
+          as Iterable)
+      .toList();
+
+  for (var svgPath in svgsPaths as List<String>) {
+    var loader = SvgAssetLoader(svgPath);
+    await svg.cache.putIfAbsent(loader.cacheKey(null), () => loader.loadBytes(null));
+  }
+
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    systemNavigationBarColor: Colors.white,
+    systemNavigationBarIconBrightness: Brightness.dark,
+  ));
   runApp(const MyApp());
 }
 
@@ -72,7 +93,6 @@ class _MyAppState extends State<MyApp> {
       ],
       // theme: ThemeData(platform: TargetPlatform.iOS),
       theme: AppTheme.lightThemeMode,
-      darkTheme: AppTheme.darkThemeMode,
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
@@ -538,7 +558,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       ).then((final cliente) {
                         if (cliente == null) return;
                         setState(() {
-                          boxClientes.put('${cliente.nombre}${DateTime.now()}', cliente);
+                          boxClientes.put(
+                              '${cliente.nombre.toLowerCase()}${DateTime.now()}', cliente);
                         });
                       });
                     default:
@@ -826,7 +847,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                         children: [
                                           const Icon(
                                             size: 30,
-                                            color: Color(0xffbfbfbf),
+                                            color: Color(0xff8a8a8a),
                                             Icons.person,
                                           ),
                                           const SizedBox(width: 10),
@@ -838,7 +859,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                               padding: EdgeInsets.only(left: 5),
                                               child: Icon(
                                                 Icons.draw,
-                                                color: Color.fromARGB(255, 78, 78, 78),
+                                                color: Colors.black,
                                               ),
                                             ),
                                         ],
@@ -978,7 +999,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               setState(() {
                                 if (cliente.nombre != clienteEditado.nombre) {
                                   boxClientes.deleteAt(indice);
-                                  boxClientes.put('${clienteEditado.nombre}${DateTime.now()}',
+                                  boxClientes.put(
+                                      '${clienteEditado.nombre.toLowerCase()}${DateTime.now()}',
                                       clienteEditado);
                                 } else {
                                   boxClientes.putAt(indice, clienteEditado);

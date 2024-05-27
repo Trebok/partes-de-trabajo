@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
 import 'package:partesdetrabajo/model/firma.dart';
@@ -79,7 +80,13 @@ class _FirmaPaginaState extends State<FirmaPagina> {
                   ),
                   const SizedBox(height: 50),
                   TextFieldCustom(
-                    prefixIcon: const Icon(Icons.person),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                      child: SvgPicture.asset(
+                        'images/iconos/persona.svg',
+                        width: 1,
+                      ),
+                    ),
                     labelText: 'Persona firmante',
                     controller: _nombre,
                     autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -91,7 +98,13 @@ class _FirmaPaginaState extends State<FirmaPagina> {
                     },
                   ),
                   TextFieldCustom(
-                    prefixIcon: const Icon(Icons.credit_card),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                      child: SvgPicture.asset(
+                        'images/iconos/dni.svg',
+                        width: 1,
+                      ),
+                    ),
                     labelText: 'DNI',
                     controller: _dni,
                   ),

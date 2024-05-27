@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:partesdetrabajo/model/cliente.dart';
 import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
 import 'package:partesdetrabajo/widgets/boton_gradiente.dart';
@@ -80,7 +81,13 @@ class _ClientePaginaState extends State<ClientePagina> {
                     ),
                   ),
                   TextFieldCustom(
-                    prefixIcon: const Icon(Icons.person),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                      child: SvgPicture.asset(
+                        'images/iconos/persona.svg',
+                        width: 1,
+                      ),
+                    ),
                     labelText: 'Nombre',
                     controller: _nombre,
                     textCapitalization: TextCapitalization.words,
@@ -93,24 +100,48 @@ class _ClientePaginaState extends State<ClientePagina> {
                     },
                   ),
                   TextFieldCustom(
-                    prefixIcon: const Icon(Icons.email),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                      child: SvgPicture.asset(
+                        'images/iconos/email.svg',
+                        width: 1,
+                      ),
+                    ),
                     labelText: 'Correo electrónico',
                     controller: _email,
                     textCapitalization: TextCapitalization.none,
                   ),
                   TextFieldCustom(
-                    prefixIcon: const Icon(Icons.credit_card),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                      child: SvgPicture.asset(
+                        'images/iconos/dni.svg',
+                        width: 1,
+                      ),
+                    ),
                     labelText: 'DNI/NIF',
                     controller: _dni,
                     textCapitalization: TextCapitalization.characters,
                   ),
                   TextFieldCustom(
-                    prefixIcon: const Icon(Icons.phone),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                      child: SvgPicture.asset(
+                        'images/iconos/telefono.svg',
+                        width: 1,
+                      ),
+                    ),
                     labelText: 'Teléfono',
                     controller: _telefono,
                   ),
                   TextFieldCustom(
-                    prefixIcon: const Icon(Icons.place),
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                      child: SvgPicture.asset(
+                        'images/iconos/ubicacion.svg',
+                        width: 1,
+                      ),
+                    ),
                     labelText: 'Dirección',
                     controller: _direccion,
                     textCapitalization: TextCapitalization.words,

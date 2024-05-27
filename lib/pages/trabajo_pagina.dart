@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
 import 'package:partesdetrabajo/helper/adaptive_action.dart';
@@ -176,7 +177,13 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                       fieldViewBuilder:
                           (context, textEditingController, focusNode, onFieldSubmitted) {
                         return TextFieldCustom(
-                          prefixIcon: const Icon(Icons.description),
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                            child: SvgPicture.asset(
+                              'images/iconos/descripcion.svg',
+                              width: 1,
+                            ),
+                          ),
                           labelText: 'Descripción',
                           controller: textEditingController,
                           focusNode: focusNode,
@@ -236,7 +243,13 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                       },
                     ),
                     TextFieldCustom(
-                      prefixIcon: const Icon(Icons.home_repair_service),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                        child: SvgPicture.asset(
+                          'images/iconos/material.svg',
+                          width: 1,
+                        ),
+                      ),
                       labelText: 'Material',
                       controller: _material,
                     ),
@@ -248,7 +261,13 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                           }
                         },
                         child: TextFieldCustom(
-                          prefixIcon: const Icon(Icons.image),
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                            child: SvgPicture.asset(
+                              'images/iconos/imagenes.svg',
+                              width: 1,
+                            ),
+                          ),
                           labelText: 'Imágenes',
                           suffixIcon: const Icon(Icons.add_rounded),
                           border: InputBorder.none,
