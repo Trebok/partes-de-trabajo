@@ -128,7 +128,7 @@ class _AjustesState extends State<Ajustes> {
                                             MaterialStatePropertyAll<Color>(Colors.grey[200]!),
                                       ),
                                       onPressed: () {
-                                        Navigator.of(context).pop();
+                                        Navigator.pop(context);
                                       },
                                       child: const Padding(
                                         padding: EdgeInsets.symmetric(vertical: 5),
@@ -162,7 +162,7 @@ class _AjustesState extends State<Ajustes> {
                                               _correoDestinoControllerTemporal.text);
                                           _correoDestinoController.text =
                                               _correoDestinoControllerTemporal.text;
-                                          Navigator.of(context).pop();
+                                          Navigator.pop(context);
                                         }
                                       },
                                       child: const Padding(

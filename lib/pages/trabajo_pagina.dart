@@ -4,9 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
-import 'package:partesdetrabajo/helper/adaptive_action.dart';
 import 'package:partesdetrabajo/helper/local_storage.dart';
 import 'package:partesdetrabajo/helper/modal_bottom_sheet_horizontal.dart';
+import 'package:partesdetrabajo/helper/modal_bottom_sheet_vertical.dart';
 import 'package:partesdetrabajo/model/trabajo.dart';
 import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
 import 'package:partesdetrabajo/widgets/boton_gradiente.dart';
@@ -68,12 +68,39 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: !_hayCambios && !_modoSeleccion,
-      onPopInvoked: (didPop) async {
+      onPopInvoked: (didPop) {
         if (!didPop) {
           if (_modoSeleccion) {
             _salirModoSeleccion();
           } else {
-            _salirConCambios();
+            mostrarModalBottomSheetHorizontal(
+              context,
+              titulo: 'Confirmar salida',
+              cuerpo: 'Tienes cambios sin guardar.\n¿Quieres guardar antes de salir?',
+              textoIzquierda: 'Descartar',
+              textoDerecha: 'Guardar',
+              colorTextoIzquierda: PaletaColores.eliminar,
+              colorTextoDerecha: PaletaColores.primario,
+              onPressedIzquierda: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              onPressedDerecha: () {
+                Navigator.pop(context);
+                if (_formKey.currentState!.validate()) {
+                  _formKey.currentState!.save();
+                  Navigator.pop(
+                    context,
+                    Trabajo(
+                      numero: widget.numero,
+                      descripcion: _descripcion,
+                      material: _material.text,
+                      imagenes: _imagenes,
+                    ),
+                  );
+                }
+              },
+            );
           }
         }
       },
@@ -95,11 +122,39 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                   )
                 : BackButton(
                     color: Colors.white,
-                    onPressed: () async {
+                    onPressed: () {
                       if (_hayCambios) {
-                        await _salirConCambios();
-                      } else if (context.mounted) {
-                        Navigator.of(context).pop();
+                        mostrarModalBottomSheetHorizontal(
+                          context,
+                          titulo: 'Confirmar salida',
+                          cuerpo:
+                              'Tienes cambios sin guardar.\n¿Quieres guardar antes de salir?',
+                          textoIzquierda: 'Descartar',
+                          textoDerecha: 'Guardar',
+                          colorTextoIzquierda: PaletaColores.eliminar,
+                          colorTextoDerecha: PaletaColores.primario,
+                          onPressedIzquierda: () {
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                          },
+                          onPressedDerecha: () {
+                            Navigator.pop(context);
+                            if (_formKey.currentState!.validate()) {
+                              _formKey.currentState!.save();
+                              Navigator.pop(
+                                context,
+                                Trabajo(
+                                  numero: widget.numero,
+                                  descripcion: _descripcion,
+                                  material: _material.text,
+                                  imagenes: _imagenes,
+                                ),
+                              );
+                            }
+                          },
+                        );
+                      } else {
+                        Navigator.pop(context);
                       }
                     },
                   ),
@@ -272,52 +327,63 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                           suffixIcon: const Icon(Icons.add_rounded),
                           border: InputBorder.none,
                           readOnly: true,
-                          onTap: () async {
-                            await showAdaptiveDialog(
-                              //TODO
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog.adaptive(
-                                  title: const Text('Seleccionar imagen'),
-                                  content: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      ListTile(
-                                        leading: const Icon(Icons.photo_library),
-                                        title: const Text('Elegir desde la galería'),
-                                        onTap: () async {
-                                          Navigator.of(context).pop();
-                                          final imagen = await ImagePicker()
-                                              .pickImage(source: ImageSource.gallery);
-                                          if (imagen != null) {
-                                            final imagenBytes = await imagen.readAsBytes();
-                                            setState(() {
-                                              _imagenes.add(imagenBytes);
-                                              _hayCambios = true;
-                                            });
-                                          }
-                                        },
+                          onTap: () {
+                            mostrarModalBottomSheetVertical(
+                              context,
+                              titulo: 'Seleccionar imagen',
+                              cuerpo: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 10),
+                                child: Column(
+                                  children: [
+                                    ListTile(
+                                      contentPadding: EdgeInsets.zero,
+                                      leading: const Icon(Icons.camera_alt),
+                                      title: const Text(
+                                        'Hacer una foto',
+                                        style: TextStyle(
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
-                                      ListTile(
-                                        leading: const Icon(Icons.camera_alt),
-                                        title: const Text('Tomar una foto'),
-                                        onTap: () async {
-                                          Navigator.of(context).pop();
-                                          final imagen = await ImagePicker()
-                                              .pickImage(source: ImageSource.camera);
-                                          if (imagen != null) {
-                                            final imagenBytes = await imagen.readAsBytes();
-                                            setState(() {
-                                              _imagenes.add(imagenBytes);
-                                              _hayCambios = true;
-                                            });
-                                          }
-                                        },
+                                      onTap: () async {
+                                        Navigator.pop(context);
+                                        final imagen = await ImagePicker()
+                                            .pickImage(source: ImageSource.camera);
+                                        if (imagen != null) {
+                                          final imagenBytes = await imagen.readAsBytes();
+                                          setState(() {
+                                            _imagenes.add(imagenBytes);
+                                            _hayCambios = true;
+                                          });
+                                        }
+                                      },
+                                    ),
+                                    ListTile(
+                                      contentPadding: EdgeInsets.zero,
+                                      leading: const Icon(Icons.photo_library),
+                                      title: const Text(
+                                        'Elegir desde la galería',
+                                        style: TextStyle(
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
-                                    ],
-                                  ),
-                                );
-                              },
+                                      onTap: () async {
+                                        Navigator.pop(context);
+                                        final imagen = await ImagePicker()
+                                            .pickImage(source: ImageSource.gallery);
+                                        if (imagen != null) {
+                                          final imagenBytes = await imagen.readAsBytes();
+                                          setState(() {
+                                            _imagenes.add(imagenBytes);
+                                            _hayCambios = true;
+                                          });
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
                             );
                           },
                         ),
@@ -431,47 +497,6 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
       _seleccionados.clear();
       _modoSeleccion = false;
     });
-  }
-
-  Future _salirConCambios() async {
-    await showAdaptiveDialog(
-      //TODO
-      context: context,
-      builder: (context) => AlertDialog.adaptive(
-        title: const Text('Confirmar salida'),
-        content: const Text('Tienes cambios sin guardar.\n¿Quieres guardar antes de salir?'),
-        actionsAlignment: MainAxisAlignment.spaceBetween,
-        actions: [
-          adaptiveAction(
-            context: context,
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-            },
-            child: const Text('Descartar'),
-          ),
-          adaptiveAction(
-            context: context,
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
-                Navigator.of(context).pop();
-                Navigator.pop(
-                  context,
-                  Trabajo(
-                    numero: widget.numero,
-                    descripcion: _descripcion,
-                    material: _material.text,
-                    imagenes: _imagenes,
-                  ),
-                );
-              }
-            },
-            child: const Text('Guardar'),
-          ),
-        ],
-      ),
-    );
   }
 }
 

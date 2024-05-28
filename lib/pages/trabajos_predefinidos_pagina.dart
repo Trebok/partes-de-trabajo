@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
-import 'package:partesdetrabajo/helper/adaptive_action.dart';
 import 'package:partesdetrabajo/helper/local_storage.dart';
 import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
 import 'package:partesdetrabajo/widgets/boton_gradiente.dart';
-import 'package:partesdetrabajo/widgets/text_field_custom.dart';
 
 class TrabajosPredefinidos extends StatefulWidget {
   const TrabajosPredefinidos({super.key});
@@ -18,24 +16,71 @@ class _TrabajosPredefinidosState extends State<TrabajosPredefinidos> {
   final TextEditingController _controller = TextEditingController();
 
   void _mostrarInfo() {
-    //TODO CAMBIAR ESTILO?
-    showAdaptiveDialog(
+    showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog.adaptive(
-          title: const Text('Información'),
-          content: const Text('En esta página puedes añadir trabajos predefinidos que '
-              'posteriormente aparecerán a modo de sugerencia al empezar a escribir en el '
-              'campo "Descripción" en el apartado "Trabajos realizados" dentro de un parte.'),
-          actions: [
-            adaptiveAction(
-              context: context,
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Entendido'),
-            )
-          ],
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          elevation: 0,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 26, 24, 25),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Center(
+                  child: Text(
+                    'Información',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'En esta página puedes añadir trabajos predefinidos que '
+                  'posteriormente aparecerán a modo de sugerencia al empezar a escribir en el '
+                  'campo "Descripción" en el apartado "Trabajos realizados" dentro de un parte.',
+                  style: TextStyle(
+                    fontSize: 16.0,
+                  ),
+                ),
+                const SizedBox(height: 25),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        style: ButtonStyle(
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15.0),
+                            ),
+                          ),
+                          backgroundColor: const MaterialStatePropertyAll<Color>(
+                            PaletaColores.primario,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 5),
+                          child: Text(
+                            'Entendido',
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -71,53 +116,79 @@ class _TrabajosPredefinidosState extends State<TrabajosPredefinidos> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: BarraNavegacion(
-        nombre: 'TRABAJOS',
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.info_outline,
-              color: Colors.white,
-            ),
-            onPressed: _mostrarInfo,
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextFieldCustom(
-              labelText: 'Agregar trabajos predefinidos',
-              border: const OutlineInputBorder(),
-              controller: _controller,
-            ),
-            const SizedBox(height: 10),
-            BotonGradiente(
-              nombre: 'Añadir',
-              onTap: _agregarTrabajo,
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _trabajos.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    title: Text(_trabajos[index]),
-                    trailing: IconButton(
-                      icon: const Icon(
-                        Icons.delete,
-                        color: PaletaColores.eliminar,
-                      ),
-                      onPressed: () => _eliminarTrabajo(index),
-                    ),
-                  );
-                },
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        appBar: BarraNavegacion(
+          nombre: 'TRABAJOS',
+          actions: [
+            IconButton(
+              icon: const Icon(
+                Icons.info_outline,
+                color: Colors.white,
               ),
+              onPressed: _mostrarInfo,
             ),
           ],
+        ),
+        body: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: Column(
+            children: [
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Agregar trabajos predefinidos',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                    borderSide: BorderSide(
+                      color: PaletaColores.primario,
+                      width: 2.0,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                    borderSide: BorderSide(
+                      color: PaletaColores.primario,
+                      width: 2.0,
+                    ),
+                  ),
+                ),
+                controller: _controller,
+                maxLines: null,
+                textCapitalization: TextCapitalization.sentences,
+              ),
+              const SizedBox(height: 10),
+              BotonGradiente(
+                nombre: 'Añadir',
+                onTap: _agregarTrabajo,
+              ),
+              const SizedBox(height: 10),
+              const Divider(),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _trabajos.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      title: Text(_trabajos[index]),
+                      trailing: IconButton(
+                        icon: const Icon(
+                          Icons.delete,
+                          color: PaletaColores.eliminar,
+                        ),
+                        onPressed: () => _eliminarTrabajo(index),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

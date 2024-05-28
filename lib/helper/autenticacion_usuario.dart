@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AutenticacionUsuarios {
@@ -16,7 +17,7 @@ class AutenticacionUsuarios {
       );
       await FirebaseAuth.instance.signInWithCredential(credencialesGoogle);
     } catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
     }
   }
 

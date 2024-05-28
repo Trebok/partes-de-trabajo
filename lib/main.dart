@@ -25,11 +25,11 @@ import 'package:partesdetrabajo/model/firma.dart';
 import 'package:partesdetrabajo/model/parte.dart';
 import 'package:partesdetrabajo/model/trabajo.dart';
 import 'package:partesdetrabajo/pages/cliente_pagina.dart';
+import 'package:partesdetrabajo/pages/login_pagina.dart';
 import 'package:partesdetrabajo/pages/parte_pagina.dart';
 import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
 import 'package:partesdetrabajo/widgets/floating_action_button_custom.dart';
 import 'package:partesdetrabajo/widgets/tarjeta.dart';
-import 'package:sign_in_button/sign_in_button.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -106,31 +106,6 @@ class _MyAppState extends State<MyApp> {
             return const Login();
           }
         },
-      ),
-    );
-  }
-}
-
-class Login extends StatelessWidget {
-  const Login({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-            child: SignInButton(
-              Buttons.googleDark,
-              padding: const EdgeInsets.only(right: 10),
-              text: 'Inicia sesión con Google',
-              onPressed: () {
-                AutenticacionUsuarios().inicioSesionGoogle();
-              },
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -390,7 +365,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         );
 
                         if (context.mounted) {
-                          Navigator.of(context).pop();
+                          Navigator.pop(context);
                           ScaffoldMessenger.of(context)
                             ..removeCurrentSnackBar()
                             ..showSnackBar(SnackBar(
@@ -402,7 +377,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         _salirModoSeleccion();
                       } on MailerException catch (_) {
                         if (context.mounted) {
-                          Navigator.of(context).pop();
+                          Navigator.pop(context);
                           ScaffoldMessenger.of(context)
                             ..removeCurrentSnackBar()
                             ..showSnackBar(const SnackBar(
@@ -412,7 +387,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         }
                       } catch (_) {
                         if (context.mounted) {
-                          Navigator.of(context).pop();
+                          Navigator.pop(context);
                           ScaffoldMessenger.of(context)
                             ..removeCurrentSnackBar()
                             ..showSnackBar(
@@ -575,487 +550,499 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   bool borrando = false;
 
   Widget listaPartes() {
-    return SlidableAutoCloseBehavior(
-      closeWhenOpened: !_modoSeleccion,
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-        itemCount: boxPartes.length,
-        itemBuilder: (context, indiceMalo) {
-          int indiceInvertido = boxPartes.length - 1 - indiceMalo;
-          Parte parte = boxPartes.getAt(indiceInvertido);
-          final slidableController = SlidableController(this);
-          deslizablesABorrar[indiceInvertido] = slidableController;
+    return boxPartes.length == 0
+        ? const Center(
+            child: Text('No hay partes'),
+          )
+        : SlidableAutoCloseBehavior(
+            closeWhenOpened: !_modoSeleccion,
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              itemCount: boxPartes.length,
+              itemBuilder: (context, indiceMalo) {
+                int indiceInvertido = boxPartes.length - 1 - indiceMalo;
+                Parte parte = boxPartes.getAt(indiceInvertido);
+                final slidableController = SlidableController(this);
+                deslizablesABorrar[indiceInvertido] = slidableController;
 
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Stack(
-              children: [
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  right: borrando ? 0 : MediaQuery.sizeOf(context).width / 2 - 20,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: PaletaColores.eliminar,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: borrando
-                      ? MediaQuery.sizeOf(context).width
-                      : MediaQuery.sizeOf(context).width / 2 - 20,
-                  top: 0,
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: PaletaColores.primario,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                Slidable(
-                  controller: slidableController,
-                  enabled: !_modoSeleccion,
-                  key: UniqueKey(),
-                  startActionPane: ActionPane(
-                    extentRatio: 0.3,
-                    motion: const BehindMotion(),
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Stack(
                     children: [
-                      SlidableAction(
-                        padding: EdgeInsets.zero,
-                        autoClose: false,
-                        onPressed: (_) {
-                          mostrarModalBottomSheetHorizontal(
-                            context,
-                            titulo: 'Eliminar parte',
-                            cuerpo: '¿Eliminar 1 parte?',
-                            textoIzquierda: 'Cancelar',
-                            textoDerecha: 'Eliminar',
-                            colorTextoIzquierda: Colors.black,
-                            colorTextoDerecha: PaletaColores.eliminar,
-                            onPopInvoked: (_) {
-                              slidableController.close();
-                            },
-                            onPressedIzquierda: () {
-                              Navigator.pop(context);
-                            },
-                            onPressedDerecha: () async {
-                              Navigator.pop(context);
-                              setState(() {
-                                borrando = true;
-                              });
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                deslizablesABorrar[indiceInvertido]!.openStartActionPane();
-                                deslizablesABorrar[indiceInvertido]!.dismiss(
-                                  ResizeRequest(
-                                    const Duration(milliseconds: 100),
-                                    () {
-                                      setState(() {
-                                        boxPartes.deleteAt(indiceInvertido);
-                                      });
-                                    },
-                                  ),
-                                );
-                              });
-                              await Future.delayed(const Duration(milliseconds: 450));
-                              setState(() {
-                                borrando = false;
-                              });
-                            },
-                          );
-                        },
-                        backgroundColor: Colors.transparent,
-                        foregroundColor: Colors.white,
-                        icon: Icons.delete,
+                      Positioned(
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        right: borrando ? 0 : MediaQuery.sizeOf(context).width / 2 - 20,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: PaletaColores.eliminar,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                       ),
-                    ],
-                  ),
-                  endActionPane: ActionPane(
-                    extentRatio: 0.3,
-                    motion: const BehindMotion(),
-                    children: [
-                      SlidableAction(
-                        padding: EdgeInsets.zero,
-                        autoClose: false,
-                        onPressed: (_) async {
-                          final String? emailDestino =
-                              LocalStorage.prefs.getString('emailDestino');
-
-                          if (emailDestino == null || emailDestino.isEmpty) {
-                            ScaffoldMessenger.of(context)
-                              ..removeCurrentSnackBar()
-                              ..showSnackBar(const SnackBar(
-                                content: Text(
-                                    'Error al enviar, asegurate de asignar un email válido en los ajustes.'),
-                                backgroundColor: Color.fromARGB(255, 211, 0, 0),
-                              ));
-                            slidableController.close();
-                            return;
-                          }
-
-                          mostrarModalBottomSheetHorizontal(
-                            context,
-                            titulo: 'Enviar parte',
-                            cuerpo: '¿Enviar 1 parte a $emailDestino?',
-                            textoIzquierda: 'Cancelar',
-                            textoDerecha: 'Enviar',
-                            colorTextoIzquierda: Colors.black,
-                            colorTextoDerecha: PaletaColores.primario,
-                            onPopInvoked: (_) {
-                              slidableController.close();
-                            },
-                            onPressedIzquierda: () {
-                              Navigator.pop(context);
-                            },
-                            onPressedDerecha: () async {
-                              Navigator.pop(context);
-                              try {
-                                showAdaptiveDialog(
-                                  barrierDismissible: false,
-                                  context: context,
-                                  builder: (context) {
-                                    return const PopScope(
-                                      canPop: false,
-                                      child: Center(
-                                        child: CircularProgressIndicator.adaptive(),
-                                      ),
-                                    );
+                      Positioned(
+                        left: borrando
+                            ? MediaQuery.sizeOf(context).width
+                            : MediaQuery.sizeOf(context).width / 2 - 20,
+                        top: 0,
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: PaletaColores.primario,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      Slidable(
+                        controller: slidableController,
+                        enabled: !_modoSeleccion,
+                        key: UniqueKey(),
+                        startActionPane: ActionPane(
+                          extentRatio: 0.3,
+                          motion: const BehindMotion(),
+                          children: [
+                            SlidableAction(
+                              padding: EdgeInsets.zero,
+                              autoClose: false,
+                              onPressed: (_) {
+                                mostrarModalBottomSheetHorizontal(
+                                  context,
+                                  titulo: 'Eliminar parte',
+                                  cuerpo: '¿Eliminar 1 parte?',
+                                  textoIzquierda: 'Cancelar',
+                                  textoDerecha: 'Eliminar',
+                                  colorTextoIzquierda: Colors.black,
+                                  colorTextoDerecha: PaletaColores.eliminar,
+                                  onPopInvoked: (_) {
+                                    slidableController.close();
+                                  },
+                                  onPressedIzquierda: () {
+                                    Navigator.pop(context);
+                                  },
+                                  onPressedDerecha: () async {
+                                    Navigator.pop(context);
+                                    setState(() {
+                                      borrando = true;
+                                    });
+                                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                                      deslizablesABorrar[indiceInvertido]!.openStartActionPane();
+                                      deslizablesABorrar[indiceInvertido]!.dismiss(
+                                        ResizeRequest(
+                                          const Duration(milliseconds: 100),
+                                          () {
+                                            setState(() {
+                                              boxPartes.deleteAt(indiceInvertido);
+                                            });
+                                          },
+                                        ),
+                                      );
+                                    });
+                                    await Future.delayed(const Duration(milliseconds: 450));
+                                    setState(() {
+                                      borrando = false;
+                                    });
                                   },
                                 );
-                                await enviarPartesEmail(
-                                  context,
-                                  usuario: usuario,
-                                  emailDestino: emailDestino,
-                                  partes: [parte],
-                                );
-                                if (context.mounted) {
-                                  Navigator.of(context).pop();
-                                }
-                                if (!parte.enviado) {
-                                  setState(() {
-                                    parte.enviado = true;
-                                    boxPartes.putAt(indiceInvertido, parte);
-                                  });
-                                }
-                              } on MailerException catch (_) {
-                                if (context.mounted) {
-                                  Navigator.of(context).pop();
+                              },
+                              backgroundColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              icon: Icons.delete,
+                            ),
+                          ],
+                        ),
+                        endActionPane: ActionPane(
+                          extentRatio: 0.3,
+                          motion: const BehindMotion(),
+                          children: [
+                            SlidableAction(
+                              padding: EdgeInsets.zero,
+                              autoClose: false,
+                              onPressed: (_) async {
+                                final String? emailDestino =
+                                    LocalStorage.prefs.getString('emailDestino');
+
+                                if (emailDestino == null || emailDestino.isEmpty) {
                                   ScaffoldMessenger.of(context)
                                     ..removeCurrentSnackBar()
                                     ..showSnackBar(const SnackBar(
-                                      content: Text('Error al enviar.'),
+                                      content: Text(
+                                          'Error al enviar, asegurate de asignar un email válido en los ajustes.'),
                                       backgroundColor: Color.fromARGB(255, 211, 0, 0),
                                     ));
+                                  slidableController.close();
+                                  return;
                                 }
-                              } catch (_) {
-                                if (context.mounted) {
-                                  Navigator.of(context).pop();
-                                  ScaffoldMessenger.of(context)
-                                    ..removeCurrentSnackBar()
-                                    ..showSnackBar(
-                                        const SnackBar(content: Text('Ups... Algo salió mal.')));
-                                }
+
+                                mostrarModalBottomSheetHorizontal(
+                                  context,
+                                  titulo: 'Enviar parte',
+                                  cuerpo: '¿Enviar 1 parte a $emailDestino?',
+                                  textoIzquierda: 'Cancelar',
+                                  textoDerecha: 'Enviar',
+                                  colorTextoIzquierda: Colors.black,
+                                  colorTextoDerecha: PaletaColores.primario,
+                                  onPopInvoked: (_) {
+                                    slidableController.close();
+                                  },
+                                  onPressedIzquierda: () {
+                                    Navigator.pop(context);
+                                  },
+                                  onPressedDerecha: () async {
+                                    Navigator.pop(context);
+                                    try {
+                                      showAdaptiveDialog(
+                                        barrierDismissible: false,
+                                        context: context,
+                                        builder: (context) {
+                                          return const PopScope(
+                                            canPop: false,
+                                            child: Center(
+                                              child: CircularProgressIndicator.adaptive(),
+                                            ),
+                                          );
+                                        },
+                                      );
+                                      await enviarPartesEmail(
+                                        context,
+                                        usuario: usuario,
+                                        emailDestino: emailDestino,
+                                        partes: [parte],
+                                      );
+                                      if (context.mounted) {
+                                        Navigator.pop(context);
+                                      }
+                                      if (!parte.enviado) {
+                                        setState(() {
+                                          parte.enviado = true;
+                                          boxPartes.putAt(indiceInvertido, parte);
+                                        });
+                                      }
+                                    } on MailerException catch (_) {
+                                      if (context.mounted) {
+                                        Navigator.pop(context);
+                                        ScaffoldMessenger.of(context)
+                                          ..removeCurrentSnackBar()
+                                          ..showSnackBar(const SnackBar(
+                                            content: Text('Error al enviar.'),
+                                            backgroundColor: Color.fromARGB(255, 211, 0, 0),
+                                          ));
+                                      }
+                                    } catch (_) {
+                                      if (context.mounted) {
+                                        Navigator.pop(context);
+                                        ScaffoldMessenger.of(context)
+                                          ..removeCurrentSnackBar()
+                                          ..showSnackBar(const SnackBar(
+                                              content: Text('Ups... Algo salió mal.')));
+                                      }
+                                    }
+                                  },
+                                );
+                              },
+                              backgroundColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              icon: Icons.mail,
+                            ),
+                          ],
+                        ),
+                        child: Tarjeta(
+                          color: _seleccionados.contains(indiceInvertido)
+                              ? PaletaColores.tarjetaSeleccionada
+                              : null,
+                          colorBorde: _seleccionados.contains(indiceInvertido)
+                              ? PaletaColores.primario
+                              : null,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () {
+                              if (_modoSeleccion) {
+                                _seleccionar(indiceInvertido);
+                              } else {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => PartePagina(parte: parte)),
+                                ).then((final parteEditado) {
+                                  if (parteEditado == null) return;
+                                  setState(() {
+                                    boxPartes.putAt(indiceInvertido, parteEditado);
+                                  });
+                                });
                               }
                             },
-                          );
-                        },
-                        backgroundColor: Colors.transparent,
-                        foregroundColor: Colors.white,
-                        icon: Icons.mail,
-                      ),
-                    ],
-                  ),
-                  child: Tarjeta(
-                    color: _seleccionados.contains(indiceInvertido)
-                        ? PaletaColores.tarjetaSeleccionada
-                        : null,
-                    colorBorde:
-                        _seleccionados.contains(indiceInvertido) ? PaletaColores.primario : null,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        if (_modoSeleccion) {
-                          _seleccionar(indiceInvertido);
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => PartePagina(parte: parte)),
-                          ).then((final parteEditado) {
-                            if (parteEditado == null) return;
-                            setState(() {
-                              boxPartes.putAt(indiceInvertido, parteEditado);
-                            });
-                          });
-                        }
-                      },
-                      onLongPress: () {
-                        _modoSeleccion = true;
-                        _seleccionar(indiceInvertido);
-                      },
-                      child: Stack(
-                        alignment: Alignment.topRight,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            onLongPress: () {
+                              _modoSeleccion = true;
+                              _seleccionar(indiceInvertido);
+                            },
+                            child: Stack(
+                              alignment: Alignment.topRight,
                               children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          '${parte.fechaInicio}  ${parte.horaInicio}-${parte.horaFinal}',
-                                          style: const TextStyle(fontSize: 15),
-                                        ),
-                                        parte.enviado
-                                            ? const Padding(
-                                                padding: EdgeInsets.only(left: 8),
-                                                child: Icon(
-                                                  Icons.mark_email_read,
-                                                  color: PaletaColores.primario,
-                                                ),
-                                              )
-                                            : const SizedBox(
-                                                height: 24,
-                                              ),
-                                      ],
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsets.only(right: _modoSeleccion ? 17 : 0),
-                                      child: Text(
-                                        '${parte.number}/${parte.year}',
-                                        style: const TextStyle(fontSize: 15),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                const Divider(
-                                  height: 0,
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Flexible(
-                                      child: Row(
+                                Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          const Icon(
-                                            size: 30,
-                                            color: Color(0xff8a8a8a),
-                                            Icons.person,
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Flexible(
-                                            child: Text(parte.cliente.nombre),
-                                          ),
-                                          if (parte.firma != null)
-                                            const Padding(
-                                              padding: EdgeInsets.only(left: 5),
-                                              child: Icon(
-                                                Icons.draw,
-                                                color: Colors.black,
+                                          Row(
+                                            children: [
+                                              Text(
+                                                '${parte.fechaInicio}  ${parte.horaInicio}-${parte.horaFinal}',
+                                                style: const TextStyle(fontSize: 15),
                                               ),
+                                              parte.enviado
+                                                  ? const Padding(
+                                                      padding: EdgeInsets.only(left: 8),
+                                                      child: Icon(
+                                                        Icons.mark_email_read,
+                                                        color: PaletaColores.primario,
+                                                      ),
+                                                    )
+                                                  : const SizedBox(
+                                                      height: 24,
+                                                    ),
+                                            ],
+                                          ),
+                                          Padding(
+                                            padding:
+                                                EdgeInsets.only(right: _modoSeleccion ? 17 : 0),
+                                            child: Text(
+                                              '${parte.number}/${parte.year}',
+                                              style: const TextStyle(fontSize: 15),
                                             ),
+                                          ),
                                         ],
                                       ),
-                                    ),
-                                    IconButton(
-                                      tooltip: 'Ver pdf',
-                                      icon: const Icon(
-                                        Icons.picture_as_pdf,
-                                        color: PaletaColores.pdf,
+                                      const SizedBox(height: 10),
+                                      const Divider(
+                                        height: 0,
                                       ),
-                                      onPressed: () async {
-                                        final file = await PDFHelper.createPDF(parte: parte);
-                                        OpenFilex.open(file.path);
-                                      },
-                                    ),
-                                  ],
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Flexible(
+                                            child: Row(
+                                              children: [
+                                                const Icon(
+                                                  size: 30,
+                                                  color: Color(0xff8a8a8a),
+                                                  Icons.person,
+                                                ),
+                                                const SizedBox(width: 10),
+                                                Flexible(
+                                                  child: Text(parte.cliente.nombre),
+                                                ),
+                                                if (parte.firma != null)
+                                                  const Padding(
+                                                    padding: EdgeInsets.only(left: 5),
+                                                    child: Icon(
+                                                      Icons.draw,
+                                                      color: Colors.black,
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                          IconButton(
+                                            tooltip: 'Ver pdf',
+                                            icon: const Icon(
+                                              Icons.picture_as_pdf,
+                                              color: PaletaColores.pdf,
+                                            ),
+                                            onPressed: () async {
+                                              final file =
+                                                  await PDFHelper.createPDF(parte: parte);
+                                              OpenFilex.open(file.path);
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Visibility(
+                                  visible: _modoSeleccion,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(right: 5, top: 12),
+                                    child: _seleccionados.contains(indiceInvertido)
+                                        ? const Icon(
+                                            color: PaletaColores.primario,
+                                            Icons.check_box,
+                                          )
+                                        : const Icon(
+                                            color: PaletaColores.grisBordes,
+                                            Icons.check_box_outline_blank,
+                                          ),
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                          Visibility(
-                            visible: _modoSeleccion,
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 5, top: 12),
-                              child: _seleccionados.contains(indiceInvertido)
-                                  ? const Icon(
-                                      color: PaletaColores.primario,
-                                      Icons.check_box,
-                                    )
-                                  : const Icon(
-                                      color: PaletaColores.grisBordes,
-                                      Icons.check_box_outline_blank,
-                                    ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ),
-              ],
+                );
+              },
             ),
           );
-        },
-      ),
-    );
   }
 
   Widget listaClientes() {
-    return SlidableAutoCloseBehavior(
-      closeWhenOpened: !_modoSeleccion,
-      child: ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          itemCount: boxClientes.length,
-          itemBuilder: (context, indice) {
-            Cliente cliente = boxClientes.getAt(indice);
-            final slidableController = SlidableController(this);
-            deslizablesABorrar[indice] = slidableController;
+    return boxClientes.length == 0
+        ? const Center(
+            child: Text('No hay clientes'),
+          )
+        : SlidableAutoCloseBehavior(
+            closeWhenOpened: !_modoSeleccion,
+            child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                itemCount: boxClientes.length,
+                itemBuilder: (context, indice) {
+                  Cliente cliente = boxClientes.getAt(indice);
+                  final slidableController = SlidableController(this);
+                  deslizablesABorrar[indice] = slidableController;
 
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: PaletaColores.eliminar,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                  Slidable(
-                    controller: slidableController,
-                    enabled: !_modoSeleccion,
-                    key: UniqueKey(),
-                    startActionPane: ActionPane(
-                      extentRatio: 0.3,
-                      motion: const BehindMotion(),
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Stack(
                       children: [
-                        SlidableAction(
-                          padding: EdgeInsets.zero,
-                          autoClose: false,
-                          onPressed: (_) {
-                            mostrarModalBottomSheetHorizontal(
-                              context,
-                              titulo: 'Eliminar cliente',
-                              cuerpo: '¿Eliminar 1 cliente?',
-                              textoIzquierda: 'Cancelar',
-                              textoDerecha: 'Eliminar',
-                              colorTextoIzquierda: Colors.black,
-                              colorTextoDerecha: PaletaColores.eliminar,
-                              onPopInvoked: (_) {
-                                slidableController.close();
-                              },
-                              onPressedIzquierda: () {
-                                Navigator.pop(context);
-                              },
-                              onPressedDerecha: () async {
-                                Navigator.pop(context);
-                                slidableController.dismiss(ResizeRequest(
-                                  const Duration(milliseconds: 100),
-                                  () {
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: PaletaColores.eliminar,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        Slidable(
+                          controller: slidableController,
+                          enabled: !_modoSeleccion,
+                          key: UniqueKey(),
+                          startActionPane: ActionPane(
+                            extentRatio: 0.3,
+                            motion: const BehindMotion(),
+                            children: [
+                              SlidableAction(
+                                padding: EdgeInsets.zero,
+                                autoClose: false,
+                                onPressed: (_) {
+                                  mostrarModalBottomSheetHorizontal(
+                                    context,
+                                    titulo: 'Eliminar cliente',
+                                    cuerpo: '¿Eliminar 1 cliente?',
+                                    textoIzquierda: 'Cancelar',
+                                    textoDerecha: 'Eliminar',
+                                    colorTextoIzquierda: Colors.black,
+                                    colorTextoDerecha: PaletaColores.eliminar,
+                                    onPopInvoked: (_) {
+                                      slidableController.close();
+                                    },
+                                    onPressedIzquierda: () {
+                                      Navigator.pop(context);
+                                    },
+                                    onPressedDerecha: () async {
+                                      Navigator.pop(context);
+                                      slidableController.dismiss(ResizeRequest(
+                                        const Duration(milliseconds: 100),
+                                        () {
+                                          setState(() {
+                                            boxClientes.deleteAt(indice);
+                                          });
+                                        },
+                                      ));
+                                    },
+                                  );
+                                },
+                                backgroundColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                                icon: Icons.delete,
+                              ),
+                            ],
+                          ),
+                          child: Tarjeta(
+                            color: _seleccionados.contains(indice)
+                                ? PaletaColores.tarjetaSeleccionada
+                                : null,
+                            colorBorde:
+                                _seleccionados.contains(indice) ? PaletaColores.primario : null,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () {
+                                if (_modoSeleccion) {
+                                  _seleccionar(indice);
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ClientePagina(cliente: cliente),
+                                    ),
+                                  ).then((final clienteEditado) {
+                                    if (clienteEditado == null) return;
                                     setState(() {
-                                      boxClientes.deleteAt(indice);
+                                      if (cliente.nombre != clienteEditado.nombre) {
+                                        boxClientes.deleteAt(indice);
+                                        boxClientes.put(
+                                            '${clienteEditado.nombre.toLowerCase()}${DateTime.now()}',
+                                            clienteEditado);
+                                      } else {
+                                        boxClientes.putAt(indice, clienteEditado);
+                                      }
                                     });
-                                  },
-                                ));
+                                  });
+                                }
                               },
-                            );
-                          },
-                          backgroundColor: Colors.transparent,
-                          foregroundColor: Colors.white,
-                          icon: Icons.delete,
+                              onLongPress: () {
+                                _modoSeleccion = true;
+                                _seleccionar(indice);
+                              },
+                              child: Stack(
+                                alignment: Alignment.topRight,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: SizedBox(
+                                      width: double.infinity,
+                                      child: Padding(
+                                        padding: EdgeInsets.only(right: _modoSeleccion ? 25 : 0),
+                                        child: Text(
+                                          cliente.nombre,
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Visibility(
+                                    visible: _modoSeleccion,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(10.0),
+                                      child: _seleccionados.contains(indice)
+                                          ? const Icon(
+                                              color: PaletaColores.primario,
+                                              Icons.check_box,
+                                            )
+                                          : const Icon(
+                                              color: PaletaColores.grisBordes,
+                                              Icons.check_box_outline_blank,
+                                            ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
-                    child: Tarjeta(
-                      color: _seleccionados.contains(indice)
-                          ? PaletaColores.tarjetaSeleccionada
-                          : null,
-                      colorBorde:
-                          _seleccionados.contains(indice) ? PaletaColores.primario : null,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: () {
-                          if (_modoSeleccion) {
-                            _seleccionar(indice);
-                          } else {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ClientePagina(cliente: cliente),
-                              ),
-                            ).then((final clienteEditado) {
-                              if (clienteEditado == null) return;
-                              setState(() {
-                                if (cliente.nombre != clienteEditado.nombre) {
-                                  boxClientes.deleteAt(indice);
-                                  boxClientes.put(
-                                      '${clienteEditado.nombre.toLowerCase()}${DateTime.now()}',
-                                      clienteEditado);
-                                } else {
-                                  boxClientes.putAt(indice, clienteEditado);
-                                }
-                              });
-                            });
-                          }
-                        },
-                        onLongPress: () {
-                          _modoSeleccion = true;
-                          _seleccionar(indice);
-                        },
-                        child: Stack(
-                          alignment: Alignment.topRight,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: Padding(
-                                  padding: EdgeInsets.only(right: _modoSeleccion ? 25 : 0),
-                                  child: Text(
-                                    cliente.nombre,
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Visibility(
-                              visible: _modoSeleccion,
-                              child: Padding(
-                                padding: const EdgeInsets.all(10.0),
-                                child: _seleccionados.contains(indice)
-                                    ? const Icon(
-                                        color: PaletaColores.primario,
-                                        Icons.check_box,
-                                      )
-                                    : const Icon(
-                                        color: PaletaColores.grisBordes,
-                                        Icons.check_box_outline_blank,
-                                      ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-    );
+                  );
+                }),
+          );
   }
 
   Widget perfil() {

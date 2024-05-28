@@ -6,6 +6,8 @@ class AppTheme {
   static final lightThemeMode = ThemeData.light().copyWith(
     colorScheme: ColorScheme.fromSeed(seedColor: PaletaColores.primario),
     textTheme: GoogleFonts.poppinsTextTheme(),
+    scaffoldBackgroundColor: Colors.white,
+    dialogBackgroundColor: Colors.white,
   );
   static final darkThemeMode = ThemeData.dark().copyWith(
     colorScheme: ColorScheme.fromSeed(seedColor: PaletaColores.primario),

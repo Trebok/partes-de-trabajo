@@ -65,6 +65,8 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
   final List<int> _seleccionados = [];
   final Map<int, SlidableController> _deslizables = {};
 
+  bool _hayCambios = false;
+
   @override
   void initState() {
     super.initState();
@@ -167,11 +169,55 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !_modoSeleccion,
+      canPop: !_hayCambios && !_modoSeleccion,
       onPopInvoked: (didPop) {
         if (!didPop) {
           if (_modoSeleccion) {
             _salirModoSeleccion();
+          } else {
+            mostrarModalBottomSheetHorizontal(
+              context,
+              titulo: 'Confirmar salida',
+              cuerpo: 'Tienes cambios sin guardar.\n¿Quieres guardar antes de salir?',
+              textoIzquierda: 'Descartar',
+              textoDerecha: 'Guardar',
+              colorTextoIzquierda: PaletaColores.eliminar,
+              colorTextoDerecha: PaletaColores.primario,
+              onPressedIzquierda: () {
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              onPressedDerecha: () {
+                Navigator.pop(context);
+                _formKeyFechas.currentState!.validate();
+                if (_formKeyGeneral.currentState!.validate() &&
+                    _formKeyFechas.currentState!.validate()) {
+                  final comienzo = _fechaInicio.copyWith(minute: _horaInicio);
+                  final fin = _fechaFinal.copyWith(minute: _horaFinal);
+                  final diferencia = fin.difference(comienzo);
+                  final horasTotales =
+                      '${diferencia.toString().split(':')[0]}:${diferencia.toString().split(':')[1]}h';
+
+                  final parte = Parte(
+                    cliente: _cliente,
+                    horaInicio: _horaInicioController.text,
+                    fechaInicio: _fechaInicioController.text,
+                    horaFinal: _horaFinalController.text,
+                    fechaFinal: _fechaFinalController.text,
+                    otrosTrabajadores: _otrosTrabajadoresController.text,
+                    observaciones: _observacionesController.text,
+                    trabajos: _trabajos,
+                    trabajoFinalizado: _trabajoFinalizado,
+                    trabajoPendiente: _trabajoPendienteController.text,
+                    number: number,
+                    horasTotales: horasTotales,
+                    firma: _firma,
+                  );
+
+                  Navigator.pop(context, parte);
+                }
+              },
+            );
           }
         }
       },
@@ -192,7 +238,59 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                       _salirModoSeleccion();
                     },
                   )
-                : null,
+                : BackButton(
+                    color: Colors.white,
+                    onPressed: () {
+                      if (_hayCambios) {
+                        mostrarModalBottomSheetHorizontal(
+                          context,
+                          titulo: 'Confirmar salida',
+                          cuerpo:
+                              'Tienes cambios sin guardar.\n¿Quieres guardar antes de salir?',
+                          textoIzquierda: 'Descartar',
+                          textoDerecha: 'Guardar',
+                          colorTextoIzquierda: PaletaColores.eliminar,
+                          colorTextoDerecha: PaletaColores.primario,
+                          onPressedIzquierda: () {
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                          },
+                          onPressedDerecha: () {
+                            Navigator.pop(context);
+                            _formKeyFechas.currentState!.validate();
+                            if (_formKeyGeneral.currentState!.validate() &&
+                                _formKeyFechas.currentState!.validate()) {
+                              final comienzo = _fechaInicio.copyWith(minute: _horaInicio);
+                              final fin = _fechaFinal.copyWith(minute: _horaFinal);
+                              final diferencia = fin.difference(comienzo);
+                              final horasTotales =
+                                  '${diferencia.toString().split(':')[0]}:${diferencia.toString().split(':')[1]}h';
+
+                              final parte = Parte(
+                                cliente: _cliente,
+                                horaInicio: _horaInicioController.text,
+                                fechaInicio: _fechaInicioController.text,
+                                horaFinal: _horaFinalController.text,
+                                fechaFinal: _fechaFinalController.text,
+                                otrosTrabajadores: _otrosTrabajadoresController.text,
+                                observaciones: _observacionesController.text,
+                                trabajos: _trabajos,
+                                trabajoFinalizado: _trabajoFinalizado,
+                                trabajoPendiente: _trabajoPendienteController.text,
+                                number: number,
+                                horasTotales: horasTotales,
+                                firma: _firma,
+                              );
+
+                              Navigator.pop(context, parte);
+                            }
+                          },
+                        );
+                      } else {
+                        Navigator.pop(context);
+                      }
+                    },
+                  ),
             actions: [
               Visibility(
                 visible: _modoSeleccion,
@@ -232,6 +330,7 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                           );
                         }
                         await Future.delayed(const Duration(milliseconds: 450));
+                        _hayCambios = true;
                         _salirModoSeleccion();
                       },
                     );
@@ -246,6 +345,11 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
               child: Form(
                 key: _formKeyGeneral,
+                onChanged: () {
+                  setState(() {
+                    _hayCambios = true;
+                  });
+                },
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -295,6 +399,11 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                     ),
                     Form(
                       key: _formKeyFechas,
+                      onChanged: () {
+                        setState(() {
+                          _hayCambios = true;
+                        });
+                      },
                       child: Column(
                         children: [
                           Row(
@@ -490,27 +599,25 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                         ],
                       ),
                     ),
-                    FocusScope(
-                      child: TextFieldCustom(
-                        prefixIcon: Padding(
-                          padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
-                          child: SvgPicture.asset(
-                            'images/iconos/trabajadores.svg',
-                            width: 1,
-                          ),
+                    TextFieldCustom(
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.fromLTRB(5, 8, 8, 8),
+                        child: SvgPicture.asset(
+                          'images/iconos/trabajadores.svg',
+                          width: 1,
                         ),
-                        labelText: 'Otros trabajadores',
-                        controller: _otrosTrabajadoresController,
-                        focusNode: _focusOtrosTrabajadores,
-                        onTap: () {
-                          _deslizables.forEach((key, value) {
-                            value.close();
-                          });
-                        },
-                        onTapOutside: (event) {
-                          _focusOtrosTrabajadores.unfocus();
-                        },
                       ),
+                      labelText: 'Otros trabajadores',
+                      controller: _otrosTrabajadoresController,
+                      focusNode: _focusOtrosTrabajadores,
+                      onTap: () {
+                        _deslizables.forEach((key, value) {
+                          value.close();
+                        });
+                      },
+                      onTapOutside: (event) {
+                        _focusOtrosTrabajadores.unfocus();
+                      },
                     ),
                     TextFieldCustom(
                       prefixIcon: Padding(
@@ -561,8 +668,9 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
 
                           setState(() {
                             _trabajos.add(trabajo);
-                            _textFormFieldKeyTrabajos.currentState!.validate();
+                            _hayCambios = true;
                           });
+                          _textFormFieldKeyTrabajos.currentState!.validate();
                         });
                       },
                       validator: (_) {
@@ -618,7 +726,6 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                                             },
                                             onPressedIzquierda: () {
                                               Navigator.pop(context);
-                                              slidableController.close();
                                             },
                                             onPressedDerecha: () async {
                                               Navigator.pop(context);
@@ -634,6 +741,7 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                                                           i++) {
                                                         _trabajos[i].numero--;
                                                       }
+                                                      _hayCambios = true;
                                                     });
                                                   },
                                                 ),
@@ -672,6 +780,7 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                                             if (trabajo == null) return;
                                             setState(() {
                                               _trabajos[indice] = trabajo;
+                                              _hayCambios = true;
                                             });
                                           });
                                         }
@@ -785,6 +894,7 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                         onChanged: (bool value) {
                           setState(() {
                             _trabajoFinalizado = value;
+                            _hayCambios = true;
                           });
                         },
                       ),
@@ -837,47 +947,35 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
 
                             setState(() {
                               _firma = firma;
+                              _hayCambios = true;
                             });
                           });
                         } else {
-                          showAdaptiveDialog(
-                            //TODO cambiar?
-                            context: context,
-                            builder: (context) => SimpleDialog(
-                              title: const Center(
-                                child: Text(
-                                    'Si sigue adelante eliminará la firma actual. ¿Desea continuar?'),
-                              ),
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('NO'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
+                          mostrarModalBottomSheetHorizontal(
+                            context,
+                            titulo: 'Eliminar firma',
+                            cuerpo:
+                                'Si sigue adelante eliminará la firma actual. ¿Desea continuar?',
+                            textoIzquierda: 'Cancelar',
+                            textoDerecha: 'Eliminar',
+                            colorTextoIzquierda: Colors.black,
+                            colorTextoDerecha: PaletaColores.eliminar,
+                            onPressedIzquierda: () {
+                              Navigator.pop(context);
+                            },
+                            onPressedDerecha: () async {
+                              Navigator.pop(context);
 
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: ((context) => const FirmaPagina())),
-                                        ).then((final firma) {
-                                          setState(() {
-                                            _firma = firma;
-                                          });
-                                        });
-                                      },
-                                      child: const Text('SI'),
-                                    )
-                                  ],
-                                ),
-                              ],
-                            ),
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: ((context) => const FirmaPagina())),
+                              ).then((final firma) {
+                                setState(() {
+                                  _firma = firma;
+                                  _hayCambios = true;
+                                });
+                              });
+                            },
                           );
                         }
                       },
