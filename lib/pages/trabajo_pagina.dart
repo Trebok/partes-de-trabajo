@@ -331,12 +331,12 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                             mostrarModalBottomSheetVertical(
                               context,
                               titulo: 'Seleccionar imagen',
-                              cuerpo: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 10),
+                              cuerpo: Material(
                                 child: Column(
                                   children: [
                                     ListTile(
-                                      contentPadding: EdgeInsets.zero,
+                                      tileColor: Colors.white,
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 10),
                                       leading: const Icon(Icons.camera_alt),
                                       title: const Text(
                                         'Hacer una foto',
@@ -359,7 +359,8 @@ class _TrabajoPaginaState extends State<TrabajoPagina> {
                                       },
                                     ),
                                     ListTile(
-                                      contentPadding: EdgeInsets.zero,
+                                      tileColor: Colors.white,
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 10),
                                       leading: const Icon(Icons.photo_library),
                                       title: const Text(
                                         'Elegir desde la galería',

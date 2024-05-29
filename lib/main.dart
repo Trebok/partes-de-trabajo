@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -27,9 +28,12 @@ import 'package:partesdetrabajo/model/trabajo.dart';
 import 'package:partesdetrabajo/pages/cliente_pagina.dart';
 import 'package:partesdetrabajo/pages/login_pagina.dart';
 import 'package:partesdetrabajo/pages/parte_pagina.dart';
+import 'package:partesdetrabajo/perfil.dart';
 import 'package:partesdetrabajo/widgets/barra_navegacion.dart';
 import 'package:partesdetrabajo/widgets/floating_action_button_custom.dart';
 import 'package:partesdetrabajo/widgets/tarjeta.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,6 +66,11 @@ void main() async {
     var loader = SvgAssetLoader(svgPath);
     await svg.cache.putIfAbsent(loader.cacheKey(null), () => loader.loadBytes(null));
   }
+
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     systemNavigationBarColor: Colors.white,
@@ -132,6 +141,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   Pagina _paginaActual = Pagina.partes;
   String titulo = 'PARTES';
 
+  Uint8List? _logoEmpresa;
+
   bool _modoSeleccion = false;
   final List<int> _seleccionados = [];
   Map<int, SlidableController> deslizablesABorrar = {};
@@ -186,7 +197,35 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final savePath = path.join(dir.path, 'logoEmpresa.png');
+    final file = File(savePath);
+    if (await file.exists()) {
+      _logoEmpresa = await file.readAsBytes();
+      setState(() {});
+    }
+  }
+
+  void _updateImage(Uint8List newImageData) {
+    setState(() {
+      _logoEmpresa = newImageData;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (LocalStorage.prefs.getString('emailUsuario') == null) {
+      LocalStorage.prefs.setString('nombreUsuario', usuario.displayName!);
+      LocalStorage.prefs.setString('emailUsuario', usuario.email!);
+    }
+
     return PopScope(
       canPop: !_modoSeleccion,
       onPopInvoked: (didPop) {
@@ -212,7 +251,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               : IconButton(
                   icon: const Icon(Icons.menu_rounded),
                   color: Colors.white,
-                  onPressed: () => _scaffoldKey.currentState!.openDrawer(),
+                  onPressed: () {
+                    setState(() {});
+                    _scaffoldKey.currentState!.openDrawer();
+                  },
                 ),
           actions: [
             Visibility(
@@ -313,8 +355,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       ..removeCurrentSnackBar()
                       ..showSnackBar(const SnackBar(
                         content: Text(
-                            'Error al enviar, asegurate de asignar un email válido en los ajustes.'),
-                        backgroundColor: Color.fromARGB(255, 211, 0, 0),
+                          'Error al enviar, asegurate de asignar un email válido en los ajustes.',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        backgroundColor: PaletaColores.eliminar,
                       ));
                     _salirModoSeleccion();
                     return;
@@ -370,8 +414,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             ..removeCurrentSnackBar()
                             ..showSnackBar(SnackBar(
                               content: Text(
-                                  '¡${_seleccionados.length} ${_seleccionados.length > 1 ? 'partes enviados' : 'parte enviado'} a $emailDestino!'),
-                              backgroundColor: Colors.green,
+                                '¡${_seleccionados.length} ${_seleccionados.length > 1 ? 'partes enviados' : 'parte enviado'} a $emailDestino!',
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              backgroundColor: PaletaColores.terciario,
                             ));
                         }
                         _salirModoSeleccion();
@@ -381,8 +427,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           ScaffoldMessenger.of(context)
                             ..removeCurrentSnackBar()
                             ..showSnackBar(const SnackBar(
-                              content: Text('Error al enviar.'),
-                              backgroundColor: Color.fromARGB(255, 211, 0, 0),
+                              content: Text(
+                                'Error al enviar.',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              backgroundColor: PaletaColores.eliminar,
                             ));
                         }
                       } catch (_) {
@@ -390,8 +439,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context)
                             ..removeCurrentSnackBar()
-                            ..showSnackBar(
-                                const SnackBar(content: Text('Ups... Algo salió mal.')));
+                            ..showSnackBar(const SnackBar(
+                              content: Text(
+                                'Ups... Algo salió mal.',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              backgroundColor: PaletaColores.eliminar,
+                            ));
                         }
                       }
                     },
@@ -422,93 +476,196 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           ],
         ),
         drawer: Drawer(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Container(
-                  width: double.infinity,
-                  height: 200,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        PaletaColores.primario,
-                        PaletaColores.secundario,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 200,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          PaletaColores.primario,
+                          PaletaColores.secundario,
+                        ],
+                      ),
+                    ),
+                    padding: const EdgeInsets.only(top: 20),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                          height: 70,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(7),
+                            child: _logoEmpresa == null
+                                ? Image.asset('images/icon.png')
+                                : Image.memory(_logoEmpresa!),
+                          ),
+                        ),
+                        Text(
+                          LocalStorage.prefs.getString('nombreUsuario') ?? 'Nombre',
+                          style: const TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          LocalStorage.prefs.getString('emailUsuario') ?? 'nombre@email.com',
+                          style: const TextStyle(
+                            color: Colors.white,
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  padding: const EdgeInsets.only(top: 20),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        height: 70,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(7),
-                          child: Image.network(
-                            'https://www.instalacioneselectricasprie.com/wp-content/uploads/2018/01/LOGOPRIE-1.jpg-1.jpg',
+                  ListTile(
+                    leading: const Icon(Icons.edit_document),
+                    title: const Text('Partes'),
+                    selected: _paginaActual == Pagina.partes,
+                    selectedTileColor: PaletaColores.seleccionDrawer,
+                    onTap: () {
+                      _cambiarPaginaActual(Pagina.partes);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.groups),
+                    title: const Text('Clientes'),
+                    selected: _paginaActual == Pagina.clientes,
+                    selectedTileColor: PaletaColores.seleccionDrawer,
+                    onTap: () {
+                      _cambiarPaginaActual(Pagina.clientes);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.person),
+                    title: const Text('Perfil'),
+                    selected: _paginaActual == Pagina.perfil,
+                    selectedTileColor: PaletaColores.seleccionDrawer,
+                    onTap: () {
+                      _cambiarPaginaActual(Pagina.perfil);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.settings),
+                    title: const Text('Ajustes'),
+                    selected: _paginaActual == Pagina.ajustes,
+                    selectedTileColor: PaletaColores.seleccionDrawer,
+                    onTap: () {
+                      _cambiarPaginaActual(Pagina.ajustes);
+                    },
+                  ),
+                ],
+              ),
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text('Cerrar sesión'),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return Dialog(
+                        insetPadding: const EdgeInsets.all(16),
+                        elevation: 0,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 26, 24, 25),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Center(
+                                child: Text(
+                                  'Cerrar sesión',
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              const Text(
+                                '¿Cerrar sesión?',
+                                style: TextStyle(
+                                  fontSize: 16.0,
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextButton(
+                                      style: ButtonStyle(
+                                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                          RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(15.0),
+                                          ),
+                                        ),
+                                        backgroundColor:
+                                            MaterialStatePropertyAll<Color>(Colors.grey[200]!),
+                                      ),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Padding(
+                                        padding: EdgeInsets.symmetric(vertical: 5),
+                                        child: Text(
+                                          'Cancelar',
+                                          style: TextStyle(
+                                            fontSize: 16.0,
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10.0),
+                                  Expanded(
+                                    child: TextButton(
+                                      style: ButtonStyle(
+                                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                          RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(15.0),
+                                          ),
+                                        ),
+                                        backgroundColor: MaterialStatePropertyAll<Color>(
+                                          Colors.grey[200]!,
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        AutenticacionUsuarios().cerrarSesionGoogle();
+                                      },
+                                      child: const Padding(
+                                        padding: EdgeInsets.symmetric(vertical: 5),
+                                        child: Text(
+                                          'Aceptar',
+                                          style: TextStyle(
+                                            fontSize: 16.0,
+                                            color: PaletaColores.eliminar,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                      Text(
-                        usuario.displayName ?? 'Nombre',
-                        style: const TextStyle(
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        usuario.email ?? 'nombre@email.com',
-                        style: const TextStyle(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.edit_document),
-                  title: const Text('Partes'),
-                  selected: _paginaActual == Pagina.partes,
-                  selectedTileColor: PaletaColores.seleccionDrawer,
-                  onTap: () {
-                    _cambiarPaginaActual(Pagina.partes);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.groups),
-                  title: const Text('Clientes'),
-                  selected: _paginaActual == Pagina.clientes,
-                  selectedTileColor: PaletaColores.seleccionDrawer,
-                  onTap: () {
-                    _cambiarPaginaActual(Pagina.clientes);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.person),
-                  title: const Text('Perfil'),
-                  selected: _paginaActual == Pagina.perfil,
-                  selectedTileColor: PaletaColores.seleccionDrawer,
-                  onTap: () {
-                    _cambiarPaginaActual(Pagina.perfil);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.settings),
-                  title: const Text('Ajustes'),
-                  selected: _paginaActual == Pagina.ajustes,
-                  selectedTileColor: PaletaColores.seleccionDrawer,
-                  onTap: () {
-                    _cambiarPaginaActual(Pagina.ajustes);
-                  },
-                ),
-              ],
-            ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
           ),
         ),
         body: switch (_paginaActual) {
           Pagina.partes => listaPartes(),
           Pagina.clientes => listaClientes(),
-          Pagina.perfil => perfil(),
+          Pagina.perfil => Perfil(_updateImage),
           Pagina.ajustes => const Ajustes(),
         },
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -668,8 +825,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                     ..removeCurrentSnackBar()
                                     ..showSnackBar(const SnackBar(
                                       content: Text(
-                                          'Error al enviar, asegurate de asignar un email válido en los ajustes.'),
-                                      backgroundColor: Color.fromARGB(255, 211, 0, 0),
+                                        'Error al enviar, asegurate de asignar un email válido en los ajustes.',
+                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                      backgroundColor: PaletaColores.eliminar,
                                     ));
                                   slidableController.close();
                                   return;
@@ -725,8 +884,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                         ScaffoldMessenger.of(context)
                                           ..removeCurrentSnackBar()
                                           ..showSnackBar(const SnackBar(
-                                            content: Text('Error al enviar.'),
-                                            backgroundColor: Color.fromARGB(255, 211, 0, 0),
+                                            content: Text(
+                                              'Error al enviar.',
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                            backgroundColor: PaletaColores.eliminar,
                                           ));
                                       }
                                     } catch (_) {
@@ -735,7 +897,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                         ScaffoldMessenger.of(context)
                                           ..removeCurrentSnackBar()
                                           ..showSnackBar(const SnackBar(
-                                              content: Text('Ups... Algo salió mal.')));
+                                            content: Text(
+                                              'Ups... Algo salió mal.',
+                                              style: TextStyle(fontWeight: FontWeight.bold),
+                                            ),
+                                            backgroundColor: PaletaColores.eliminar,
+                                          ));
                                       }
                                     }
                                   },
@@ -1043,30 +1210,5 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   );
                 }),
           );
-  }
-
-  Widget perfil() {
-    return Center(
-      child: Column(
-        children: [
-          const SizedBox(height: 10),
-          CircleAvatar(
-            radius: 40,
-            backgroundImage: NetworkImage(usuario.photoURL!),
-          ),
-          const SizedBox(height: 8),
-          Text(usuario.displayName!),
-          Text(usuario.email!),
-          const SizedBox(height: 100),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.logout),
-            label: const Text('Cerrar sesión'),
-            onPressed: () {
-              AutenticacionUsuarios().cerrarSesionGoogle();
-            },
-          ),
-        ],
-      ),
-    );
   }
 }

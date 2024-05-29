@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
+import 'package:partesdetrabajo/core/theme/paleta_colores.dart';
 import 'package:partesdetrabajo/helper/autenticacion_usuario.dart';
 import 'package:partesdetrabajo/helper/pdf_helper.dart';
 import 'package:partesdetrabajo/model/parte.dart';
@@ -30,8 +31,11 @@ Future<void> enviarPartesEmail(
       ScaffoldMessenger.of(context)
         ..removeCurrentSnackBar()
         ..showSnackBar(SnackBar(
-          content: Text('¡Parte enviado a $emailDestino!'),
-          backgroundColor: Colors.green,
+          content: Text(
+            '¡Parte enviado a $emailDestino!',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: PaletaColores.terciario,
         ));
     }
   }

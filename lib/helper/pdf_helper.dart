@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:partesdetrabajo/helper/local_storage.dart';
 import 'package:partesdetrabajo/model/parte.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -9,8 +10,21 @@ import 'package:pdf/widgets.dart';
 
 class PDFHelper {
   static Future<File> createPDF({required Parte parte}) async {
-    final logoImage =
-        MemoryImage((await rootBundle.load('images/LOGOPRIE.jpg')).buffer.asUint8List());
+    final MemoryImage logoEmpresa;
+
+    final dir = await getApplicationDocumentsDirectory();
+    final savePath = path.join(dir.path, 'logoEmpresa.png');
+    final file = File(savePath);
+    if (await file.exists()) {
+      logoEmpresa = MemoryImage(await file.readAsBytes());
+    } else {
+      logoEmpresa = MemoryImage((await rootBundle.load('images/icon.png')).buffer.asUint8List());
+    }
+    final nombreEmpresa = LocalStorage.prefs.getString('nombreEmpresa');
+    final nifEmpresa = LocalStorage.prefs.getString('nifEmpresa');
+    final direccionEmpresa = LocalStorage.prefs.getString('direccionEmpresa');
+    final telefonoEmpresa = LocalStorage.prefs.getString('telefonoEmpresa');
+
     final headers = [
       'Nº',
       'Trabajo realizado',
@@ -57,7 +71,7 @@ class PDFHelper {
                   ),
                   SizedBox(height: 15),
                   Image(
-                    logoImage,
+                    logoEmpresa,
                     width: 220,
                     height: 60,
                   ),
@@ -105,20 +119,39 @@ class PDFHelper {
             ],
           ),
           SizedBox(height: 15),
-          Text('Trabajo realizado por:    José Sebastián Díaz'),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Trabajo realizado por:    '),
+              Text(LocalStorage.prefs.getString('nombreUsuario')!),
+            ],
+          ),
           SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Hora inicio:   ${parte.horaInicio}h. ${parte.fechaInicio}'),
-              Text('Hora final:   ${parte.horaFinal}h. ${parte.fechaFinal}'),
-              Text("Total horas:   ${parte.horasTotales}"),
+              Text('Hora inicio:  ${parte.horaInicio}h. ${parte.fechaInicio}'),
+              Text('Hora final:  ${parte.horaFinal}h. ${parte.fechaFinal}'),
+              Text("Total horas:  ${parte.horasTotales}"),
             ],
           ),
           if (parte.otrosTrabajadores!.isNotEmpty || parte.observaciones!.isNotEmpty) Divider(),
           if (parte.otrosTrabajadores!.isNotEmpty)
-            Text('Otros trabajadores:   ${parte.otrosTrabajadores}'),
-          if (parte.observaciones!.isNotEmpty) Text('Observaciones:   ${parte.observaciones}'),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Otros trabajadores:   '),
+                Text(parte.otrosTrabajadores!),
+              ],
+            ),
+          if (parte.observaciones!.isNotEmpty)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Observaciones:   '),
+                Text(parte.observaciones!),
+              ],
+            ),
           SizedBox(height: 10),
           TableHelper.fromTextArray(
             headers: headers,
@@ -163,7 +196,13 @@ class PDFHelper {
             ],
           ),
           if (!parte.trabajoFinalizado && parte.trabajoPendiente!.isNotEmpty)
-            Text('Trabajo pendiente:   ${parte.trabajoPendiente}'),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Trabajo pendiente:   '),
+                Text(parte.trabajoPendiente!),
+              ],
+            ),
           SizedBox(height: 15),
           if (hayImagenes)
             Center(
@@ -209,8 +248,21 @@ class PDFHelper {
                 width: 120,
                 height: 80,
               ),
-              Text('Fdo.   ${parte.firma!.nombre}'),
-              if (parte.firma!.dni!.isNotEmpty) Text('DNI:   ${parte.firma!.dni}'),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Fdo.   '),
+                  Text(parte.firma!.nombre),
+                ],
+              ),
+              if (parte.firma!.dni!.isNotEmpty)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('DNI:   '),
+                    Text(parte.firma!.dni!),
+                  ],
+                ),
             ],
           ),
         ),
@@ -223,6 +275,36 @@ class PDFHelper {
 
     pdf.addPage(
       MultiPage(
+        footer: (context) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'Pág. ${context.pageNumber} de ${context.pagesCount}',
+                style: const TextStyle(fontSize: 11, color: PdfColors.white),
+              ),
+              if (nombreEmpresa!.isNotEmpty)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 60),
+                    child: Text(
+                      '$nombreEmpresa - '
+                      '${nifEmpresa!.isNotEmpty ? 'NIF: $nifEmpresa - ' : ''}'
+                      '${direccionEmpresa!.isNotEmpty ? '$direccionEmpresa - ' : ''}'
+                      '${telefonoEmpresa!.isNotEmpty ? 'tfno. $telefonoEmpresa' : ''}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                  ),
+                ),
+              Text(
+                'Pág. ${context.pageNumber} de ${context.pagesCount}',
+                style: const TextStyle(fontSize: 11),
+              ),
+            ],
+          );
+        },
         margin: const EdgeInsets.all(40),
         build: (context) => [
           Wrap(
@@ -234,11 +316,11 @@ class PDFHelper {
       ),
     );
 
-    final dir = await getTemporaryDirectory();
+    final tempDir = await getTemporaryDirectory();
     final fileName = '${parte.cliente.nombre} - Parte Nº ${parte.number}_${parte.year}.pdf';
-    final savePath = path.join(dir.path, fileName);
-    final file = File(savePath);
-    await file.writeAsBytes(await pdf.save());
-    return file;
+    final tempSavePath = path.join(tempDir.path, fileName);
+    final tempFile = File(tempSavePath);
+    await tempFile.writeAsBytes(await pdf.save());
+    return tempFile;
   }
 }

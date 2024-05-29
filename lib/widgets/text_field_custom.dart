@@ -7,6 +7,7 @@ class TextFieldCustom extends StatelessWidget {
   final InputBorder? border;
   final TextEditingController? controller;
   final FocusNode? focusNode;
+  final int? maxLines;
   final TextInputType? keyboardType;
   final TextCapitalization textCapitalization;
   final bool readOnly;
@@ -25,6 +26,7 @@ class TextFieldCustom extends StatelessWidget {
     this.border,
     this.controller,
     this.focusNode,
+    this.maxLines,
     this.keyboardType,
     this.textCapitalization = TextCapitalization.sentences,
     this.readOnly = false,
@@ -47,7 +49,7 @@ class TextFieldCustom extends StatelessWidget {
       ),
       controller: controller,
       focusNode: focusNode,
-      maxLines: null,
+      maxLines: maxLines,
       keyboardType: keyboardType,
       textCapitalization: textCapitalization,
       readOnly: readOnly,

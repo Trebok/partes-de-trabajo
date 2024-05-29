@@ -120,7 +120,10 @@ class _FirmaPaginaState extends State<FirmaPagina> {
                             ..removeCurrentSnackBar()
                             ..showSnackBar(
                               const SnackBar(
-                                content: Text('Firma vacía'),
+                                content: Text(
+                                  'Firma vacía',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
                               ),
                             );
                           return;

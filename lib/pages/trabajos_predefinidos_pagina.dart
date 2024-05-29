@@ -39,8 +39,8 @@ class _TrabajosPredefinidosState extends State<TrabajosPredefinidos> {
                 const SizedBox(height: 20),
                 const Text(
                   'En esta página puedes añadir trabajos predefinidos que '
-                  'posteriormente aparecerán a modo de sugerencia al empezar a escribir en el '
-                  'campo "Descripción" en el apartado "Trabajos realizados" dentro de un parte.',
+                  'aparecerán posteriormente como sugerencia al escribir en el '
+                  'campo "Descripción" dentro de "Trabajos realizados".',
                   style: TextStyle(
                     fontSize: 16.0,
                   ),
@@ -174,6 +174,7 @@ class _TrabajosPredefinidosState extends State<TrabajosPredefinidos> {
                   itemCount: _trabajos.length,
                   itemBuilder: (context, index) {
                     return ListTile(
+                      tileColor: Colors.white,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                       title: Text(_trabajos[index]),
                       trailing: IconButton(
