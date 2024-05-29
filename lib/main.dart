@@ -227,11 +227,16 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     }
 
     return PopScope(
-      canPop: !_modoSeleccion,
+      canPop: !_modoSeleccion && _paginaActual == Pagina.partes,
       onPopInvoked: (didPop) {
         if (!didPop) {
           if (_modoSeleccion) {
             _salirModoSeleccion();
+          } else {
+            setState(() {
+              titulo = 'PARTES';
+              _paginaActual = Pagina.partes;
+            });
           }
         }
       },
@@ -634,6 +639,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                         ),
                                       ),
                                       onPressed: () {
+                                        Navigator.pop(context);
                                         AutenticacionUsuarios().cerrarSesionGoogle();
                                       },
                                       child: const Padding(

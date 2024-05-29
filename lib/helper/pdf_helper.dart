@@ -284,15 +284,15 @@ class PDFHelper {
                 'Pág. ${context.pageNumber} de ${context.pagesCount}',
                 style: const TextStyle(fontSize: 11, color: PdfColors.white),
               ),
-              if (nombreEmpresa!.isNotEmpty)
+              if (nombreEmpresa != null && nombreEmpresa.isNotEmpty)
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 60),
                     child: Text(
                       '$nombreEmpresa - '
-                      '${nifEmpresa!.isNotEmpty ? 'NIF: $nifEmpresa - ' : ''}'
-                      '${direccionEmpresa!.isNotEmpty ? '$direccionEmpresa - ' : ''}'
-                      '${telefonoEmpresa!.isNotEmpty ? 'tfno. $telefonoEmpresa' : ''}',
+                      '${nifEmpresa != null && nifEmpresa.isNotEmpty ? 'NIF: $nifEmpresa - ' : ''}'
+                      '${direccionEmpresa != null && direccionEmpresa.isNotEmpty ? '$direccionEmpresa - ' : ''}'
+                      '${telefonoEmpresa != null && telefonoEmpresa.isNotEmpty ? 'tfno. $telefonoEmpresa' : ''}',
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 10),
                     ),
