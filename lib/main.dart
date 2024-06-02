@@ -72,10 +72,6 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    systemNavigationBarColor: Colors.white,
-    systemNavigationBarIconBrightness: Brightness.dark,
-  ));
   runApp(const MyApp());
 }
 
@@ -110,8 +106,17 @@ class _MyAppState extends State<MyApp> {
           } else if (snapshot.hasError) {
             return const Center(child: Text('Algo ha ido mal!'));
           } else if (snapshot.hasData) {
+            SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+              systemNavigationBarColor: Colors.white,
+              systemNavigationBarIconBrightness: Brightness.dark,
+            ));
             return const Home();
           } else {
+            SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+              systemNavigationBarColor: Colors.white,
+              systemNavigationBarIconBrightness: Brightness.dark,
+              statusBarColor: Color.fromARGB(96, 0, 0, 0),
+            ));
             return const Login();
           }
         },
