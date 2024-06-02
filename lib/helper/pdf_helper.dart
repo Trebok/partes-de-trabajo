@@ -18,7 +18,8 @@ class PDFHelper {
     if (await file.exists()) {
       logoEmpresa = MemoryImage(await file.readAsBytes());
     } else {
-      logoEmpresa = MemoryImage((await rootBundle.load('images/icon.png')).buffer.asUint8List());
+      logoEmpresa = MemoryImage(
+          (await rootBundle.load('images/logo-placeholder.jpg')).buffer.asUint8List());
     }
     final nombreEmpresa = LocalStorage.prefs.getString('nombreEmpresa');
     final nifEmpresa = LocalStorage.prefs.getString('nifEmpresa');

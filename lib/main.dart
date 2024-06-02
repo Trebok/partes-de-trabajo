@@ -507,7 +507,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(7),
                             child: _logoEmpresa == null
-                                ? Image.asset('images/icon.png')
+                                ? Image.asset('images/logo-placeholder.jpg')
                                 : Image.memory(_logoEmpresa!),
                           ),
                         ),
