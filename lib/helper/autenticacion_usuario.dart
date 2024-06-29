@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AutenticacionUsuarios {
-  final _gooogleSignIn = GoogleSignIn(scopes: ['https://mail.google.com/']);
+  final _inicioSesionGoogle = GoogleSignIn(scopes: ['https://mail.google.com/']);
 
   Future<void> inicioSesionGoogle() async {
     try {
-      final usuarioGoogle = await _gooogleSignIn.signIn();
+      final usuarioGoogle = await _inicioSesionGoogle.signIn();
       if (usuarioGoogle == null) return;
 
       final autenticacionGoogle = await usuarioGoogle.authentication;
@@ -25,7 +25,7 @@ class AutenticacionUsuarios {
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
-      final googleUser = await _gooogleSignIn.signInSilently();
+      final googleUser = await _inicioSesionGoogle.signInSilently();
       final googleAuth = await googleUser?.authentication;
       return googleAuth?.accessToken;
     }
@@ -33,7 +33,7 @@ class AutenticacionUsuarios {
   }
 
   Future<void> cerrarSesionGoogle() async {
-    await _gooogleSignIn.signOut();
+    await _inicioSesionGoogle.signOut();
     await FirebaseAuth.instance.signOut();
   }
 }

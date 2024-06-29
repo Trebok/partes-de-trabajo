@@ -35,7 +35,7 @@ import 'package:partesdetrabajo/widgets/tarjeta.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
-void main() async {
+void main({User? testUser}) async {
   WidgetsFlutterBinding.ensureInitialized();
   await LocalStorage.configurePrefs();
   await Firebase.initializeApp(
@@ -51,8 +51,6 @@ void main() async {
   // Hive.deleteBoxFromDisk('parteBox');
   boxClientes = await Hive.openBox<Cliente>('clienteBox');
   boxPartes = await Hive.openBox<Parte>('parteBox');
-  // boxClientes.put('${clienteEjemplo.nombre.toLowerCase()}${DateTime.now()}', clienteEjemplo);
-  // boxPartes.add(parteEjemplo);
 
   final manifestJson = await rootBundle.loadString('AssetManifest.json');
   List svgsPaths = (json
@@ -72,11 +70,12 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  runApp(const MyApp());
+  runApp(MyApp(testUser: testUser));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final User? testUser;
+  const MyApp({super.key, this.testUser});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -98,29 +97,31 @@ class _MyAppState extends State<MyApp> {
       ],
       // theme: ThemeData(platform: TargetPlatform.iOS),
       theme: AppTheme.lightThemeMode,
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator.adaptive());
-          } else if (snapshot.hasError) {
-            return const Center(child: Text('Algo ha ido mal!'));
-          } else if (snapshot.hasData) {
-            SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-              systemNavigationBarColor: Colors.white,
-              systemNavigationBarIconBrightness: Brightness.dark,
-            ));
-            return const Home();
-          } else {
-            SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-              systemNavigationBarColor: Colors.white,
-              systemNavigationBarIconBrightness: Brightness.dark,
-              statusBarColor: Color.fromARGB(96, 0, 0, 0),
-            ));
-            return const Login();
-          }
-        },
-      ),
+      home: widget.testUser != null
+          ? Home(testUser: widget.testUser)
+          : StreamBuilder<User?>(
+              stream: FirebaseAuth.instance.authStateChanges(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator.adaptive());
+                } else if (snapshot.hasError) {
+                  return const Center(child: Text('Algo ha ido mal!'));
+                } else if (snapshot.hasData) {
+                  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+                    systemNavigationBarColor: Colors.white,
+                    systemNavigationBarIconBrightness: Brightness.dark,
+                  ));
+                  return const Home();
+                } else {
+                  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+                    systemNavigationBarColor: Colors.white,
+                    systemNavigationBarIconBrightness: Brightness.dark,
+                    statusBarColor: Color.fromARGB(96, 0, 0, 0),
+                  ));
+                  return const Login();
+                }
+              },
+            ),
     );
   }
 }
@@ -133,14 +134,15 @@ enum Pagina {
 }
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  final User? testUser;
+  const Home({super.key, this.testUser});
 
   @override
   State<Home> createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> with TickerProviderStateMixin {
-  final usuario = FirebaseAuth.instance.currentUser!;
+  late final usuario = widget.testUser ?? FirebaseAuth.instance.currentUser!;
 
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   Pagina _paginaActual = Pagina.partes;
@@ -226,7 +228,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    if (LocalStorage.prefs.getString('emailUsuario') == null) {
+    if (LocalStorage.prefs.getString('emailUsuario') != usuario.email) {
       LocalStorage.prefs.setString('nombreUsuario', usuario.displayName!);
       LocalStorage.prefs.setString('emailUsuario', usuario.email!);
     }
@@ -595,7 +597,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               ),
                               const SizedBox(height: 15),
                               const Text(
-                                '¿Cerrar sesión?',
+                                '¿Estás seguro de cerrar sesión?',
                                 style: TextStyle(
                                   fontSize: 16.0,
                                 ),

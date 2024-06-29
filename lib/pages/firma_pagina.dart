@@ -41,7 +41,7 @@ class _FirmaPaginaState extends State<FirmaPagina> {
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
-        appBar: const BarraNavegacion(nombre: 'Firmar'),
+        appBar: const BarraNavegacion(nombre: 'FIRMAR'),
         body: SingleChildScrollView(
           physics: const ScrollPhysics(),
           child: Padding(

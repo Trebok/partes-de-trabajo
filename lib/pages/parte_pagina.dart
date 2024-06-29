@@ -448,7 +448,12 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                                     _focusHoraInicio.unfocus();
                                   },
                                   validator: (_) {
-                                    if (!_fechaValida()) {
+                                    if (!Utils.fechaValida(
+                                      _horaInicio,
+                                      _fechaInicio,
+                                      _horaFinal,
+                                      _fechaFinal,
+                                    )) {
                                       return 'Debe ser anterior';
                                     }
                                     return null;
@@ -492,8 +497,13 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                                     _focusFechaInicio.unfocus();
                                   },
                                   validator: (_) {
-                                    if (!_fechaValida()) {
-                                      return '';
+                                    if (!Utils.fechaValida(
+                                      _horaInicio,
+                                      _fechaInicio,
+                                      _horaFinal,
+                                      _fechaFinal,
+                                    )) {
+                                      return 'Debe ser anterior';
                                     }
                                     return null;
                                   },
@@ -543,8 +553,13 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                                     _focusHoraFinal.unfocus();
                                   },
                                   validator: (_) {
-                                    if (!_fechaValida()) {
-                                      return 'Debe ser posterior';
+                                    if (!Utils.fechaValida(
+                                      _horaInicio,
+                                      _fechaInicio,
+                                      _horaFinal,
+                                      _fechaFinal,
+                                    )) {
+                                      return 'Debe ser anterior';
                                     }
                                     return null;
                                   },
@@ -587,8 +602,13 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
                                     _focusFechaFinal.unfocus();
                                   },
                                   validator: (_) {
-                                    if (!_fechaValida()) {
-                                      return '';
+                                    if (!Utils.fechaValida(
+                                      _horaInicio,
+                                      _fechaInicio,
+                                      _horaFinal,
+                                      _fechaFinal,
+                                    )) {
+                                      return 'Debe ser anterior';
                                     }
                                     return null;
                                   },
@@ -1056,17 +1076,6 @@ class _PartePaginaState extends State<PartePagina> with TickerProviderStateMixin
       SizedBox(height: 9),
     ],
   );
-
-  bool _fechaValida() {
-    if (_fechaInicio.isAfter(_fechaFinal)) {
-      return false;
-    } else if (_fechaInicio.isAtSameMomentAs(_fechaFinal)) {
-      if (_horaInicio >= _horaFinal) {
-        return false;
-      }
-    }
-    return true;
-  }
 
   String _tituloSeleccion() {
     return _seleccionados.length > 1
